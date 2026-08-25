@@ -124,7 +124,11 @@ function LoginForm() {
         variant="outline"
         className="w-full"
         disabled={loading}
-        onClick={() => signIn("google", { callbackUrl: callbackUrl })}
+        onClick={() =>
+          signIn("google", {
+            callbackUrl: typeof window === "undefined" ? callbackUrl : `${window.location.origin}${callbackUrl === "/" ? "/landing" : callbackUrl}`,
+          })
+        }
       >
         {t("continueGoogle")}
       </Button>

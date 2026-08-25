@@ -185,7 +185,12 @@ function SignupForm() {
         variant="outline"
         className="w-full"
         disabled={loading}
-        onClick={() => signIn("google", { callbackUrl: "/onboarding" })}
+        onClick={() =>
+          signIn("google", {
+            callbackUrl:
+              typeof window === "undefined" ? "/onboarding" : `${window.location.origin}/onboarding`,
+          })
+        }
       >
         {t("continueGoogle")}
       </Button>

@@ -4,12 +4,15 @@ import Google from "next-auth/providers/google";
 import Apple from "next-auth/providers/apple";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
+import { applyProductionAuthUrl } from "@/lib/auth-url";
 import authConfig from "@/lib/auth.config";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { loadUserHasPaid } from "@/lib/auth-has-paid";
 import { loginSchema } from "@/schemas/auth";
 import type { UserRole } from "@/types";
+
+applyProductionAuthUrl();
 
 async function resolveDbUserId(email: string | null | undefined, fallbackId?: string) {
   if (fallbackId && mongoose.Types.ObjectId.isValid(fallbackId)) {
@@ -122,6 +125,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    ...authConfig.callbacks,
     async signIn({ user, account }) {
       if (account?.provider === "credentials") return true;
 
