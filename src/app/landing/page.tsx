@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { BbCanvas } from "@/components/kidfuel/bb-canvas";
+import { BbCanvas } from "@/components/babybite/bb-canvas";
 import {
   BondTable,
   BrandStickers,
   CompareTables,
   MealMarquee,
   SiteArt,
-} from "@/components/kidfuel/oats-brand";
+} from "@/components/babybite/oats-brand";
+import ThreeDMarqueeDemo from "@/components/3d-marquee-demo";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 
 const STEPS = [
@@ -39,6 +40,10 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="os-marquee-3d" aria-label={t("ourPlates")}>
+        <ThreeDMarqueeDemo />
+      </section>
+
       <MealMarquee />
 
       <BondTable />
@@ -48,12 +53,14 @@ export default function LandingPage() {
       <section className="os-plates" id="plates">
         <p className="os-band-kicker">{t("ourPlates")}</p>
         <h2 className="os-section-title">{t("sampleCaption")}</h2>
+        <p className="os-compare-note">{t("kitchenLine")}</p>
         <SiteArt src="/art-tiffins.png" alt={t("artTiffins")} variant="wide" />
+        <p className="os-compare-note">{t("trustLine")}</p>
       </section>
 
       <section className="os-duo">
         <p className="os-band-kicker">{t("duoKicker")}</p>
-        <h2 className="os-section-title">{t("energyPlate")}</h2>
+        <h2 className="os-section-title">{t("duoTitle")}</h2>
         <p className="os-bond-copy os-duo-copy">{t("payNotes")}</p>
         <SiteArt src="/art-nutrients.png" alt={t("artNutrients")} variant="nutrients" />
       </section>

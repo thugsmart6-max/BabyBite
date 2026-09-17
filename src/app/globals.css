@@ -376,7 +376,9 @@ body.intro-active {
 
 html {
   color-scheme: light;
-  overflow-x: clip;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html.dark {
@@ -386,10 +388,10 @@ html.dark {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), "Noto Sans Tamil", "Noto Sans Devanagari", system-ui, sans-serif;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: clip;
+  overflow-x: hidden;
   overflow-y: auto;
   letter-spacing: 0;
   font-size: 16px;
@@ -443,7 +445,7 @@ body {
 .terms-gate-panel {
   max-height: min(96vh, 820px);
   overflow-y: auto;
-  overflow-x: clip;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -753,9 +755,51 @@ body {
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+  background: linear-gradient(90deg, #f6d326 12%, #fff6b0 48%, #e8c31a 88%);
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite;
+}
+
+.os-load {
+  width: min(42rem, 100%);
+  min-height: 18rem;
+  margin: 2.4rem auto;
+  padding: 2.4rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1.1rem;
+}
+
+.os-marquee-3d {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  contain: paint;
+  padding: 0 4vw 1rem;
+}
+
+.os-pay-wait {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  background: color-mix(in srgb, #fff 88%, #f6d326);
+}
+
+.os-pay-done {
+  margin: 0;
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
 }
 
 @keyframes shimmer {
@@ -1154,22 +1198,22 @@ html.dark .vands-grid-bg {
 }
 
 /* BabyBite funnel pages */
-.kidfuel-page {
+.babybite-page {
   background: var(--background);
   color: var(--foreground);
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: clip;
+  overflow-x: hidden;
   overflow-y: visible;
 }
 
-.kidfuel-hero-glow {
+.babybite-hero-glow {
   background:
     radial-gradient(ellipse 55% 45% at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent),
     radial-gradient(ellipse 35% 25% at 85% 15%, color-mix(in srgb, var(--accent) 6%, transparent), transparent);
 }
 
-.kidfuel-glass {
+.babybite-glass {
   background: color-mix(in srgb, var(--card) 88%, transparent);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
@@ -1181,22 +1225,22 @@ html.dark .vands-grid-bg {
     color 0.35s ease;
 }
 
-.kidfuel-glass:hover {
+.babybite-glass:hover {
   border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
 }
 
-.kidfuel-glass.vands-invert-hover:hover {
+.babybite-glass.vands-invert-hover:hover {
   background: var(--vands-invert-bg);
   color: var(--vands-invert-fg);
   border-color: var(--vands-invert-border);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vands-invert-accent) 20%, transparent);
 }
 
-.light .kidfuel-glass {
+.light .babybite-glass {
   background: color-mix(in srgb, var(--card) 95%, transparent);
 }
 
-.kidfuel-step-pill {
+.babybite-step-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -1213,23 +1257,23 @@ html.dark .vands-grid-bg {
     transform 0.25s var(--vands-ease);
 }
 
-.kidfuel-step-pill:hover:not(:disabled) {
+.babybite-step-pill:hover:not(:disabled) {
   border-color: var(--accent);
   transform: translateY(-1px);
 }
 
-.kidfuel-step-pill.is-active {
+.babybite-step-pill.is-active {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-foreground);
 }
 
-.kidfuel-step-pill.is-done {
+.babybite-step-pill.is-done {
   border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
   color: var(--accent);
 }
 
-.kidfuel-goal-block {
+.babybite-goal-block {
   cursor: pointer;
   border: none;
   border-bottom: 1px solid var(--border);
@@ -1237,20 +1281,20 @@ html.dark .vands-grid-bg {
   color: inherit;
 }
 
-.kidfuel-goal-block.is-selected {
+.babybite-goal-block.is-selected {
   background: color-mix(in srgb, var(--accent) 6%, var(--background));
 }
 
-.kidfuel-goal-block.is-selected::before {
+.babybite-goal-block.is-selected::before {
   width: 4px;
   background: var(--accent);
 }
 
-.kidfuel-goal-block.is-selected .vands-service-num {
+.babybite-goal-block.is-selected .vands-service-num {
   color: var(--accent);
 }
 
-.kidfuel-comparison-panel {
+.babybite-comparison-panel {
   border: 1px solid var(--border);
   background: var(--card);
   padding: 1.5rem;
@@ -1259,28 +1303,28 @@ html.dark .vands-grid-bg {
     border-color 0.35s ease;
 }
 
-.kidfuel-comparison-panel.is-highlight {
+.babybite-comparison-panel.is-highlight {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
   background: color-mix(in srgb, var(--accent) 5%, var(--card));
 }
 
-.kidfuel-comparison-panel:hover {
+.babybite-comparison-panel:hover {
   background: var(--vands-invert-bg);
   color: var(--vands-invert-fg);
   border-color: var(--vands-invert-border);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vands-invert-accent) 15%, transparent);
 }
 
-.kidfuel-comparison-panel:hover .label-caps,
-.kidfuel-comparison-panel:hover .comparison-item-muted {
+.babybite-comparison-panel:hover .label-caps,
+.babybite-comparison-panel:hover .comparison-item-muted {
   color: var(--vands-invert-muted);
 }
 
-.kidfuel-comparison-panel.is-highlight:hover .label-caps {
+.babybite-comparison-panel.is-highlight:hover .label-caps {
   color: var(--vands-invert-accent);
 }
 
-.kidfuel-comparison-panel:hover .comparison-item-text {
+.babybite-comparison-panel:hover .comparison-item-text {
   color: var(--vands-invert-fg);
 }
 

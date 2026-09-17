@@ -1,4 +1,4 @@
-import type { ChildGender } from "@/types/kidfuel";
+import type { ChildGender } from "@/types/babybite";
 
 export type AgeGroup = "4-8" | "9-12";
 

@@ -1,6 +1,7 @@
 export const PUBLIC_PAGE_PREFIXES = ["/landing"] as const;
 export const AUTH_PAGE_PREFIXES = ["/login", "/signup"] as const;
 export const PAID_PAGE_PREFIXES = ["/success", "/results"] as const;
+export const APP_PAGE_PREFIXES = ["/onboarding", "/payment", "/success", "/results", "/settings"] as const;
 export const LEGACY_PAGE_PREFIXES = ["/dashboard", "/legacy", "/preview", "/analysis"] as const;
 
 export type FunnelGateInput = {
@@ -113,9 +114,17 @@ export function resolveFunnelGate(input: FunnelGateInput): FunnelGateResult {
   }
 
   const isPublicPage = PUBLIC_PAGE_PREFIXES.some((prefix) => pathStartsWith(pathname, prefix));
+  if (isPublicPage) {
+    return { type: "next" };
+  }
+
+  const isAppPage = APP_PAGE_PREFIXES.some((prefix) => pathStartsWith(pathname, prefix));
+
   if (!isLoggedIn) {
-    if (isPublicPage) return { type: "next" };
-    return { type: "redirect", path: loginRedirectPath(pathname) };
+    if (isAppPage) {
+      return { type: "redirect", path: loginRedirectPath(pathname) };
+    }
+    return { type: "next" };
   }
 
   if (!onboardingComplete && !pathStartsWith(pathname, "/onboarding")) {

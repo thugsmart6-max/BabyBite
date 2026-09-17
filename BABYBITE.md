@@ -42,8 +42,8 @@ MONGODB_DNS_SERVERS=     # optional — defaults to 1.1.1.1,8.8.8.8 for SRV look
 ## Architecture
 
 - `src/models/` — User, ChildProfile, NutritionAnalysis, MealPlan, Payment, PDFReport, EmailLog
-- `src/services/` — analysis-engine, kidfuel-meal-engine, pdf-service, email-service
-- `src/app/api/kidfuel/` — onboarding, payment, plans APIs
+- `src/services/` — analysis-engine, babybite-meal-engine, pdf-service, email-service
+- `src/app/api/babybite/` — onboarding, payment, plans APIs
 - `src/proxy.ts` — route protection via named `proxy` export (login, onboarding, demo-payment gates)
 
 Legacy dashboard routes (`/dashboard/*`, old APIs) have been removed. `/legacy/dashboard` redirects to `/results`.

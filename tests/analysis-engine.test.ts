@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { generateNutritionAnalysis } from "@/services/analysis-engine";
-import type { KidFuelChildProfile } from "@/types/kidfuel";
+import type { BabyBiteChildProfile } from "@/types/babybite";
 
-const baseProfile: KidFuelChildProfile = {
+const baseProfile: BabyBiteChildProfile = {
   id: "test-id",
   name: "Aanya",
   ageYears: 7,

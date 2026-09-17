@@ -1,8 +1,8 @@
 "use client";
 
 import { Logo } from "@/components/shared/logo";
-import { BbCanvas } from "@/components/kidfuel/bb-canvas";
-import { SiteArt } from "@/components/kidfuel/oats-brand";
+import { BbCanvas } from "@/components/babybite/bb-canvas";
+import { SiteArt } from "@/components/babybite/oats-brand";
 
 export function BlimpFooter({ compact = false }: { compact?: boolean }) {
   return (

@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { BbCanvas } from "@/components/kidfuel/bb-canvas";
-import { SiteArt } from "@/components/kidfuel/oats-brand";
-import { fetchKidFuelProfile } from "@/lib/kidfuel-client";
+import { BbCanvas } from "@/components/babybite/bb-canvas";
+import { KitchenSkeleton } from "@/components/babybite/page-skeleton";
+import { SiteArt } from "@/components/babybite/oats-brand";
+import { fetchBabyBiteProfile } from "@/lib/babybite-client";
 import { celebrateMilestone } from "@/lib/utils/confetti";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 
@@ -22,7 +23,7 @@ export default function SuccessPage() {
   useEffect(() => {
     let cancelled = false;
 
-    fetchKidFuelProfile()
+    fetchBabyBiteProfile()
       .then(async (profile) => {
         if (cancelled) return;
 
@@ -38,7 +39,7 @@ export default function SuccessPage() {
         }
 
         try {
-          const res = await fetch("/api/kidfuel/plans", {
+          const res = await fetch("/api/babybite/plans", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ childProfileId: profile.child.id }),
@@ -95,6 +96,14 @@ export default function SuccessPage() {
     );
   }
 
+  if (!ready) {
+    return (
+      <BbCanvas full>
+        <KitchenSkeleton note={t("successWriting")} />
+      </BbCanvas>
+    );
+  }
+
   return (
     <BbCanvas full className="os-results">
       <section className="os-results-hero">
@@ -102,13 +111,9 @@ export default function SuccessPage() {
         <h1 className="os-hero-title">{t("successTitle")}</h1>
         <SiteArt src="/art-tiffin.png" alt={t("artTiffin")} variant="tiffin" priority />
         <p className="os-onboard-lede">{t("successBody")}</p>
-        {ready ? (
-          <button type="button" className="bb-cta" onClick={() => router.push("/results")}>
-            {t("openTonight")}
-          </button>
-        ) : (
-          <p className="os-band-kicker">{t("successWriting")}</p>
-        )}
+        <button type="button" className="bb-cta" onClick={() => router.push("/results")}>
+          {t("openTonight")}
+        </button>
       </section>
     </BbCanvas>
   );

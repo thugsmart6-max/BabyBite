@@ -6,7 +6,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { AuthShell } from "@/components/blimp/site-chrome";
-import { BbCanvas } from "@/components/kidfuel/bb-canvas";
+import { BbCanvas } from "@/components/babybite/bb-canvas";
 import { TermsAgreementGate } from "@/components/shared/terms-agreement-gate";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { FormField, inputStateClass } from "@/components/forms/form-field";
@@ -17,6 +17,8 @@ import { signupFormSchema } from "@/schemas/forms";
 import { TERMS_VERSION } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { rememberLocalUser } from "@/lib/local-user-store";
+import { KitchenSkeletonScreen } from "@/components/babybite/page-skeleton";
 
 function SignupForm() {
   const { t } = useMotherLocale();
@@ -30,6 +32,14 @@ function SignupForm() {
     { name: "", email: "", password: "", confirmPassword: "" }
   );
 
+  const goAfterSignup = () => {
+    window.location.assign("/onboarding");
+  };
+
+  const startGoogle = () => {
+    void signIn("google", { callbackUrl: "/" });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!termsAccepted) {
@@ -41,39 +51,51 @@ function SignupForm() {
     if (!result.success) return;
 
     setLoading(true);
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...result.data,
-        acceptedTerms: true,
-        termsVersion: TERMS_VERSION,
-      }),
-    });
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...result.data,
+          acceptedTerms: true,
+          termsVersion: TERMS_VERSION,
+        }),
+      });
 
-    const data = await res.json();
-    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(res.status === 409 ? t("emailTaken") : (data.error ?? t("signupFail")));
+        if (res.status === 409) {
+          router.push("/login");
+        }
+        return;
+      }
+
+      const signInResult = await signIn("credentials", {
+        email: result.data.email,
+        password: result.data.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        toast.error(t("createdSignIn"));
+        router.push("/login");
+        return;
+      }
+
+      rememberLocalUser({
+        email: result.data.email,
+        name: result.data.name,
+        onboardingComplete: false,
+        hasPaid: false,
+      });
+      toast.success(t("welcomeBite"));
+      goAfterSignup();
+    } catch {
+      toast.error(t("signupFail"));
+    } finally {
       setLoading(false);
-      toast.error(data.error ?? t("signupFail"));
-      return;
     }
-
-    const signInResult = await signIn("credentials", {
-      email: result.data.email,
-      password: result.data.password,
-      redirect: false,
-    });
-    setLoading(false);
-
-    if (signInResult?.error) {
-      toast.error(t("createdSignIn"));
-      router.push("/login");
-      return;
-    }
-
-    toast.success(t("welcomeBite"));
-    router.push("/onboarding");
-    router.refresh();
   };
 
   if (!termsAccepted) {
@@ -82,6 +104,7 @@ function SignupForm() {
         <TermsAgreementGate
           embedded
           onAccept={() => setTermsAccepted(true)}
+          onGoogle={startGoogle}
           onDecline={() => router.push("/landing")}
         />
       </BbCanvas>
@@ -89,7 +112,7 @@ function SignupForm() {
   }
 
   return (
-    <AuthShell title={t("createAccount")} subtitle={t("termsSub")}>
+    <AuthShell title={t("createAccount")} subtitle={t("authNote")}>
       <p className="text-xs text-muted-foreground border border-border p-3 mb-6 leading-relaxed">
         {t("acceptedTermsNote")}
       </p>
@@ -100,6 +123,7 @@ function SignupForm() {
             id="name"
             autoComplete="name"
             value={values.name}
+            data-testid="signup-name"
             onChange={(e) => setField("name", e.target.value)}
             onBlur={() => touchField("name")}
             className={inputStateClass(getError("name"), touched.name)}
@@ -113,6 +137,7 @@ function SignupForm() {
             type="email"
             autoComplete="email"
             value={values.email}
+            data-testid="signup-email"
             onChange={(e) => setField("email", e.target.value)}
             onBlur={() => touchField("email")}
             className={inputStateClass(getError("email"), touched.email)}
@@ -132,18 +157,20 @@ function SignupForm() {
               id="password"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
+              data-testid="signup-password"
               value={values.password}
               onChange={(e) => setField("password", e.target.value)}
               onBlur={() => touchField("password")}
-              className={cn("pr-10", inputStateClass(getError("password"), touched.password))}
+              className={cn("pr-12", inputStateClass(getError("password"), touched.password))}
               aria-invalid={!!getError("password")}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-accent"
+              className="os-icon-hit absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2 text-muted-foreground hover:text-accent"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
         </FormField>
@@ -158,6 +185,7 @@ function SignupForm() {
             id="confirmPassword"
             type="password"
             autoComplete="new-password"
+            data-testid="signup-confirm"
             value={values.confirmPassword}
             onChange={(e) => setField("confirmPassword", e.target.value)}
             onBlur={() => touchField("confirmPassword")}
@@ -166,7 +194,7 @@ function SignupForm() {
           />
         </FormField>
 
-        <Button type="submit" variant="gradient" className="w-full" disabled={loading}>
+        <Button type="submit" variant="gradient" className="w-full" disabled={loading} data-testid="signup-submit">
           {loading ? t("creating") : t("createAccountBtn")}
         </Button>
       </form>
@@ -185,12 +213,7 @@ function SignupForm() {
         variant="outline"
         className="w-full"
         disabled={loading}
-        onClick={() =>
-          signIn("google", {
-            callbackUrl:
-              typeof window === "undefined" ? "/onboarding" : `${window.location.origin}/onboarding`,
-          })
-        }
+        onClick={startGoogle}
       >
         {t("continueGoogle")}
       </Button>
@@ -217,7 +240,7 @@ function SignupForm() {
 
 export default function SignupPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<KitchenSkeletonScreen />}>
       <SignupForm />
     </Suspense>
   );

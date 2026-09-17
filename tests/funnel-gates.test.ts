@@ -129,10 +129,21 @@ describe("resolveFunnelGate", () => {
     ).toEqual({ type: "next" });
   });
 
+  it("lets unknown public URLs fall through to the missing-page screen", () => {
+    expect(
+      resolveFunnelGate({
+        pathname: "/this-page-does-not-exist",
+        isLoggedIn: false,
+        onboardingComplete: false,
+        hasPaid: false,
+      })
+    ).toEqual({ type: "next" });
+  });
+
   it("returns 401 for unauthenticated API calls", () => {
     expect(
       resolveFunnelGate({
-        pathname: "/api/kidfuel/plans",
+        pathname: "/api/babybite/plans",
         isLoggedIn: false,
         onboardingComplete: false,
         hasPaid: false,

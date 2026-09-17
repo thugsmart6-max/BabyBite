@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { BbCanvas } from "@/components/kidfuel/bb-canvas";
-import { MealPack } from "@/components/kidfuel/oats-brand";
+import { BbCanvas } from "@/components/babybite/bb-canvas";
+import { MealPack } from "@/components/babybite/oats-brand";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 
 export default function NotFound() {

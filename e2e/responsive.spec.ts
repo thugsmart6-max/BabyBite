@@ -37,27 +37,24 @@ test.describe("responsive public UI", () => {
     expect(closeBox).not.toBeNull();
     expect(closeBox!.y).toBeGreaterThanOrEqual(0);
     expect(closeBox!.x + closeBox!.width).toBeLessThanOrEqual(VIEWPORTS.phone.width + 1);
-    const darkBox = await page.locator(".os-menu-full").getByRole("button", { name: /^dark$/i }).boundingBox();
-    expect(darkBox).not.toBeNull();
-    expect(darkBox!.y + darkBox!.height).toBeLessThanOrEqual(VIEWPORTS.phone.height + 1);
+    await expect(page.locator(".os-menu-full").getByRole("button", { name: "Tamil" })).toBeVisible();
   });
 
-  test("short phone can still reach language and theme in the menu", async ({ page }) => {
+  test("short phone can still reach language in the menu", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.phoneSm);
     await gotoReady(page, "/landing");
     await openMenu(page);
     const tamil = page.locator(".os-menu-full").getByRole("button", { name: "Tamil" });
     await tamil.scrollIntoViewIfNeeded();
     await expect(tamil).toBeVisible();
-    await expect(page.locator(".os-menu-full").getByRole("button", { name: /^dark$/i })).toBeVisible();
   });
 
-  test("laptop shows language and theme in the header", async ({ page }) => {
+  test("laptop shows language in the header", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.laptop);
     await gotoReady(page, "/landing");
     await expect(page.locator(".os-nav-tools")).toBeVisible();
     await expect(page.getByRole("group", { name: /language/i })).toBeVisible();
-    await expect(page.locator(".os-nav .theme-toggle.is-solo")).toBeVisible();
+    await expect(page.locator(".os-nav-tools")).toContainText("EN");
   });
 
   test("desktop auth art appears without pushing the form off-screen", async ({ page }) => {
@@ -123,7 +120,24 @@ test.describe("responsive public UI", () => {
     expect(box).not.toBeNull();
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.width).toBeLessThanOrEqual(VIEWPORTS.phone.width);
+    await expect(page.getByRole("button", { name: /continue with google/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /decline/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /i agree/i })).toBeVisible();
+  });
+
+  test("short phone keeps Google accept on screen without scrolling the lock", async ({ page }) => {
+    await page.setViewportSize(VIEWPORTS.phoneSm);
+    await gotoReady(page, "/signup");
+    const google = page.getByRole("button", { name: /continue with google/i });
+    const agree = page.getByRole("button", { name: /i agree/i });
+    await expect(google).toBeVisible();
+    await expect(agree).toBeVisible();
+    const googleBox = await google.boundingBox();
+    const agreeBox = await agree.boundingBox();
+    expect(googleBox).not.toBeNull();
+    expect(agreeBox).not.toBeNull();
+    expect(googleBox!.y).toBeGreaterThanOrEqual(0);
+    expect(googleBox!.y + googleBox!.height).toBeLessThanOrEqual(VIEWPORTS.phoneSm.height + 1);
+    expect(agreeBox!.y + agreeBox!.height).toBeLessThanOrEqual(VIEWPORTS.phoneSm.height + 1);
   });
 });

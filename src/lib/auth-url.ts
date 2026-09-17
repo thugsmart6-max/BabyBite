@@ -1,5 +1,11 @@
-/** Live Vercel site. Google Auth must never bounce to localhost. */
+/** Live Vercel site. Used only when this process is actually on Vercel. */
 export const LIVE_SITE = "https://baby-bite.vercel.app";
+
+const LOCAL_ORIGIN = "http://localhost:3000";
+
+function isLocalHost(value: string): boolean {
+  return /localhost|127\.0\.0\.1/i.test(value);
+}
 
 /**
  * Auth.js uses AUTH_URL for Google’s callback.
@@ -18,7 +24,7 @@ export function productionAuthUrl(input: {
   }
 
   const configured = (input.authUrl || input.nextAuthUrl || "").replace(/\/$/, "");
-  const isLocal = /localhost|127\.0\.0\.1/i.test(configured);
+  const isLocal = isLocalHost(configured);
 
   if (!input.vercel) {
     return configured || undefined;
@@ -47,23 +53,41 @@ export function applyProductionAuthUrl() {
 
   if (next) {
     process.env.AUTH_URL = next;
-    if (process.env.NEXTAUTH_URL && /localhost|127\.0\.0\.1/i.test(process.env.NEXTAUTH_URL)) {
+    if (process.env.NEXTAUTH_URL && isLocalHost(process.env.NEXTAUTH_URL)) {
       process.env.NEXTAUTH_URL = next;
     }
   }
 }
 
+/**
+ * After Google / sign-in, Auth.js asks where to send the browser.
+ * Local `npm run dev` must stay on localhost. Vercel must not bounce to localhost.
+ */
 export function rewriteAuthRedirect(url: string, baseUrl: string): string {
-  const origin = /localhost|127\.0\.0\.1/i.test(baseUrl) ? LIVE_SITE : baseUrl.replace(/\/$/, "");
+  const onVercel = Boolean(process.env.VERCEL);
+  const rawBase = baseUrl.replace(/\/$/, "");
+
+  const origin = onVercel
+    ? isLocalHost(rawBase)
+      ? LIVE_SITE
+      : rawBase
+    : isLocalHost(rawBase)
+      ? rawBase
+      : LOCAL_ORIGIN;
 
   if (url.startsWith("/")) return `${origin}${url}`;
 
   try {
     const next = new URL(url);
-    if (/localhost|127\.0\.0\.1/i.test(next.origin)) {
+    if (isLocalHost(next.origin)) {
+      return onVercel ? `${origin}${next.pathname}${next.search}` : url;
+    }
+    if (!onVercel && next.origin === LIVE_SITE) {
       return `${origin}${next.pathname}${next.search}`;
     }
-    if (next.origin === origin || next.origin === LIVE_SITE) return url;
+    if (next.origin === origin || (onVercel && next.origin === LIVE_SITE)) {
+      return url;
+    }
   } catch {
     /* ignore bad urls */
   }

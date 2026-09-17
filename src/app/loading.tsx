@@ -1,10 +1,5 @@
-import { BbCanvas } from "@/components/kidfuel/bb-canvas";
-import { OsBusy } from "@/components/kidfuel/oats-brand";
+import { KitchenSkeletonScreen } from "@/components/babybite/page-skeleton";
 
 export default function Loading() {
-  return (
-    <BbCanvas full>
-      <OsBusy />
-    </BbCanvas>
-  );
+  return <KitchenSkeletonScreen />;
 }

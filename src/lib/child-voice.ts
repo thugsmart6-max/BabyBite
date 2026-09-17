@@ -1,4 +1,4 @@
-import type { ChildGender } from "@/types/kidfuel";
+import type { ChildGender } from "@/types/babybite";
 
 export function childVoice(gender: ChildGender) {
   if (gender === "female") {

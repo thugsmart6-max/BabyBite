@@ -1,4 +1,4 @@
-import type { ChildGender, DailyPlan, MealEntry, NutritionGoal } from "@/types/kidfuel";
+import type { ChildGender, DailyPlan, MealEntry, NutritionGoal } from "@/types/babybite";
 import {
   getDailyTrackerTargets,
   type GoalTrackerItem,

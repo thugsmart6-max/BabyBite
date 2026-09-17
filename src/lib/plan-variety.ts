@@ -1,6 +1,6 @@
-import type { DailyPlan, MealSlot } from "@/types/kidfuel";
+import type { DailyPlan, MealSlot } from "@/types/babybite";
 
-export const MEAL_ENGINE_VERSION = 5;
+export const MEAL_ENGINE_VERSION = 6;
 
 function mealName(day: DailyPlan | undefined, slot: MealSlot): string | undefined {
   return day?.meals?.find((meal) => meal.slot === slot)?.name;

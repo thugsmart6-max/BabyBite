@@ -1,10 +1,10 @@
 import type {
   AnalysisImprovement,
   FoodStyle,
-  KidFuelChildProfile,
+  BabyBiteChildProfile,
   NutritionAnalysisResult,
   NutritionChallenge,
-} from "@/types/kidfuel";
+} from "@/types/babybite";
 import { calmTableReading } from "@/lib/table-reading";
 
 const IMPROVEMENT_AREAS = [
@@ -35,7 +35,7 @@ function scoreFromChallenges(challenges: NutritionChallenge[]): number {
 function improvementStatus(
   key: string,
   challenges: NutritionChallenge[],
-  goal: KidFuelChildProfile["goal"]
+  goal: BabyBiteChildProfile["goal"]
 ): "good" | "needs-work" {
   const needsWorkMap: Record<string, NutritionChallenge[]> = {
     protein: ["underweight", "poor-appetite", "active-sports"],
@@ -51,7 +51,7 @@ function improvementStatus(
 }
 
 export function generateNutritionAnalysis(
-  profile: KidFuelChildProfile
+  profile: BabyBiteChildProfile
 ): NutritionAnalysisResult {
   const score = scoreFromChallenges(profile.challenges);
   const improvements: AnalysisImprovement[] = IMPROVEMENT_AREAS.map((area) => ({

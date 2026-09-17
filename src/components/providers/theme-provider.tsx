@@ -1,67 +1,44 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 
-type Theme = "light" | "dark";
+type Theme = "light";
 
 interface ThemeContextValue {
   theme: Theme;
-  setTheme: (theme: Theme) => void;
   resolvedTheme: Theme;
 }
 
-const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+const ThemeContext = createContext<ThemeContextValue>({
+  theme: "light",
+  resolvedTheme: "light",
+});
 
-function readStoredTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  const stored =
-    window.localStorage.getItem("babybite-theme") ?? window.localStorage.getItem("kidfuel-theme");
-  return stored === "dark" ? "dark" : "light";
-}
-
-function applyTheme(theme: Theme) {
+function lockLight() {
+  if (typeof document === "undefined") return;
   const root = document.documentElement;
-  root.classList.toggle("dark", theme === "dark");
-  root.classList.toggle("light", theme === "light");
+  root.classList.remove("dark");
+  root.classList.add("light");
+  root.style.colorScheme = "light";
+  try {
+    window.localStorage.setItem("babybite-theme", "light");
+  } catch {
+    /* private mode */
+  }
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
-  const [hydrated, setHydrated] = useState(false);
-
+export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
-    const stored = readStoredTheme();
-    applyTheme(stored);
-    const frame = window.requestAnimationFrame(() => {
-      setThemeState(stored);
-      setHydrated(true);
-    });
-    return () => window.cancelAnimationFrame(frame);
+    lockLight();
   }, []);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    applyTheme(theme);
-    localStorage.setItem("babybite-theme", theme);
-    localStorage.removeItem("kidfuel-theme");
-  }, [theme, hydrated]);
-
-  const setTheme = (next: Theme) => {
-    setThemeState(next);
-    applyTheme(next);
-    localStorage.setItem("babybite-theme", next);
-    localStorage.removeItem("kidfuel-theme");
-  };
-
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme: theme }}>
+    <ThemeContext.Provider value={{ theme: "light", resolvedTheme: "light" }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
 export function useTheme() {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-  return ctx;
+  return useContext(ThemeContext);
 }

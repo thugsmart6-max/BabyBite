@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { EmailLog } from "@/models/EmailLog";
 import { connectDB } from "@/lib/mongodb";
-import type { GeneratedMealPlan, KidFuelChildProfile } from "@/types/kidfuel";
+import type { GeneratedMealPlan, BabyBiteChildProfile } from "@/types/babybite";
 
 function subjectFor(name: string) {
   return `${name}'s 30 days are written | BabyBite`;
@@ -44,7 +44,7 @@ function slotLabel(slot: GeneratedMealPlan["today"]["meals"][number]["slot"]): s
 
 const SLOT_ORDER = ["breakfast", "morningSnack", "lunch", "eveningSnack", "dinner"] as const;
 
-function buildHtml(profile: KidFuelChildProfile, plan: GeneratedMealPlan): string {
+function buildHtml(profile: BabyBiteChildProfile, plan: GeneratedMealPlan): string {
   const name = escapeHtml(profile.name);
   const age = profile.ageYears;
   const meals = SLOT_ORDER.map((slot, index) => {
@@ -123,7 +123,7 @@ function buildHtml(profile: KidFuelChildProfile, plan: GeneratedMealPlan): strin
 </html>`;
 }
 
-function buildText(profile: KidFuelChildProfile, plan: GeneratedMealPlan): string {
+function buildText(profile: BabyBiteChildProfile, plan: GeneratedMealPlan): string {
   const lines = SLOT_ORDER.map((slot) => {
     const meal = plan.today.meals.find((item) => item.slot === slot);
     return meal ? `${slotLabel(slot)}: ${meal.name}` : "";
@@ -152,7 +152,7 @@ export async function sendPlanEmail({
   userId: string;
   childProfileId: string;
   to: string;
-  profile: KidFuelChildProfile;
+  profile: BabyBiteChildProfile;
   plan: GeneratedMealPlan;
   pdfBuffer: Buffer;
   fileName: string;

@@ -63,12 +63,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F6D326" },
-    { media: "(prefers-color-scheme: dark)", color: "#111111" },
-  ],
+  themeColor: "#F6D326",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -80,12 +78,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${cormorant.variable} ${nunitoSans.variable} ${outfit.variable} h-full`}
+      className={`${fraunces.variable} ${cormorant.variable} ${nunitoSans.variable} ${outfit.variable} h-full light`}
     >
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("babybite-theme")||localStorage.getItem("kidfuel-theme")||"light";var d=t==="system"?window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light":t;document.documentElement.classList.toggle("dark",d==="dark");document.documentElement.classList.toggle("light",d==="light");}catch(e){}})();`,
+            __html: `(function(){try{var r=document.documentElement;r.classList.remove("dark");r.classList.add("light");r.style.colorScheme="light";localStorage.setItem("babybite-theme","light");}catch(e){}})();`,
           }}
         />
       </head>

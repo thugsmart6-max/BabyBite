@@ -8,9 +8,6 @@ export async function loadUserHasPaid(userId: string): Promise<boolean> {
   }
 
   await connectDB();
-  const child = await ChildProfile.findOne({ userId })
-    .sort({ createdAt: -1 })
-    .select("hasPaid")
-    .lean();
-  return child?.hasPaid ?? false;
+  const paid = await ChildProfile.exists({ userId, hasPaid: true });
+  return Boolean(paid);
 }

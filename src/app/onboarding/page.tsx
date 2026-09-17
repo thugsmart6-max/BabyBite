@@ -4,22 +4,36 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BbCanvas } from "@/components/kidfuel/bb-canvas";
-import { SiteArt } from "@/components/kidfuel/oats-brand";
-import { AgePicker, GoalCard, OptionGrid } from "@/components/kidfuel/option-select";
+import { BbCanvas } from "@/components/babybite/bb-canvas";
+import { SiteArt } from "@/components/babybite/oats-brand";
+import { KitchenSkeleton } from "@/components/babybite/page-skeleton";
+import { AgePicker, GoalCard, OptionGrid } from "@/components/babybite/option-select";
 import { Input } from "@/components/ui/input";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import type { MotherCopyKey } from "@/lib/mother-copy";
-import type { FoodAllergy, NutritionChallenge, NutritionGoal } from "@/types/kidfuel";
+import type {
+  ChildGenderChoice,
+  CookTime,
+  FoodAllergy,
+  KitchenBudget,
+  NutritionChallenge,
+  NutritionGoal,
+  RiceHabit,
+  TiffinNeed,
+} from "@/types/babybite";
+import { parseOptionalMeasure } from "@/schemas/babybite";
+import { growthBandForAge } from "@/lib/growth-bands";
+import { writeActiveChildId } from "@/lib/babybite-client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const STEPS = [0, 1, 2, 3, 4] as const;
-const TITLE_KEYS = ["obTitle1", "obTitle2", "obTitle3", "obTitle4", "obTitle5"] as const;
-const LEDE_KEYS = ["obLede1", "obLede2", "obLede3", "obLede4", "obLede5"] as const;
+const STEPS = [0, 1, 2, 3, 4, 5] as const;
+const TITLE_KEYS = ["obTitle1", "obTitle2", "obTitleKitchen", "obTitle3", "obTitle4", "obTitle5"] as const;
+const LEDE_KEYS = ["obLede1", "obLede2", "obLedeKitchen", "obLede3", "obLede4", "obLede5"] as const;
 const ROOM_KEYS = [
   { id: "child", key: "roomChild" },
   { id: "food", key: "roomFood" },
+  { id: "kitchen", key: "roomKitchen" },
   { id: "challenges", key: "roomChallenges" },
   { id: "goal", key: "roomGoal" },
   { id: "review", key: "roomReview" },
@@ -81,7 +95,7 @@ export default function OnboardingPage() {
   const [form, setForm] = useState({
     name: "",
     ageYears: 7,
-    gender: "male" as "male" | "female" | "other",
+    gender: "male" as ChildGenderChoice,
     heightCm: "",
     weightKg: "",
     dietPreference: "vegetarian" as "vegetarian" | "eggetarian" | "non-vegetarian",
@@ -90,6 +104,10 @@ export default function OnboardingPage() {
     goal: "healthy-nutrition" as NutritionGoal,
     allergies: [] as FoodAllergy[],
     dislikedFoods: "",
+    cookTime: "normal" as CookTime,
+    kitchenBudget: "normal" as KitchenBudget,
+    riceHabit: "eats-rice" as RiceHabit,
+    tiffinNeed: "home-only" as TiffinNeed,
   });
 
   const dietLabel =
@@ -105,6 +123,7 @@ export default function OnboardingPage() {
         ? t("north")
         : t("mixed");
 
+  const growthBand = growthBandForAge(form.ageYears);
   const progress = ((step + 1) / STEPS.length) * 100;
 
   const toggleChallenge = (c: string) => {
@@ -120,7 +139,7 @@ export default function OnboardingPage() {
   const submit = async () => {
     if (form.challenges.length === 0) {
       toast.error(t("selectChallenge"));
-      setStep(2);
+      setStep(3);
       return;
     }
     if (status === "unauthenticated") {
@@ -130,24 +149,39 @@ export default function OnboardingPage() {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/kidfuel/onboarding", {
+      const heightCm = parseOptionalMeasure(form.heightCm);
+      const weightKg = parseOptionalMeasure(form.weightKg);
+      const createNew = new URLSearchParams(window.location.search).get("new") === "1";
+      const res = await fetch("/api/babybite/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
-          heightCm: form.heightCm ? Number(form.heightCm) : undefined,
-          weightKg: form.weightKg ? Number(form.weightKg) : undefined,
+          name: form.name.trim(),
+          ageYears: form.ageYears,
+          gender: form.gender,
+          dietPreference: form.dietPreference,
+          foodStyle: form.foodStyle,
+          challenges: form.challenges,
+          goal: form.goal,
           allergies: form.allergies,
           dislikedFoods: form.dislikedFoods
             .split(",")
             .map((item) => item.trim())
             .filter(Boolean),
+          cookTime: form.cookTime,
+          kitchenBudget: form.kitchenBudget,
+          riceHabit: form.riceHabit,
+          tiffinNeed: form.tiffinNeed,
+          ...(heightCm !== undefined ? { heightCm } : {}),
+          ...(weightKg !== undefined ? { weightKg } : {}),
+          ...(createNew ? { createNew: true } : {}),
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Failed");
-      await update({ onboardingComplete: true });
-      router.push("/payment");
+      if (json.childProfileId) writeActiveChildId(json.childProfileId);
+      await update({ onboardingComplete: true, hasPaid: Boolean(json.hasPaid) });
+      router.push(json.hasPaid ? "/results" : "/payment");
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("couldNotLoad"));
@@ -161,13 +195,25 @@ export default function OnboardingPage() {
       toast.error(t("enterName"));
       return;
     }
-    if (step === 2 && form.challenges.length === 0) {
+    if (step === 0 && (form.ageYears < 4 || form.ageYears > 12)) {
+      toast.error(t("ageRange"));
+      return;
+    }
+    if (step === 3 && form.challenges.length === 0) {
       toast.error(t("pickChallenge"));
       return;
     }
     if (step < STEPS.length - 1) setStep(step + 1);
     else submit();
   };
+
+  if (status === "loading") {
+    return (
+      <BbCanvas full>
+        <KitchenSkeleton />
+      </BbCanvas>
+    );
+  }
 
   return (
     <BbCanvas full className="os-onboard">
@@ -220,11 +266,13 @@ export default function OnboardingPage() {
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       placeholder={t("namePh")}
+                      data-testid="child-name"
                       autoFocus
                     />
                   </div>
                   <div>
                     <label className="os-band-kicker">{t("age")}</label>
+                    <p className="os-onboard-lede">{t("ageRange")}</p>
                     <AgePicker
                       value={form.ageYears}
                       onChange={(age) => setForm({ ...form, ageYears: age })}
@@ -232,32 +280,64 @@ export default function OnboardingPage() {
                   </div>
                   <div>
                     <label className="os-band-kicker">{t("gender")}</label>
+                    <p className="os-onboard-lede">{t("genderHint")}</p>
                     <OptionGrid
                       options={[
                         { value: "male", label: t("boy"), mark: "B", tone: "sky" },
                         { value: "female", label: t("girl"), mark: "G", tone: "pink" },
-                        { value: "other", label: t("other"), mark: "+", tone: "sage" },
                       ]}
                       value={form.gender}
-                      onChange={(v) => setForm({ ...form, gender: v as typeof form.gender })}
-                      columns={3}
+                      onChange={(v) => setForm({ ...form, gender: v as ChildGenderChoice })}
+                      columns={2}
                     />
                   </div>
-                  <details className="os-optional">
-                    <summary className="os-band-kicker cursor-pointer">{t("optionalHw")}</summary>
-                    <div className="grid sm:grid-cols-2 gap-4 mt-4">
-                      <Input
-                        value={form.heightCm}
-                        onChange={(e) => setForm({ ...form, heightCm: e.target.value })}
-                        placeholder={t("heightCm")}
-                      />
-                      <Input
-                        value={form.weightKg}
-                        onChange={(e) => setForm({ ...form, weightKg: e.target.value })}
-                        placeholder={t("weightKg")}
-                      />
+                  <div className="os-hw-card">
+                    <p className="os-band-kicker">{t("hwMain")}</p>
+                    <p className="os-onboard-lede">{t("hwLede")}</p>
+                    <p className="os-band-kicker os-hw-band-kicker">{t("hwBand")}</p>
+                    <div className="os-hw-band">
+                      <article>
+                        <p className="os-band-kicker">{t("usualHeight")}</p>
+                        <h3>{growthBand.heightCm}</h3>
+                      </article>
+                      <article>
+                        <p className="os-band-kicker">{t("usualWeight")}</p>
+                        <h3>{growthBand.weightKg}</h3>
+                      </article>
                     </div>
-                  </details>
+                    <div className="os-hw-grid">
+                      <div>
+                        <label className="os-band-kicker" htmlFor="child-height">
+                          {t("heightCm")}
+                        </label>
+                        <Input
+                          id="child-height"
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          value={form.heightCm}
+                          onChange={(e) => setForm({ ...form, heightCm: e.target.value })}
+                          placeholder={growthBand.heightCm}
+                        />
+                      </div>
+                      <div>
+                        <label className="os-band-kicker" htmlFor="child-weight">
+                          {t("weightKg")}
+                        </label>
+                        <Input
+                          id="child-weight"
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          value={form.weightKg}
+                          onChange={(e) => setForm({ ...form, weightKg: e.target.value })}
+                          placeholder={growthBand.weightKg}
+                        />
+                      </div>
+                    </div>
+                    <p className="os-onboard-lede">{t("hwSkip")}</p>
+                    <p className="os-compare-note">{t("noExtraCm")}</p>
+                  </div>
                   <div>
                     <label className="os-band-kicker">{t("anyAllergies")}</label>
                     <OptionGrid
@@ -332,6 +412,59 @@ export default function OnboardingPage() {
 
               {step === 2 && (
                 <div className="os-field-stack">
+                  <div>
+                    <label className="os-band-kicker">{t("cookTime")}</label>
+                    <OptionGrid
+                      options={[
+                        { value: "ten-min", label: t("cookTenMin"), mark: "10", tone: "yellow", hint: t("cookTenMinHint") },
+                        { value: "normal", label: t("cookNormal"), mark: "OK", tone: "sage", hint: t("cookNormalHint") },
+                      ]}
+                      value={form.cookTime}
+                      onChange={(v) => setForm({ ...form, cookTime: v as CookTime })}
+                      columns={1}
+                    />
+                  </div>
+                  <div>
+                    <label className="os-band-kicker">{t("kitchenMoney")}</label>
+                    <OptionGrid
+                      options={[
+                        { value: "tight", label: t("budgetTight"), mark: "₹", tone: "cocoa", hint: t("budgetTightHint") },
+                        { value: "normal", label: t("budgetNormal"), mark: "₹₹", tone: "sky", hint: t("budgetNormalHint") },
+                      ]}
+                      value={form.kitchenBudget}
+                      onChange={(v) => setForm({ ...form, kitchenBudget: v as KitchenBudget })}
+                      columns={1}
+                    />
+                  </div>
+                  <div>
+                    <label className="os-band-kicker">{t("kitchenRice")}</label>
+                    <OptionGrid
+                      options={[
+                        { value: "eats-rice", label: t("riceEats"), mark: "R", tone: "sage", hint: t("riceEatsHint") },
+                        { value: "refuses-rice", label: t("riceRefuses"), mark: "X", tone: "pink", hint: t("riceRefusesHint") },
+                      ]}
+                      value={form.riceHabit}
+                      onChange={(v) => setForm({ ...form, riceHabit: v as RiceHabit })}
+                      columns={1}
+                    />
+                  </div>
+                  <div>
+                    <label className="os-band-kicker">{t("kitchenTiffin")}</label>
+                    <OptionGrid
+                      options={[
+                        { value: "school-lunch", label: t("tiffinSchool"), mark: "S", tone: "yellow", hint: t("tiffinSchoolHint") },
+                        { value: "home-only", label: t("tiffinHome"), mark: "H", tone: "sky", hint: t("tiffinHomeHint") },
+                      ]}
+                      value={form.tiffinNeed}
+                      onChange={(v) => setForm({ ...form, tiffinNeed: v as TiffinNeed })}
+                      columns={1}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="os-field-stack">
                   <p className="os-now-line">{t("challengeTick")}</p>
                   <OptionGrid
                     options={(Object.keys(CHALLENGE_KEYS) as NutritionChallenge[]).map((value) => ({
@@ -356,7 +489,7 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {step === 3 && (
+              {step === 4 && (
                 <div className="os-field-stack">
                   {GOALS.map((goal) => (
                       <GoalCard
@@ -370,7 +503,7 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {step === 4 && (
+              {step === 5 && (
                 <div className="os-review">
                   <p className="os-band-kicker">
                     {t("readyFor")} {form.name || t("yourChild")}
@@ -379,8 +512,15 @@ export default function OnboardingPage() {
                     {[
                       form.name,
                       `${form.ageYears} ${t("years")}`,
+                      form.gender === "female" ? t("girl") : t("boy"),
+                      form.heightCm.trim() ? `${form.heightCm.trim()} cm` : growthBand.heightCm,
+                      form.weightKg.trim() ? `${form.weightKg.trim()} kg` : growthBand.weightKg,
                       dietLabel,
                       styleLabel,
+                      form.cookTime === "ten-min" ? t("cookTenMin") : t("cookNormal"),
+                      form.kitchenBudget === "tight" ? t("budgetTight") : t("budgetNormal"),
+                      form.riceHabit === "refuses-rice" ? t("riceRefuses") : t("riceEats"),
+                      form.tiffinNeed === "school-lunch" ? t("tiffinSchool") : t("tiffinHome"),
                       t(GOAL_KEYS[form.goal]),
                     ]
                       .filter(Boolean)
@@ -402,7 +542,7 @@ export default function OnboardingPage() {
                 {t("back")}
               </button>
             ) : null}
-            <button type="button" className="bb-cta" onClick={next} disabled={loading}>
+            <button type="button" className="bb-cta" onClick={next} disabled={loading} data-testid="onboarding-next">
               {loading ? t("saving") : step === STEPS.length - 1 ? t("seeTable") : t("continue")}
             </button>
           </div>

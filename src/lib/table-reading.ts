@@ -1,4 +1,4 @@
-import type { AnalysisImprovement, GeneratedMealPlan, MealEntry } from "@/types/kidfuel";
+import type { AnalysisImprovement, GeneratedMealPlan, MealEntry } from "@/types/babybite";
 
 const FOCUS: Record<string, string> = {
   "Protein Intake": "more protein on the plate this week",

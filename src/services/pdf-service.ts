@@ -1,12 +1,12 @@
 import { renderToBuffer } from "@react-pdf/renderer";
-import { KidFuelPDFDocument } from "@/components/pdf/kidfuel-report";
-import type { GeneratedMealPlan, KidFuelChildProfile } from "@/types/kidfuel";
+import { BabyBitePDFDocument } from "@/components/pdf/babybite-report";
+import type { GeneratedMealPlan, BabyBiteChildProfile } from "@/types/babybite";
 
 export async function generatePDFBuffer(
-  profile: KidFuelChildProfile,
+  profile: BabyBiteChildProfile,
   plan: GeneratedMealPlan
 ): Promise<Buffer> {
-  const doc = KidFuelPDFDocument({ profile, plan });
+  const doc = BabyBitePDFDocument({ profile, plan });
   const buffer = await renderToBuffer(doc);
   return Buffer.from(buffer);
 }

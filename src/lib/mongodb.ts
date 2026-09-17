@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import dns from "node:dns";
 import { isMongoSrvError, resolveMongoSrvUri } from "@/lib/mongodb-srv";
+import { ensureTestMotherAccount } from "@/lib/test-mother";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -66,6 +67,11 @@ export async function connectDB(): Promise<typeof mongoose> {
 
   try {
     cached.conn = await cached.promise;
+    try {
+      await ensureTestMotherAccount();
+    } catch (error) {
+      console.error("[babybite] kitchen test login could not be prepared", error);
+    }
     return cached.conn;
   } catch (error) {
     cached.promise = null;

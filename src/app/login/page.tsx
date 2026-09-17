@@ -15,10 +15,12 @@ import { loginFormSchema } from "@/schemas/forms";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { safeInternalPath } from "@/lib/funnel-gates";
+import { rememberLocalUser } from "@/lib/local-user-store";
+import { KitchenSkeletonScreen } from "@/components/babybite/page-skeleton";
 
 export default function LoginPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<KitchenSkeletonScreen />}>
       <LoginForm />
     </Suspense>
   );
@@ -61,12 +63,13 @@ function LoginForm() {
       return;
     }
 
+    rememberLocalUser({ email: result.data.email });
     router.push(callbackUrl);
     router.refresh();
   };
 
   return (
-    <AuthShell title={t("welcomeBack")} subtitle={t("termsSub")}>
+    <AuthShell title={t("welcomeBack")} subtitle={t("authNote")}>
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <FormField id="email" label={t("email")} required error={getError("email")}>
           <Input
@@ -74,6 +77,7 @@ function LoginForm() {
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
+            data-testid="login-email"
             className={inputStateClass(getError("email"), touched.email)}
             value={values.email}
             onChange={(e) => setField("email", e.target.value)}
@@ -89,7 +93,8 @@ function LoginForm() {
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               placeholder="••••••••"
-              className={cn("pr-10", inputStateClass(getError("password"), touched.password))}
+              data-testid="login-password"
+              className={cn("pr-12", inputStateClass(getError("password"), touched.password))}
               value={values.password}
               onChange={(e) => setField("password", e.target.value)}
               onBlur={() => touchField("password")}
@@ -98,14 +103,15 @@ function LoginForm() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-accent"
+              className="os-icon-hit absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2 text-muted-foreground hover:text-accent"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
         </FormField>
 
-        <Button type="submit" variant="gradient" className="w-full" disabled={loading}>
+        <Button type="submit" variant="gradient" className="w-full" disabled={loading} data-testid="login-submit">
           {loading ? t("signingIn") : t("signIn")}
         </Button>
       </form>
@@ -124,11 +130,7 @@ function LoginForm() {
         variant="outline"
         className="w-full"
         disabled={loading}
-        onClick={() =>
-          signIn("google", {
-            callbackUrl: typeof window === "undefined" ? callbackUrl : `${window.location.origin}${callbackUrl === "/" ? "/landing" : callbackUrl}`,
-          })
-        }
+        onClick={() => signIn("google", { callbackUrl })}
       >
         {t("continueGoogle")}
       </Button>

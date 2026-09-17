@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parsePdfDeliveryEmail } from "@/lib/pdf-email-validation";
-import { pdfDeliveryEmailSchema } from "@/schemas/kidfuel";
+import { pdfDeliveryEmailSchema } from "@/schemas/babybite";
 
 describe("pdfDeliveryEmailSchema", () => {
   it("accepts valid email and lowercases", () => {

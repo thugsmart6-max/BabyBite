@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calmTableReading, groceryForToday, whatsappTonightText } from "@/lib/table-reading";
-import type { GeneratedMealPlan } from "@/types/kidfuel";
+import type { GeneratedMealPlan } from "@/types/babybite";
 
 const plan: GeneratedMealPlan = {
   childName: "Rohan",

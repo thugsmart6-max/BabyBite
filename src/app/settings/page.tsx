@@ -5,33 +5,45 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { LogOut } from "lucide-react";
-import { BbCanvas } from "@/components/kidfuel/bb-canvas";
-import { MealPack, OsBusy } from "@/components/kidfuel/oats-brand";
-import { OptionGrid, AgePicker, GoalCard } from "@/components/kidfuel/option-select";
+import { BbCanvas } from "@/components/babybite/bb-canvas";
+import { MealPack } from "@/components/babybite/oats-brand";
+import { KitchenSkeleton } from "@/components/babybite/page-skeleton";
+import { OptionGrid, AgePicker, GoalCard } from "@/components/babybite/option-select";
 import { Input } from "@/components/ui/input";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { ErrorState } from "@/components/shared/error-state";
-import { ResultsPdfDownload } from "@/components/kidfuel/results-pdf-download";
-import type {
-  ChildGender,
-  DietPreference,
-  FoodAllergy,
-  FoodStyle,
-  NutritionChallenge,
-  NutritionGoal,
-} from "@/types/kidfuel";
-import { fetchKidFuelProfile, KidFuelApiError } from "@/lib/kidfuel-client";
+import { ResultsPdfDownload } from "@/components/babybite/results-pdf-download";
+import {
+  asChildGenderChoice,
+  type ChildGenderChoice,
+  type CookTime,
+  type DietPreference,
+  type FoodAllergy,
+  type FoodStyle,
+  type KitchenBudget,
+  type NutritionChallenge,
+  type NutritionGoal,
+  type RiceHabit,
+  type TiffinNeed,
+} from "@/types/babybite";
+import {
+  fetchBabyBiteProfile,
+  BabyBiteApiError,
+  writeActiveChildId,
+  type BabyBiteChildSummary,
+} from "@/lib/babybite-client";
+import { parseOptionalMeasure } from "@/schemas/babybite";
 import { toast } from "sonner";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import type { MotherCopyKey } from "@/lib/mother-copy";
 import { cn } from "@/lib/utils";
+import { endLocalSession } from "@/lib/local-user-store";
 
 type SetTab = "child" | "kitchen" | "focus" | "account" | "plan";
 
 type SettingsForm = {
   name: string;
   ageYears: number;
-  gender: ChildGender;
+  gender: ChildGenderChoice;
   heightCm: string;
   weightKg: string;
   dietPreference: DietPreference;
@@ -40,6 +52,10 @@ type SettingsForm = {
   goal: NutritionGoal;
   allergies: FoodAllergy[];
   dislikedFoods: string;
+  cookTime: CookTime;
+  kitchenBudget: KitchenBudget;
+  riceHabit: RiceHabit;
+  tiffinNeed: TiffinNeed;
 };
 
 const EMPTY_FORM: SettingsForm = {
@@ -54,6 +70,10 @@ const EMPTY_FORM: SettingsForm = {
   goal: "healthy-nutrition",
   allergies: [],
   dislikedFoods: "",
+  cookTime: "normal",
+  kitchenBudget: "normal",
+  riceHabit: "eats-rice",
+  tiffinNeed: "home-only",
 };
 
 const ALLERGY_KEYS: Record<FoodAllergy, MotherCopyKey> = {
@@ -128,6 +148,10 @@ function kitchenSnapshot(form: SettingsForm) {
     goal: form.goal,
     allergies: [...form.allergies].sort(),
     dislikedFoods: form.dislikedFoods.trim(),
+    cookTime: form.cookTime,
+    kitchenBudget: form.kitchenBudget,
+    riceHabit: form.riceHabit,
+    tiffinNeed: form.tiffinNeed,
   });
 }
 
@@ -143,6 +167,9 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [hasPaid, setHasPaid] = useState(false);
   const [childId, setChildId] = useState<string | null>(null);
+  const [children, setChildren] = useState<BabyBiteChildSummary[]>([]);
+  const [firstHeightCm, setFirstHeightCm] = useState<number | undefined>();
+  const [firstWeightKg, setFirstWeightKg] = useState<number | undefined>();
   const [form, setForm] = useState<SettingsForm>(EMPTY_FORM);
   const [savedSnap, setSavedSnap] = useState("");
   const [savedKitchen, setSavedKitchen] = useState("");
@@ -177,7 +204,7 @@ export default function SettingsPage() {
     [hasPaid, t]
   );
 
-  const applyChild = (profile: Awaited<ReturnType<typeof fetchKidFuelProfile>>) => {
+  const applyChild = (profile: Awaited<ReturnType<typeof fetchBabyBiteProfile>>) => {
     if (!profile.child) {
       router.replace("/onboarding");
       return;
@@ -186,7 +213,7 @@ export default function SettingsPage() {
     const next: SettingsForm = {
       name: child.name,
       ageYears: child.ageYears,
-      gender: child.gender,
+      gender: asChildGenderChoice(child.gender),
       heightCm: child.heightCm ? String(child.heightCm) : "",
       weightKg: child.weightKg ? String(child.weightKg) : "",
       dietPreference: (child.dietPreference as DietPreference) ?? "vegetarian",
@@ -195,9 +222,16 @@ export default function SettingsPage() {
       goal: (child.goal as NutritionGoal) ?? "healthy-nutrition",
       allergies: child.allergies ?? [],
       dislikedFoods: (child.dislikedFoods ?? []).join(", "),
+      cookTime: child.cookTime ?? "normal",
+      kitchenBudget: child.kitchenBudget ?? "normal",
+      riceHabit: child.riceHabit ?? "eats-rice",
+      tiffinNeed: child.tiffinNeed ?? "home-only",
     };
     setChildId(child.id);
     setHasPaid(child.hasPaid);
+    setChildren(profile.children ?? [child]);
+    setFirstHeightCm(child.baselineHeightCm);
+    setFirstWeightKg(child.baselineWeightKg);
     setForm(next);
     setSavedSnap(snapshot(next));
     setSavedKitchen(kitchenSnapshot(next));
@@ -206,14 +240,14 @@ export default function SettingsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchKidFuelProfile()
+    fetchBabyBiteProfile()
       .then((profile) => {
         if (cancelled) return;
         applyChild(profile);
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err instanceof KidFuelApiError ? err.message : t("failedSettings"));
+          setError(err instanceof BabyBiteApiError ? err.message : t("failedSettings"));
         }
       })
       .finally(() => {
@@ -228,10 +262,10 @@ export default function SettingsPage() {
   const retry = () => {
     setLoading(true);
     setError(null);
-    fetchKidFuelProfile()
+    fetchBabyBiteProfile()
       .then(applyChild)
       .catch((err) => {
-        setError(err instanceof KidFuelApiError ? err.message : t("failedSettings"));
+        setError(err instanceof BabyBiteApiError ? err.message : t("failedSettings"));
       })
       .finally(() => setLoading(false));
   };
@@ -252,15 +286,17 @@ export default function SettingsPage() {
     }
     setSaving(true);
     try {
-      const res = await fetch("/api/kidfuel/onboarding", {
+      const heightCm = parseOptionalMeasure(form.heightCm);
+      const weightKg = parseOptionalMeasure(form.weightKg);
+      const res = await fetch("/api/babybite/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
           ageYears: form.ageYears,
           gender: form.gender,
-          heightCm: form.heightCm ? Number(form.heightCm) : undefined,
-          weightKg: form.weightKg ? Number(form.weightKg) : undefined,
+          ...(heightCm !== undefined ? { heightCm } : {}),
+          ...(weightKg !== undefined ? { weightKg } : {}),
           dietPreference: form.dietPreference,
           foodStyle: form.foodStyle,
           challenges: form.challenges,
@@ -270,11 +306,23 @@ export default function SettingsPage() {
             .split(",")
             .map((item) => item.trim())
             .filter(Boolean),
+          cookTime: form.cookTime,
+          kitchenBudget: form.kitchenBudget,
+          riceHabit: form.riceHabit,
+          tiffinNeed: form.tiffinNeed,
+          ...(childId ? { childProfileId: childId } : {}),
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? t("failedSettings"));
+      if (json.childProfileId) writeActiveChildId(json.childProfileId);
       await update({ onboardingComplete: true });
+      const refreshed = await fetchBabyBiteProfile(json.childProfileId ?? childId ?? undefined);
+      if (refreshed.child) {
+        setFirstHeightCm(refreshed.child.baselineHeightCm);
+        setFirstWeightKg(refreshed.child.baselineWeightKg);
+        setChildren(refreshed.children ?? [refreshed.child]);
+      }
       const kitchenChanged = kitchenSnapshot(form) !== savedKitchen;
       setSavedSnap(snapshot(form));
       setSavedKitchen(kitchenSnapshot(form));
@@ -297,7 +345,7 @@ export default function SettingsPage() {
     if (!childId) return;
     setRebuilding(true);
     try {
-      const res = await fetch("/api/kidfuel/plans", {
+      const res = await fetch("/api/babybite/plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ childProfileId: childId, regenerate: true }),
@@ -318,6 +366,7 @@ export default function SettingsPage() {
     if (dirty && !window.confirm(t("unsavedLeave"))) return;
     setLoggingOut(true);
     try {
+      endLocalSession();
       await signOut({ callbackUrl: "/landing" });
     } catch {
       setLoggingOut(false);
@@ -327,7 +376,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <BbCanvas full>
-        <OsBusy />
+        <KitchenSkeleton />
       </BbCanvas>
     );
   }
@@ -360,6 +409,7 @@ export default function SettingsPage() {
             <button
               type="button"
               className="os-set-logout"
+              data-testid="logout-button"
               onClick={logout}
               disabled={loggingOut}
             >
@@ -399,6 +449,37 @@ export default function SettingsPage() {
                   {t("setChild")}
                 </h2>
                 <div>
+                  <p className="os-band-kicker">{t("switchChild")}</p>
+                  <div className="os-step-pills" role="tablist" aria-label={t("switchChild")}>
+                    {children.map((kid) => (
+                      <button
+                        key={kid.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={kid.id === childId}
+                        className={cn("os-step-pill", kid.id === childId && "is-on")}
+                        onClick={() => {
+                          if (kid.id === childId) return;
+                          if (dirty && !window.confirm(t("unsavedLeave"))) return;
+                          writeActiveChildId(kid.id);
+                          setLoading(true);
+                          fetchBabyBiteProfile(kid.id)
+                            .then(applyChild)
+                            .catch((err) => {
+                              setError(err instanceof BabyBiteApiError ? err.message : t("failedSettings"));
+                            })
+                            .finally(() => setLoading(false));
+                        }}
+                      >
+                        {kid.name}
+                      </button>
+                    ))}
+                  </div>
+                  <Link href="/onboarding?new=1" className="os-text-link">
+                    {t("addChild")}
+                  </Link>
+                </div>
+                <div>
                   <label className="os-band-kicker" htmlFor="settings-name">
                     {t("name")}
                   </label>
@@ -412,24 +493,34 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="os-band-kicker">{t("age")}</p>
-                  <p className="os-set-hint">{t("pickOne")}</p>
+                  <p className="os-set-hint">{t("ageRange")}</p>
                   <AgePicker value={form.ageYears} onChange={(ageYears) => setForm({ ...form, ageYears })} />
                 </div>
                 <div>
                   <p className="os-band-kicker">{t("gender")}</p>
+                  <p className="os-set-hint">{t("genderHint")}</p>
                   <OptionGrid
                     options={[
                       { value: "male", label: t("boy"), mark: "B", tone: "sky" },
                       { value: "female", label: t("girl"), mark: "G", tone: "pink" },
-                      { value: "other", label: t("other"), mark: "+", tone: "sage" },
                     ]}
                     value={form.gender}
-                    onChange={(v) => setForm({ ...form, gender: v as ChildGender })}
-                    columns={3}
+                    onChange={(v) => setForm({ ...form, gender: v as ChildGenderChoice })}
+                    columns={2}
                   />
                 </div>
-                <details className="os-optional" open={Boolean(form.heightCm || form.weightKg)}>
+                <details className="os-optional" open>
                   <summary className="os-band-kicker">{t("optionalHw")}</summary>
+                  <p className="os-onboard-lede mt-3">{t("hwLede")}</p>
+                  <p className="os-onboard-lede">{t("remeasureHint")}</p>
+                  {firstHeightCm || firstWeightKg ? (
+                    <p className="os-set-hint">
+                      {t("firstNoted")}
+                      {firstHeightCm ? `: ${firstHeightCm} cm` : ""}
+                      {firstWeightKg ? ` · ${firstWeightKg} kg` : ""}
+                    </p>
+                  ) : null}
+                  <p className="os-onboard-lede">{t("hwSkip")}</p>
                   <div className="os-hw-grid">
                     <div>
                       <label className="os-band-kicker" htmlFor="settings-height">
@@ -519,6 +610,54 @@ export default function SettingsPage() {
                     placeholder={t("foodsAvoidPh")}
                   />
                 </div>
+                <div>
+                  <p className="os-band-kicker">{t("cookTime")}</p>
+                  <OptionGrid
+                    options={[
+                      { value: "ten-min", label: t("cookTenMin"), hint: t("cookTenMinHint"), mark: "10", tone: "yellow" },
+                      { value: "normal", label: t("cookNormal"), hint: t("cookNormalHint"), mark: "OK", tone: "sage" },
+                    ]}
+                    value={form.cookTime}
+                    onChange={(v) => setForm({ ...form, cookTime: v as CookTime })}
+                    columns={1}
+                  />
+                </div>
+                <div>
+                  <p className="os-band-kicker">{t("kitchenMoney")}</p>
+                  <OptionGrid
+                    options={[
+                      { value: "tight", label: t("budgetTight"), hint: t("budgetTightHint"), mark: "₹", tone: "cocoa" },
+                      { value: "normal", label: t("budgetNormal"), hint: t("budgetNormalHint"), mark: "₹₹", tone: "sky" },
+                    ]}
+                    value={form.kitchenBudget}
+                    onChange={(v) => setForm({ ...form, kitchenBudget: v as KitchenBudget })}
+                    columns={1}
+                  />
+                </div>
+                <div>
+                  <p className="os-band-kicker">{t("kitchenRice")}</p>
+                  <OptionGrid
+                    options={[
+                      { value: "eats-rice", label: t("riceEats"), hint: t("riceEatsHint"), mark: "R", tone: "sage" },
+                      { value: "refuses-rice", label: t("riceRefuses"), hint: t("riceRefusesHint"), mark: "X", tone: "pink" },
+                    ]}
+                    value={form.riceHabit}
+                    onChange={(v) => setForm({ ...form, riceHabit: v as RiceHabit })}
+                    columns={1}
+                  />
+                </div>
+                <div>
+                  <p className="os-band-kicker">{t("kitchenTiffin")}</p>
+                  <OptionGrid
+                    options={[
+                      { value: "school-lunch", label: t("tiffinSchool"), hint: t("tiffinSchoolHint"), mark: "S", tone: "yellow" },
+                      { value: "home-only", label: t("tiffinHome"), hint: t("tiffinHomeHint"), mark: "H", tone: "sky" },
+                    ]}
+                    value={form.tiffinNeed}
+                    onChange={(v) => setForm({ ...form, tiffinNeed: v as TiffinNeed })}
+                    columns={1}
+                  />
+                </div>
               </section>
             ) : null}
 
@@ -574,16 +713,10 @@ export default function SettingsPage() {
                     {session.user.email}
                   </p>
                 ) : null}
-                <div className="os-appear">
-                  <div>
-                    <p className="os-band-kicker">{t("appearance")}</p>
-                    <p className="os-set-hint">{t("appearanceHint")}</p>
-                  </div>
-                  <ThemeToggle showLabel />
-                </div>
                 <button
                   type="button"
                   className="os-set-logout os-set-logout-block"
+                  data-testid="logout-button"
                   onClick={logout}
                   disabled={loggingOut}
                 >

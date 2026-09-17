@@ -1,5 +1,5 @@
 import { User } from "@/models/User";
-import { pdfDeliveryEmailSchema } from "@/schemas/kidfuel";
+import { pdfDeliveryEmailSchema } from "@/schemas/babybite";
 
 export type PdfEmailValidationResult =
   | { ok: true; email: string }

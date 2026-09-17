@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { TERMS_VERSION } from "@/lib/constants";
 import { termsAgreementLabel, termsDisclaimer, termsSectionsFor } from "@/lib/terms-copy";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 type TermsAgreementGateProps = {
   onAccept: () => void;
   onDecline: () => void;
+  onGoogle?: () => void;
   className?: string;
   embedded?: boolean;
 };
@@ -17,38 +18,20 @@ type TermsAgreementGateProps = {
 export function TermsAgreementGate({
   onAccept,
   onDecline,
+  onGoogle,
   className,
   embedded = false,
 }: TermsAgreementGateProps) {
   const { t, lang } = useMotherLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [scrolledToEnd, setScrolledToEnd] = useState(false);
   const [checked, setChecked] = useState(false);
   const sections = termsSectionsFor(lang);
 
-  const markIfFits = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    if (el.scrollHeight <= el.clientHeight + 16) setScrolledToEnd(true);
-  }, []);
-
   useEffect(() => {
-    markIfFits();
     const el = scrollRef.current;
     if (!el) return;
-    const observer = new ResizeObserver(markIfFits);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [markIfFits, lang]);
-
-  const handleScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 16;
-    if (atEnd) setScrolledToEnd(true);
-  }, []);
-
-  const canAccept = scrolledToEnd && checked;
+    el.scrollTop = 0;
+  }, [lang]);
 
   return (
     <div
@@ -66,12 +49,7 @@ export function TermsAgreementGate({
           <p className="os-terms-lede">{termsDisclaimer(lang)}</p>
         </div>
 
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="os-terms-scroll"
-          tabIndex={0}
-        >
+        <div ref={scrollRef} className="os-terms-scroll" tabIndex={0}>
           <p className="os-band-kicker">
             {t("termsVersion")} {TERMS_VERSION}
           </p>
@@ -85,26 +63,33 @@ export function TermsAgreementGate({
           </div>
         </div>
 
-        {!scrolledToEnd ? <p className="os-terms-hint">{t("termsScroll")}</p> : null}
-
         <div className="os-terms-foot">
           <label className="os-terms-check">
             <input
               type="checkbox"
               checked={checked}
-              disabled={!scrolledToEnd}
               onChange={(event) => setChecked(event.target.checked)}
               aria-describedby="terms-checkbox-hint"
             />
             <span id="terms-checkbox-hint">{termsAgreementLabel(lang)}</span>
           </label>
 
-          <div className="os-band-actions">
+          <div className="os-band-actions os-terms-actions">
+            {onGoogle ? (
+              <button type="button" className="bb-cta" disabled={!checked} onClick={onGoogle}>
+                {t("continueGoogle")}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={onGoogle ? "os-text-link" : "bb-cta"}
+              disabled={!checked}
+              onClick={onAccept}
+            >
+              {t("termsAgree")}
+            </button>
             <button type="button" className="os-text-link" onClick={onDecline}>
               {t("termsDecline")}
-            </button>
-            <button type="button" className="bb-cta" disabled={!canAccept} onClick={onAccept}>
-              {t("termsAgree")}
             </button>
           </div>
 

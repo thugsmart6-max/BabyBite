@@ -9,6 +9,7 @@ import authConfig from "@/lib/auth.config";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { loadUserHasPaid } from "@/lib/auth-has-paid";
+import { TERMS_VERSION } from "@/lib/constants";
 import { loginSchema } from "@/schemas/auth";
 import type { UserRole } from "@/types";
 
@@ -107,7 +108,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!parsed.success) return null;
 
         await connectDB();
-        const user = await User.findOne({ email: parsed.data.email }).select("+password");
+        const user = await User.findOne({ email: parsed.data.email.trim().toLowerCase() }).select("+password");
         if (!user || !user.password) return null;
 
         const isValid = await bcrypt.compare(parsed.data.password, user.password);
@@ -141,6 +142,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: "parent",
             onboardingComplete: false,
             emailVerified: new Date(),
+            termsAcceptedAt: new Date(),
+            termsVersion: TERMS_VERSION,
             authProvider:
               account?.provider === "google"
                 ? "google"
@@ -193,7 +196,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (
         token.id &&
         mongoose.Types.ObjectId.isValid(token.id as string) &&
-        token.hasPaid === undefined
+        !token.hasPaid
       ) {
         token.hasPaid = await loadUserHasPaid(token.id as string);
       }

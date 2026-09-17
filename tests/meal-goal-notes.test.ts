@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getMealSupportNote, computeWeeklyGoalProgress } from "@/lib/meal-goal-notes";
-import type { DailyPlan, MealEntry } from "@/types/kidfuel";
+import type { DailyPlan, MealEntry } from "@/types/babybite";
 
 const ironMeal: MealEntry = {
   slot: "breakfast",

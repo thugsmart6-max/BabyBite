@@ -96,7 +96,7 @@ test.describe("public funnel navigation", () => {
     await page.getByRole("link", { name: /create one/i }).click();
     await expect(page).toHaveURL(/\/signup$/);
 
-    await page.getByRole("link", { name: /sign in/i }).click();
+    await page.locator(".os-terms-login").getByRole("link", { name: /sign in/i }).click();
     await expect(page).toHaveURL(/\/login$/);
     await assertPrimaryCopyVisible(page, /welcome back/i);
   });
@@ -109,11 +109,6 @@ test.describe("public funnel navigation", () => {
 
   test("accepting terms reveals the signup form", async ({ page }) => {
     await page.goto("/signup");
-    const terms = page.locator(".os-terms-scroll");
-    await terms.evaluate((el) => {
-      el.scrollTop = el.scrollHeight;
-      el.dispatchEvent(new Event("scroll"));
-    });
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: /i agree/i }).click();
     await assertPrimaryCopyVisible(page, /create your account/i);
@@ -137,7 +132,7 @@ test.describe("public funnel navigation", () => {
   });
 });
 
-test.describe("language and theme", () => {
+test.describe("language", () => {
   test.use({ viewport: VIEWPORTS.phone });
 
   test("menu language buttons switch the landing headline", async ({ page }) => {
@@ -153,16 +148,5 @@ test.describe("language and theme", () => {
     await closeMenu(page);
     await expect(page.getByRole("heading", { name: "आज रात क्या है?" })).toBeVisible();
     expect(errors.filter((text) => /hydrat/i.test(text))).toEqual([]);
-  });
-
-  test("dark theme keeps the menu and headline readable", async ({ page }) => {
-    await gotoReady(page, "/landing");
-    await openMenu(page);
-    await page.locator(".os-menu-full").getByRole("button", { name: /^dark$/i }).click();
-    await expect(page.locator("html")).toHaveClass(/dark/);
-    await expect(page.locator(".os-menu-full").getByRole("button", { name: /^light$/i })).toBeVisible();
-    await expect(page.locator(".os-menu-close")).toBeVisible();
-    await closeMenu(page);
-    await assertPrimaryCopyVisible(page, /what.?s for dinner/i);
   });
 });
