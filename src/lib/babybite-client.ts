@@ -1,9 +1,7 @@
 import type {
   ChildGender,
   CookTime,
-  DietPreference,
   FoodAllergy,
-  FoodStyle,
   KitchenBudget,
   NutritionChallenge,
   NutritionGoal,

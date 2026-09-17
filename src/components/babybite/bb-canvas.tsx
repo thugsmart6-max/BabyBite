@@ -176,12 +176,8 @@ export function FeatherTopbar({
 }
 
 export function BbCanvas({
-  title: _title = "What's for dinner?",
-  onTitleClick: _onTitleClick,
   left,
   right,
-  chips: _chips = DEFAULT_CHIPS,
-  chipInteractive: _chipInteractive = false,
   className,
   tagline,
   showTopbar = true,

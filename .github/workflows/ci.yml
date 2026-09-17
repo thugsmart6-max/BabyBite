@@ -21,6 +21,21 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    env:
+      AUTH_SECRET: playwright-ci-secret
+      AUTH_URL: http://localhost:3000
+      MONGODB_URI: mongodb://127.0.0.1:27017/babybite
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 20s
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,6 +45,3 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-        env:
-          AUTH_SECRET: playwright-ci-secret
-          AUTH_URL: http://localhost:3000

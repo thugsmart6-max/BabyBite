@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { HTML_LANG, motherCopy, type MotherCopyKey, type MotherLang } from "@/lib/mother-copy";
 
 const STORAGE_KEY = "babybite-lang";
@@ -22,22 +22,26 @@ function readStoredLang(): MotherLang {
   return "en";
 }
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<MotherLang>("en");
+function subscribeLang(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener("babybite-lang-change", onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener("babybite-lang-change", onStoreChange);
+  };
+}
 
-  useEffect(() => {
-    const stored = readStoredLang();
-    setLangState(stored);
-  }, []);
+export function LocaleProvider({ children }: { children: ReactNode }) {
+  const lang = useSyncExternalStore<MotherLang>(subscribeLang, readStoredLang, () => "en");
 
   useEffect(() => {
     document.documentElement.lang = HTML_LANG[lang];
   }, [lang]);
 
-  const setLang = (next: MotherLang) => {
-    setLangState(next);
+  const setLang = useCallback((next: MotherLang) => {
     window.localStorage.setItem(STORAGE_KEY, next);
-  };
+    window.dispatchEvent(new Event("babybite-lang-change"));
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -45,7 +49,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       setLang,
       t: (key: MotherCopyKey) => motherCopy(lang, key),
     }),
-    [lang]
+    [lang, setLang]
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

@@ -55,7 +55,11 @@ async function connectWithSrvFallback(uri: string): Promise<typeof mongoose> {
 }
 
 export async function connectDB(): Promise<typeof mongoose> {
+  const hasMongoUri = Boolean(MONGODB_URI);
   if (!MONGODB_URI) {
+    // #region agent log
+    fetch('http://127.0.0.1:7803/ingest/95f350a3-7db0-463e-a25d-1bd09a11d00d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'422235'},body:JSON.stringify({sessionId:'422235',location:'src/lib/mongodb.ts:connectDB',message:'mongodb uri missing',data:{hasMongoUri:false},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     throw new Error("Please define MONGODB_URI environment variable");
   }
 
@@ -69,13 +73,24 @@ export async function connectDB(): Promise<typeof mongoose> {
     cached.conn = await cached.promise;
     try {
       await ensureTestMotherAccount();
+      // #region agent log
+      fetch('http://127.0.0.1:7803/ingest/95f350a3-7db0-463e-a25d-1bd09a11d00d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'422235'},body:JSON.stringify({sessionId:'422235',location:'src/lib/mongodb.ts:seed',message:'test mother seed ok',data:{hasMongoUri,seeded:true},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
     } catch (error) {
+      const err = error instanceof Error ? error : new Error("unknown");
+      // #region agent log
+      fetch('http://127.0.0.1:7803/ingest/95f350a3-7db0-463e-a25d-1bd09a11d00d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'422235'},body:JSON.stringify({sessionId:'422235',location:'src/lib/mongodb.ts:seed',message:'test mother seed failed',data:{hasMongoUri,seeded:false,name:err.name,text:err.message.slice(0,180)},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       console.error("[babybite] kitchen test login could not be prepared", error);
     }
     return cached.conn;
   } catch (error) {
     cached.promise = null;
     cached.conn = null;
+    const err = error instanceof Error ? error : new Error("unknown");
+    // #region agent log
+    fetch('http://127.0.0.1:7803/ingest/95f350a3-7db0-463e-a25d-1bd09a11d00d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'422235'},body:JSON.stringify({sessionId:'422235',location:'src/lib/mongodb.ts:connect',message:'mongodb connect failed',data:{hasMongoUri,name:err.name,text:err.message.slice(0,180)},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     throw error;
   }
 }

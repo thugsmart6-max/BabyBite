@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { BbCanvas } from "@/components/babybite/bb-canvas";
 import { DinnerHero, GroceryTicks, TodayShelf, WeekShelf } from "@/components/babybite/dinner-hero";
@@ -57,7 +57,7 @@ export default function ResultsPage() {
     }
   };
 
-  const loadPlan = async () => {
+  const loadPlan = useCallback(async () => {
     const profile = await fetchBabyBiteProfile();
     const childId = profile.child?.id;
     const headers = { "Content-Type": "application/json" };
@@ -90,7 +90,7 @@ export default function ResultsPage() {
     }
 
     applyData(plansJson, profile);
-  };
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,7 +109,7 @@ export default function ResultsPage() {
       cancelled = true;
       window.cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [loadPlan, t]);
 
   const retry = () => {
     setLoading(true);

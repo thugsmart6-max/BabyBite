@@ -57,6 +57,7 @@ export function SiteArt({
   priority?: boolean;
 }) {
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- kitchen CSS targets this img
     <img
       src={src}
       alt={alt}

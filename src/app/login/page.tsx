@@ -38,7 +38,7 @@ function LoginForm() {
   useEffect(() => {
     if (!oauthError) return;
     toast.error(t("oauthFail"));
-  }, [oauthError]);
+  }, [oauthError, t]);
 
   const { values, setField, touchField, validateAll, getError, touched } = useZodForm(
     loginFormSchema,
