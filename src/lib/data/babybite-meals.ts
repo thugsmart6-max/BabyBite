@@ -1,4 +1,5 @@
 import type {
+  AgeBand,
   DietPreference,
   FoodAllergy,
   FoodStyle,
@@ -19,6 +20,7 @@ export type MealTemplate = {
   minutes: number;
   pantry: string[];
   tags: KitchenTag[];
+  ageBands: AgeBand[];
 };
 
 const ALL_DIETS: DietPreference[] = ["vegetarian", "eggetarian", "non-vegetarian"];
@@ -28,11 +30,13 @@ const NV: DietPreference[] = ["non-vegetarian"];
 const SOUTH: FoodStyle[] = ["south-indian", "mixed-indian"];
 const NORTH: FoodStyle[] = ["north-indian", "mixed-indian"];
 const ALL_STYLES: FoodStyle[] = ["south-indian", "north-indian", "mixed-indian"];
+const ALL_AGES: AgeBand[] = ["4-5", "6-8", "9-12"];
+const OLDER: AgeBand[] = ["6-8", "9-12"];
+const YOUNGER: AgeBand[] = ["4-5", "6-8"];
+const DENSE: AgeBand[] = ["9-12"];
 
-function meal(
-  rest: MealTemplate
-): MealTemplate {
-  return rest;
+function meal(rest: Omit<MealTemplate, "ageBands"> & { ageBands?: AgeBand[] }): MealTemplate {
+  return { ageBands: ALL_AGES, ...rest };
 }
 
 export const BABYBITE_MEALS: MealTemplate[] = [
@@ -42,12 +46,13 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 280,
     styles: SOUTH,
     diets: VEG,
-    slots: ["breakfast"],
+    slots: ["breakfast", "lunch"],
     goals: ["healthy-nutrition", "balanced-meals", "food-variety"],
     allergens: [],
     minutes: 20,
     pantry: ["ragi flour", "coconut", "curd"],
     tags: ["rice-free", "kids-favourite", "school-tiffin"],
+    ageBands: YOUNGER,
   }),
   meal({
     name: "Idli with Vegetable Sambar",
@@ -55,7 +60,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 260,
     styles: SOUTH,
     diets: VEG,
-    slots: ["breakfast"],
+    slots: ["breakfast", "lunch"],
     goals: ["better-eating-habits", "protein-focus", "balanced-meals"],
     allergens: [],
     minutes: 15,
@@ -81,12 +86,12 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 350,
     styles: NORTH,
     diets: VEG,
-    slots: ["breakfast", "dinner"],
+    slots: ["breakfast", "lunch", "dinner"],
     goals: ["protein-focus", "healthy-nutrition"],
     allergens: ["dairy", "gluten"],
     minutes: 25,
     pantry: ["atta", "paneer", "curd"],
-    tags: ["rice-free", "kids-favourite", "school-tiffin"],
+    tags: ["rice-free", "kids-favourite", "school-tiffin", "hidden-veg"],
   }),
   meal({
     name: "Vegetable Upma with Peanuts",
@@ -94,12 +99,12 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 240,
     styles: SOUTH,
     diets: VEG,
-    slots: ["breakfast"],
+    slots: ["breakfast", "lunch"],
     goals: ["food-variety", "better-eating-habits"],
     allergens: ["gluten", "nuts"],
     minutes: 15,
     pantry: ["rava", "vegetables", "peanuts"],
-    tags: ["rice-free", "budget", "ten-min"],
+    tags: ["rice-free", "budget", "ten-min", "hidden-veg", "school-tiffin"],
   }),
   meal({
     name: "Moong Dal Khichdi with Ghee",
@@ -112,7 +117,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: ["dairy"],
     minutes: 25,
     pantry: ["rice", "moong dal", "ghee"],
-    tags: ["rice-based", "family-pot", "budget"],
+    tags: ["rice-based", "family-pot", "budget", "hidden-veg"],
   }),
   meal({
     name: "Plain Moong Khichdi",
@@ -125,7 +130,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: [],
     minutes: 25,
     pantry: ["rice", "moong dal", "turmeric"],
-    tags: ["rice-based", "family-pot", "budget"],
+    tags: ["rice-based", "family-pot", "budget", "hidden-veg"],
   }),
   meal({
     name: "Rajma Rice with Salad",
@@ -139,6 +144,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     minutes: 35,
     pantry: ["rajma", "rice", "cucumber"],
     tags: ["rice-based", "family-pot"],
+    ageBands: DENSE,
   }),
   meal({
     name: "Sambar Rice with Poriyal",
@@ -198,7 +204,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 300,
     styles: NORTH,
     diets: EGG,
-    slots: ["breakfast"],
+    slots: ["breakfast", "lunch"],
     goals: ["protein-focus", "food-variety"],
     allergens: ["eggs"],
     minutes: 15,
@@ -211,7 +217,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 230,
     styles: NORTH,
     diets: ALL_DIETS,
-    slots: ["breakfast", "eveningSnack"],
+    slots: ["breakfast", "lunch", "eveningSnack"],
     goals: ["better-eating-habits", "food-variety"],
     allergens: [],
     minutes: 12,
@@ -229,7 +235,8 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: ["dairy", "gluten"],
     minutes: 30,
     pantry: ["chicken", "roti", "curd"],
-    tags: ["rice-free", "kids-favourite"],
+    tags: ["rice-free", "kids-favourite", "school-tiffin"],
+    ageBands: OLDER,
   }),
   meal({
     name: "Chicken Stew with Appam",
@@ -243,6 +250,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     minutes: 35,
     pantry: ["chicken", "coconut", "appam batter"],
     tags: ["rice-free", "family-pot"],
+    ageBands: OLDER,
   }),
   meal({
     name: "Banana Almond Smoothie",
@@ -307,7 +315,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: ["dairy"],
     minutes: 30,
     pantry: ["rice", "vegetables", "curd"],
-    tags: ["rice-based", "family-pot", "kids-favourite"],
+    tags: ["rice-based", "family-pot", "kids-favourite", "hidden-veg"],
   }),
   meal({
     name: "Vegetable Pulao with Cucumber Salad",
@@ -333,7 +341,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: ["dairy"],
     minutes: 15,
     pantry: ["rice", "curd", "pickle"],
-    tags: ["rice-based", "budget", "kids-favourite"],
+    tags: ["rice-based", "budget", "kids-favourite", "school-tiffin"],
   }),
   meal({
     name: "Lemon Rice with Beans Poriyal",
@@ -346,7 +354,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: [],
     minutes: 20,
     pantry: ["rice", "lemon", "beans"],
-    tags: ["rice-based", "budget", "family-pot"],
+    tags: ["rice-based", "budget", "family-pot", "school-tiffin"],
   }),
   meal({
     name: "Masala Oats with Nuts",
@@ -386,6 +394,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     minutes: 12,
     pantry: ["ragi flour", "jaggery", "water"],
     tags: ["rice-free", "budget", "ten-min", "homemade-snack"],
+    ageBands: YOUNGER,
   }),
   meal({
     name: "Dalia with Milk and Dates",
@@ -406,12 +415,12 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 300,
     styles: SOUTH,
     diets: VEG,
-    slots: ["breakfast", "dinner"],
+    slots: ["breakfast", "lunch", "dinner"],
     goals: ["protein-focus", "food-variety"],
     allergens: ["dairy"],
     minutes: 20,
     pantry: ["dosa batter", "paneer", "onion"],
-    tags: ["rice-free", "kids-favourite"],
+    tags: ["rice-free", "kids-favourite", "school-tiffin"],
   }),
   meal({
     name: "Masala Dosa with Potato Filling",
@@ -419,12 +428,12 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 290,
     styles: SOUTH,
     diets: ALL_DIETS,
-    slots: ["breakfast", "dinner"],
+    slots: ["breakfast", "lunch", "dinner"],
     goals: ["food-variety", "balanced-meals"],
     allergens: [],
     minutes: 20,
     pantry: ["dosa batter", "potato", "onion"],
-    tags: ["rice-free", "kids-favourite", "budget"],
+    tags: ["rice-free", "kids-favourite", "budget", "hidden-veg", "school-tiffin"],
   }),
   meal({
     name: "Mixed Veg Paratha with Pickle",
@@ -437,7 +446,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: ["gluten"],
     minutes: 25,
     pantry: ["atta", "vegetables", "pickle"],
-    tags: ["rice-free", "school-tiffin", "kids-favourite", "budget"],
+    tags: ["rice-free", "school-tiffin", "kids-favourite", "budget", "hidden-veg"],
   }),
   meal({
     name: "Bajra Roti with Mixed Vegetable Sabzi",
@@ -490,6 +499,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     minutes: 30,
     pantry: ["fish", "rice", "coconut"],
     tags: ["rice-based", "family-pot"],
+    ageBands: DENSE,
   }),
   meal({
     name: "Tofu Bhurji with Millet Roti",
@@ -523,12 +533,12 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 270,
     styles: NORTH,
     diets: VEG,
-    slots: ["breakfast", "eveningSnack"],
+    slots: ["breakfast", "lunch", "eveningSnack"],
     goals: ["protein-focus", "food-variety"],
     allergens: [],
     minutes: 15,
     pantry: ["besan", "mint", "onion"],
-    tags: ["rice-free", "ten-min", "school-tiffin", "homemade-snack", "budget"],
+    tags: ["rice-free", "ten-min", "school-tiffin", "homemade-snack", "budget", "hidden-veg"],
   }),
   meal({
     name: "Coconut Rice with Cabbage Thoran",
@@ -575,12 +585,12 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 300,
     styles: SOUTH,
     diets: ALL_DIETS,
-    slots: ["breakfast", "dinner"],
+    slots: ["breakfast", "lunch", "dinner"],
     goals: ["food-variety", "balanced-meals", "better-eating-habits"],
     allergens: [],
     minutes: 20,
     pantry: ["dosa batter", "onion", "sambar"],
-    tags: ["rice-free", "kids-favourite", "budget"],
+    tags: ["rice-free", "kids-favourite", "budget", "school-tiffin"],
   }),
   meal({
     name: "Egg Dosa with Tomato Chutney",
@@ -588,12 +598,12 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 320,
     styles: SOUTH,
     diets: EGG,
-    slots: ["breakfast", "dinner"],
+    slots: ["breakfast", "lunch", "dinner"],
     goals: ["protein-focus", "food-variety", "healthy-nutrition"],
     allergens: ["eggs"],
     minutes: 15,
     pantry: ["dosa batter", "eggs", "tomato"],
-    tags: ["rice-free", "kids-favourite", "ten-min"],
+    tags: ["rice-free", "kids-favourite", "ten-min", "school-tiffin"],
   }),
   meal({
     name: "Mild Fish Fry with Lemon Rice",
@@ -607,6 +617,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     minutes: 25,
     pantry: ["fish", "rice", "lemon"],
     tags: ["rice-based"],
+    ageBands: OLDER,
   }),
   meal({
     name: "Keerai Masiyal with Rice",
@@ -661,17 +672,17 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     tags: ["rice-free", "ten-min", "school-tiffin", "homemade-snack", "budget"],
   }),
   meal({
-    name: "Banana with Peanut Chutney",
-    description: "Sliced banana with a spoon of homemade peanut chutney — instead of biscuits.",
-    caloriesApprox: 190,
-    styles: SOUTH,
+    name: "Banana with Peanut Butter",
+    description: "Sliced banana with peanut butter and a little jam — instead of biscuits.",
+    caloriesApprox: 210,
+    styles: ALL_STYLES,
     diets: ALL_DIETS,
     slots: ["morningSnack", "eveningSnack"],
     goals: ["healthy-nutrition", "protein-focus", "better-eating-habits"],
     allergens: ["nuts"],
     minutes: 5,
-    pantry: ["banana", "peanuts", "chilli"],
-    tags: ["rice-free", "ten-min", "homemade-snack", "budget"],
+    pantry: ["banana", "peanut butter", "jam"],
+    tags: ["rice-free", "ten-min", "homemade-snack", "budget", "kids-favourite"],
   }),
   meal({
     name: "Boiled Corn with Lemon",
@@ -736,7 +747,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: ["gluten"],
     minutes: 10,
     pantry: ["roti", "vegetables", "cumin"],
-    tags: ["rice-free", "ten-min", "budget", "kids-favourite", "family-pot"],
+    tags: ["rice-free", "ten-min", "budget", "kids-favourite", "family-pot", "hidden-veg"],
   }),
   meal({
     name: "Moong Chilla with Mint Chutney",
@@ -744,12 +755,12 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     caloriesApprox: 260,
     styles: NORTH,
     diets: VEG,
-    slots: ["breakfast", "eveningSnack"],
+    slots: ["breakfast", "lunch", "eveningSnack"],
     goals: ["protein-focus", "food-variety", "healthy-nutrition"],
     allergens: [],
     minutes: 15,
     pantry: ["moong dal", "mint", "onion"],
-    tags: ["rice-free", "ten-min", "school-tiffin", "homemade-snack", "budget"],
+    tags: ["rice-free", "ten-min", "school-tiffin", "homemade-snack", "budget", "hidden-veg"],
   }),
   meal({
     name: "Ragi Roti with Mixed Vegetable Sabzi",
@@ -762,7 +773,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: [],
     minutes: 25,
     pantry: ["ragi flour", "vegetables", "oil"],
-    tags: ["rice-free", "family-pot", "budget"],
+    tags: ["rice-free", "family-pot", "budget", "school-tiffin"],
   }),
   meal({
     name: "White Chana Sundal",
@@ -788,7 +799,7 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     allergens: ["gluten"],
     minutes: 25,
     pantry: ["dalia", "vegetables", "moong dal"],
-    tags: ["rice-free", "family-pot", "budget"],
+    tags: ["rice-free", "family-pot", "budget", "hidden-veg"],
   }),
   meal({
     name: "Steamed Rice with Moong Dal and Vegetables",
@@ -802,6 +813,46 @@ export const BABYBITE_MEALS: MealTemplate[] = [
     minutes: 25,
     pantry: ["rice", "moong dal", "vegetables"],
     tags: ["rice-based", "family-pot", "budget"],
+  }),
+  meal({
+    name: "Aloo Paratha with Pickle",
+    description: "Potato-stuffed paratha with a small pickle — vegetables stay inside the roti.",
+    caloriesApprox: 330,
+    styles: NORTH,
+    diets: VEG,
+    slots: ["breakfast", "lunch"],
+    goals: ["food-variety", "balanced-meals", "better-eating-habits"],
+    allergens: ["gluten"],
+    minutes: 25,
+    pantry: ["atta", "potato", "pickle"],
+    tags: ["rice-free", "school-tiffin", "kids-favourite", "budget", "hidden-veg"],
+  }),
+  meal({
+    name: "Egg Bhurji Roti Roll",
+    description: "Soft roti rolled around mild egg bhurji — a dry box that travels.",
+    caloriesApprox: 310,
+    styles: NORTH,
+    diets: EGG,
+    slots: ["breakfast", "lunch"],
+    goals: ["protein-focus", "healthy-nutrition", "food-variety"],
+    allergens: ["eggs", "gluten"],
+    minutes: 15,
+    pantry: ["roti", "eggs", "onion"],
+    tags: ["rice-free", "school-tiffin", "kids-favourite", "ten-min"],
+  }),
+  meal({
+    name: "Chicken Tikka Wrap",
+    description: "Mild grilled chicken in a roti wrap — school-box protein without gravy.",
+    caloriesApprox: 340,
+    styles: NORTH,
+    diets: NV,
+    slots: ["lunch", "dinner"],
+    goals: ["protein-focus", "healthy-nutrition"],
+    allergens: ["gluten"],
+    minutes: 25,
+    pantry: ["chicken", "roti", "onion"],
+    tags: ["rice-free", "school-tiffin", "kids-favourite"],
+    ageBands: DENSE,
   }),
 ];
 

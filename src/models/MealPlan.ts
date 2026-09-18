@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model, Types } from "mongoose";
 import type {
   DailyPlan,
   KitchenLists,
+  MealSlot,
   NutritionBreakdown,
   PlanTier,
 } from "@/types/babybite";
@@ -16,6 +17,7 @@ export interface IMealPlan extends Document {
   breakdown: NutritionBreakdown;
   recommendedFoods: string[];
   kitchenLists?: KitchenLists;
+  recentMealNames?: Record<MealSlot, string[]>;
   engineVersion?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -41,6 +43,7 @@ const MealPlanSchema = new Schema<IMealPlan>(
     breakdown: { type: Schema.Types.Mixed, required: true },
     recommendedFoods: { type: [String], default: [] },
     kitchenLists: { type: Schema.Types.Mixed },
+    recentMealNames: { type: Schema.Types.Mixed },
     engineVersion: { type: Number, default: 0 },
   },
   { timestamps: true }

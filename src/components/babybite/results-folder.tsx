@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import type { DailyPlan, GeneratedMealPlan, KitchenLists, MealEntry } from "@/types/babybite";
+import type { DailyPlan, GeneratedMealPlan, KitchenLists, MealEntry, TiffinNeed } from "@/types/babybite";
 import { getMealFocus } from "@/lib/meal-goal-notes";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { mealSlotCopy, type MotherCopyKey } from "@/lib/mother-copy";
 import { translateKitchen } from "@/lib/kitchen-translate";
+import { lunchLooksRepeated } from "@/lib/plan-variety";
 import { cn } from "@/lib/utils";
 
-export type ResultsRoom = "today" | "weekly" | "monthly" | "meals" | "problems";
+export type ResultsRoom = "today" | "weekly" | "monthly" | "tiffin" | "meals" | "problems";
 
 const ROOMS: { id: ResultsRoom; key: MotherCopyKey }[] = [
   { id: "today", key: "roomToday" },
   { id: "weekly", key: "roomWeek" },
   { id: "monthly", key: "roomMonth" },
+  { id: "tiffin", key: "roomTiffin" },
   { id: "meals", key: "roomByMeal" },
   { id: "problems", key: "roomByProblem" },
 ];
@@ -63,15 +65,35 @@ export function ResultsFolder({
   plan,
   room,
   onRoom,
+  tiffinNeed = "home-only",
+  schoolFilter = false,
+  onSchoolFilter,
 }: {
   plan: GeneratedMealPlan;
   room: ResultsRoom;
   onRoom: (room: ResultsRoom) => void;
+  tiffinNeed?: TiffinNeed;
+  schoolFilter?: boolean;
+  onSchoolFilter?: (on: boolean) => void;
 }) {
   const { t } = useMotherLocale();
   const lists = plan.kitchenLists ?? emptyLists();
   const [mealList, setMealList] = useState<keyof KitchenLists>("breakfast");
-  const [problemList, setProblemList] = useState<keyof KitchenLists>("tenMin");
+  const [problemList, setProblemList] = useState<keyof KitchenLists>(() => {
+    if (tiffinNeed === "school-lunch") return "schoolLunch";
+    if (plan.challenges?.includes("picky-eater") || plan.challenges?.includes("poor-appetite")) return "kidsFavourite";
+    if (plan.cookTime === "ten-min") return "tenMin";
+    if (plan.kitchenBudget === "tight") return "budget";
+    if (plan.riceHabit === "refuses-rice") return "riceFree";
+    return "tenMin";
+  });
+  const lunchRepeat = lunchLooksRepeated(plan.weekly);
+  const weekdayLunches = plan.weekly.filter((day) => {
+    const label = day.dayLabel.toLowerCase();
+    return !label.startsWith("sat") && !label.startsWith("sun");
+  });
+  const dateView = room === "today" || room === "weekly" || room === "monthly";
+  const schoolPoolEmpty = (lists.schoolLunch ?? []).length === 0;
 
   return (
     <div className="os-folder">
@@ -89,13 +111,55 @@ export function ResultsFolder({
           </button>
         ))}
       </div>
+      {dateView && onSchoolFilter ? (
+        <div className="os-step-pills" role="group" aria-label={t("schoolFilter")}>
+          <button
+            type="button"
+            aria-pressed={schoolFilter}
+            className={cn("os-step-pill", schoolFilter && "is-on")}
+            onClick={() => onSchoolFilter(!schoolFilter)}
+          >
+            {t("schoolFilter")}
+          </button>
+        </div>
+      ) : null}
+      {dateView && schoolFilter && schoolPoolEmpty ? (
+        <p className="os-onboard-lede">{t("schoolFilterEmpty")}</p>
+      ) : null}
 
       {room === "today" ? <DayMeals day={plan.today} detailed /> : null}
-      {room === "weekly" ? <DaysBoard days={plan.weekly} /> : null}
+      {room === "weekly" ? (
+        <>
+          {lunchRepeat ? <p className="os-onboard-lede">{t("sameLunchNote")}</p> : null}
+          <DaysBoard days={plan.weekly} />
+        </>
+      ) : null}
       {room === "monthly" ? (
         <div className="os-month-top">
           <p className="os-onboard-lede">{t("monthHint")}</p>
           <MonthBoard days={plan.monthly} />
+        </div>
+      ) : null}
+      {room === "tiffin" ? (
+        <div className="os-kitchen-browse">
+          <p className="os-onboard-lede">{t("tiffinWeekHint")}</p>
+          {lunchRepeat ? <p className="os-onboard-lede">{t("sameLunchNote")}</p> : null}
+          {weekdayLunches.length === 0 ? (
+            <p className="os-onboard-lede">{t("emptyKitchenList")}</p>
+          ) : (
+            <DaysBoard
+              days={weekdayLunches.map((day) => ({
+                ...day,
+                meals: day.meals.filter((meal) => meal.slot === "lunch"),
+              }))}
+            />
+          )}
+          <KitchenBrowse
+            lists={lists}
+            options={[{ id: "schoolLunch", key: "listSchool" }]}
+            active="schoolLunch"
+            onActive={() => undefined}
+          />
         </div>
       ) : null}
       {room === "meals" ? (
@@ -157,6 +221,7 @@ function KitchenBrowse({
               <p className="os-band-kicker">{mealSlotCopy(lang, meal.slot)}</p>
               <h3>{translateKitchen(lang, meal.name)}</h3>
               <p>{translateKitchen(lang, meal.description)}</p>
+              {meal.whyThisPlate ? <p className="os-meal-why">{translateKitchen(lang, meal.whyThisPlate)}</p> : null}
               <MealMeta meal={meal} />
             </article>
           ))}
@@ -211,8 +276,8 @@ function MonthBoard({ days }: { days: DailyPlan[] }) {
   return (
     <div className="os-month-list is-rail">
       {days.map((day) => {
-        const dinner = day.meals.find((meal) => meal.slot === "dinner") ?? day.meals[0];
-        const focus = dinner ? getMealFocus(dinner) : "Energy";
+        const lunch = day.meals.find((meal) => meal.slot === "lunch") ?? day.meals[0];
+        const focus = lunch ? getMealFocus(lunch) : "Energy";
         const open = openDate === day.date;
 
         return (
@@ -224,13 +289,13 @@ function MonthBoard({ days }: { days: DailyPlan[] }) {
               onClick={() => setOpenDate(open ? null : day.date)}
             >
               <span className="os-month-day">{translateKitchen(lang, day.dayLabel)}</span>
-              <strong>{translateKitchen(lang, dinner?.name ?? "—")}</strong>
+              <strong>{translateKitchen(lang, lunch?.name ?? "—")}</strong>
               <span className={cn("os-focus-chip", `is-${focus.toLowerCase()}`)}>{t(FOCUS_KEY[focus])}</span>
             </button>
             {open ? (
               <div className="os-month-expand">
                 <p className="os-band-kicker">
-                  {day.date} · {mealSlotCopy(lang, "dinner")}
+                  {day.date} · {mealSlotCopy(lang, "lunch")}
                 </p>
                 <DayMeals day={day} detailed />
               </div>
@@ -274,6 +339,11 @@ function DayMeals({ day, detailed }: { day: DailyPlan; detailed?: boolean }) {
             {detailed ? (
               <>
                 <p className="os-meal-desc">{translateKitchen(lang, meal.description)}</p>
+                {meal.whyThisPlate ? (
+                  <p className="os-meal-why">
+                    {t("whyThisPlate")}: {translateKitchen(lang, meal.whyThisPlate)}
+                  </p>
+                ) : null}
                 <MealMeta meal={meal} />
                 <MealSwaps meal={meal} />
               </>

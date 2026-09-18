@@ -1,0 +1,8 @@
+{"sessionId":"422235","location":"src/lib/mongodb.ts:seed","message":"test mother seed ok","data":{"hasMongoUri":true,"seeded":true},"timestamp":1789709008728,"hypothesisId":"E"}
+{"sessionId":"422235","location":"src/lib/mongodb.ts:seed","message":"test mother seed ok","data":{"hasMongoUri":true,"seeded":true},"timestamp":1789713690621,"hypothesisId":"E"}
+{"sessionId":"422235","location":"src/app/api/auth/signup/route.ts:created","message":"signup created user","data":{"status":201},"timestamp":1789716362932,"hypothesisId":"A"}
+{"sessionId":"422235","location":"src/app/api/auth/signup/route.ts:created","message":"signup created user","data":{"status":201},"timestamp":1789716432421,"hypothesisId":"A"}
+{"sessionId":"422235","location":"src/lib/mongodb.ts:seed","message":"test mother seed ok","data":{"hasMongoUri":true,"seeded":true},"timestamp":1789719415520,"hypothesisId":"E"}
+{"sessionId":"422235","location":"src/lib/mongodb.ts:seed","message":"test mother seed ok","data":{"hasMongoUri":true,"seeded":true},"timestamp":1789719734027,"hypothesisId":"E"}
+{"sessionId":"422235","location":"src/app/api/auth/signup/route.ts:exists","message":"signup email already registered","data":{"status":409},"timestamp":1789720129577,"hypothesisId":"E"}
+{"sessionId":"422235","runId":"post-fix","hypothesisId":"A","location":"e2e/auth-storage.spec.ts:ensureTestAccount","message":"signup status","data":{"status":409,"hasMongoUri":false},"timestamp":1789720129587}

@@ -1,13 +1,17 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { DailyPlan, GeneratedMealPlan, BabyBiteChildProfile } from "@/types/babybite";
 import {
+  AGE_BAND_LABELS,
   ALLERGY_LABELS,
   CHALLENGE_LABELS,
   GOAL_LABELS,
   MEAL_SLOT_LABELS,
+  ageBandForYears,
+  kitchenFacts,
 } from "@/types/babybite";
 import { foodStyleLabel } from "@/services/analysis-engine";
 import { growthBandForAge } from "@/lib/growth-bands";
+import { checklistSummary } from "@/lib/meal-rationale";
 
 const YELLOW = "#F6D326";
 const INK = "#111111";
@@ -214,6 +218,8 @@ export function BabyBitePDFDocument({
     ? profile.challenges.map((item) => CHALLENGE_LABELS[item]).join(", ")
     : "None listed";
   const avoidText = profile.dislikedFoods.length ? profile.dislikedFoods.join(", ") : "None listed";
+  const kitchen = kitchenFacts(profile);
+  const checklist = plan.checklistSummary ?? checklistSummary(profile);
   const band = growthBandForAge(profile.ageYears);
   const heightNote = profile.heightCm ? `You noted ${profile.heightCm} cm.` : "Height not noted yet.";
   const weightNote = profile.weightKg ? `You noted ${profile.weightKg} kg.` : "Weight not noted yet.";
@@ -229,17 +235,22 @@ export function BabyBitePDFDocument({
         <Text style={styles.kicker}>Personalized kitchen plan</Text>
         <Text style={styles.title}>{`${profile.name}’s meals for the next 30 days`}</Text>
         <Text style={styles.subtitle}>
-          {`Written for the mother who already runs this table. Indian plates, five meals a day, ages 4–12. Built from onboarding — diet, allergies, and ${GOAL_LABELS[profile.goal].toLowerCase()}. Educational only. Ask your paediatrician for growth concerns.`}
+          {`Written for the mother who already runs this table. Indian plates, five meals a day, ages 4–12. Built from your checklist: ${checklist}. Educational only. Ask your paediatrician for growth concerns.`}
         </Text>
 
         <View style={styles.profileGrid}>
           {[
             ["Age", `${profile.ageYears} years`],
+            ["Plate", AGE_BAND_LABELS[ageBandForYears(profile.ageYears)]],
             ["Goal", GOAL_LABELS[profile.goal]],
             ["Diet", DIET_LABELS[profile.dietPreference]],
             ["Kitchen style", foodStyleLabel(profile.foodStyle)],
             ["Allergies", allergyText],
             ["Challenges", challengeText],
+            ["Cook time", kitchen.cookTime === "ten-min" ? "10 minutes" : "Normal"],
+            ["Budget", kitchen.kitchenBudget === "tight" ? "Tight" : "Normal"],
+            ["Rice", kitchen.riceHabit === "refuses-rice" ? "No plated rice" : "Eats rice"],
+            ["Lunch", kitchen.tiffinNeed === "school-lunch" ? "School tiffin" : "Home table"],
           ].map(([label, value]) => (
             <View key={label} style={styles.profileCell}>
               <Text style={styles.profileLabel}>{label}</Text>
@@ -278,6 +289,7 @@ export function BabyBitePDFDocument({
               <Text style={styles.mealSlot}>{MEAL_SLOT_LABELS[meal.slot]}</Text>
               <Text style={styles.mealName}>{meal.name}</Text>
               <Text style={styles.mealDesc}>{meal.description}</Text>
+              {meal.whyThisPlate ? <Text style={styles.mealMeta}>Why this plate: {meal.whyThisPlate}</Text> : null}
               <Text style={styles.mealMeta}>
                 ~{meal.caloriesApprox} kcal
                 {meal.portionNote ? `  ·  ${meal.portionNote}` : ""}
@@ -353,6 +365,22 @@ export function BabyBitePDFDocument({
             </Text>
           ))}
         </View>
+
+        {profile.tiffinNeed === "school-lunch" || plan.kitchenLists?.schoolLunch?.length ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>School tiffin</Text>
+            {(plan.kitchenLists?.schoolLunch?.length ?? 0) > 0 ? (
+              plan.kitchenLists!.schoolLunch.slice(0, 8).map((meal) => (
+                <Text key={meal.name} style={{ marginBottom: 3, fontSize: 9 }}>
+                  {meal.name}
+                  {meal.minutes ? ` · ${meal.minutes} min` : ""}
+                </Text>
+              ))
+            ) : (
+              <Text style={{ marginBottom: 3, fontSize: 9 }}>No school box meals in this kitchen yet.</Text>
+            )}
+          </View>
+        ) : null}
 
         {plan.kitchenLists?.tenMin?.length ? (
           <View style={styles.section}>

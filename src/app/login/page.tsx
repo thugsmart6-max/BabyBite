@@ -3,7 +3,7 @@
 import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { AuthShell } from "@/components/blimp/site-chrome";
 import { useMotherLocale } from "@/components/providers/locale-provider";
@@ -28,7 +28,6 @@ export default function LoginPage() {
 
 function LoginForm() {
   const { t } = useMotherLocale();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = safeInternalPath(searchParams.get("callbackUrl"));
   const oauthError = searchParams.get("error");
@@ -64,8 +63,7 @@ function LoginForm() {
     }
 
     rememberLocalUser({ email: result.data.email });
-    router.push(callbackUrl);
-    router.refresh();
+    window.location.assign(callbackUrl === "/login" ? "/" : callbackUrl);
   };
 
   return (

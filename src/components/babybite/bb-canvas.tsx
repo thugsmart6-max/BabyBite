@@ -42,6 +42,10 @@ export function FeatherTopbar({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuScrollY = useRef(0);
   const loggedIn = status === "authenticated";
+  const onAppPage = ["/results", "/settings", "/onboarding", "/payment", "/success"].some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+  const showLogout = loggedIn || (status === "loading" && onAppPage);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -159,7 +163,7 @@ export function FeatherTopbar({
                 {t("childKitchen")}
               </Link>
             ) : null}
-            {loggedIn ? (
+            {showLogout ? (
               <button type="button" className="os-menu-action" data-testid="menu-logout" onClick={logout}>
                 {t("logOut")}
               </button>

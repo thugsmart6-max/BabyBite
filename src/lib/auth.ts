@@ -11,6 +11,7 @@ import { User } from "@/models/User";
 import { loadUserHasPaid } from "@/lib/auth-has-paid";
 import { TERMS_VERSION } from "@/lib/constants";
 import { loginSchema } from "@/schemas/auth";
+import { ensureTestMotherAccount, TEST_MOTHER } from "@/lib/test-mother";
 import type { UserRole } from "@/types";
 
 applyProductionAuthUrl();
@@ -108,7 +109,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!parsed.success) return null;
 
         await connectDB();
-        const user = await User.findOne({ email: parsed.data.email.trim().toLowerCase() }).select("+password");
+        const email = parsed.data.email.trim().toLowerCase();
+        if (email === TEST_MOTHER.email) {
+          await ensureTestMotherAccount().catch((error) => {
+            console.error("[auth] kitchen test login could not be prepared", error);
+          });
+        }
+        const user = await User.findOne({ email }).select("+password");
         if (!user || !user.password) return null;
 
         const isValid = await bcrypt.compare(parsed.data.password, user.password);

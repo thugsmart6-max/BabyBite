@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/permissions";
 import { connectDB } from "@/lib/mongodb";
 import { generatePlanSchema } from "@/schemas/babybite";
-import { getOrRefreshMealPlan } from "@/services/babybite-plan-store";
+import { getOrRefreshMealPlan, loadStoredMealPlan } from "@/services/babybite-plan-store";
 import { MEAL_ENGINE_VERSION } from "@/lib/plan-variety";
 import { handleRouteError, zodErrorResponse } from "@/lib/api-route";
 import { ChildProfile } from "@/models/ChildProfile";
@@ -78,13 +78,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ plan: null });
     }
 
-    const result = await getOrRefreshMealPlan(session.user.id, child);
+    const result = await loadStoredMealPlan(session.user.id, child);
     if (!result.generated) {
       return NextResponse.json({ plan: null });
     }
 
     return NextResponse.json(
-      { plan: result.generated, engineVersion: MEAL_ENGINE_VERSION, reused: result.reused },
+      { plan: result.generated, engineVersion: result.mealPlan.engineVersion ?? 0, reused: result.reused },
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (error) {

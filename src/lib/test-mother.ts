@@ -23,11 +23,15 @@ export async function ensureTestMotherAccount() {
 
 async function upsertTestMother() {
   const email = TEST_MOTHER.email;
-  const password = await bcrypt.hash(TEST_MOTHER.password, 12);
   const existing = await User.findOne({ email }).select("+password");
 
   if (existing) {
-    existing.password = password;
+    const passwordOk = existing.password
+      ? await bcrypt.compare(TEST_MOTHER.password, existing.password)
+      : false;
+    if (!passwordOk) {
+      existing.password = await bcrypt.hash(TEST_MOTHER.password, 12);
+    }
     existing.authProvider = existing.authProvider ?? "credentials";
     if (!existing.name?.trim()) existing.name = TEST_MOTHER.name;
     if (!existing.termsAcceptedAt) existing.termsAcceptedAt = new Date();
@@ -39,7 +43,7 @@ async function upsertTestMother() {
   await User.create({
     name: TEST_MOTHER.name,
     email,
-    password,
+    password: await bcrypt.hash(TEST_MOTHER.password, 12),
     role: "parent",
     onboardingComplete: false,
     authProvider: "credentials",

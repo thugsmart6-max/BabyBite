@@ -4098,9 +4098,17 @@ html.dark .os-terms-sections p {
 }
 
 .os-meal-row .os-meal-desc,
+.os-meal-row .os-meal-why,
 .os-meal-row .os-meal-meta,
 .os-meal-row .os-swap-box {
   grid-column: 1 / -1;
+}
+
+.os-meal-why {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: #333;
 }
 
 .os-meal-meta {

@@ -41,6 +41,20 @@ export type KitchenBudget = "tight" | "normal";
 export type RiceHabit = "eats-rice" | "refuses-rice";
 export type TiffinNeed = "school-lunch" | "home-only";
 
+export type AgeBand = "4-5" | "6-8" | "9-12";
+
+export function ageBandForYears(ageYears: number): AgeBand {
+  if (ageYears <= 5) return "4-5";
+  if (ageYears <= 8) return "6-8";
+  return "9-12";
+}
+
+export const AGE_BAND_LABELS: Record<AgeBand, string> = {
+  "4-5": "Ages 4–5 plate",
+  "6-8": "Ages 6–8 plate",
+  "9-12": "Ages 9–12 plate",
+};
+
 export type KitchenTag =
   | "ten-min"
   | "budget"
@@ -49,7 +63,8 @@ export type KitchenTag =
   | "rice-based"
   | "rice-free"
   | "homemade-snack"
-  | "family-pot";
+  | "family-pot"
+  | "hidden-veg";
 
 export const DEFAULT_COOK_TIME: CookTime = "normal";
 export const DEFAULT_KITCHEN_BUDGET: KitchenBudget = "normal";
@@ -184,6 +199,7 @@ export interface MealEntry {
   description: string;
   caloriesApprox: number;
   portionNote?: string;
+  whyThisPlate?: string;
   minutes?: number;
   pantry?: string[];
   tags?: KitchenTag[];
@@ -222,13 +238,24 @@ export interface NutritionBreakdown {
 export interface GeneratedMealPlan {
   childName: string;
   ageYears?: number;
+  ageBand?: AgeBand;
   gender?: ChildGender;
   goal: NutritionGoal;
   foodStyle: FoodStyle;
+  dietPreference?: DietPreference;
+  challenges?: NutritionChallenge[];
+  allergies?: FoodAllergy[];
+  dislikedFoods?: string[];
+  cookTime?: CookTime;
+  kitchenBudget?: KitchenBudget;
+  riceHabit?: RiceHabit;
+  tiffinNeed?: TiffinNeed;
+  checklistSummary?: string;
   today: DailyPlan;
   weekly: DailyPlan[];
   monthly: DailyPlan[];
   breakdown: NutritionBreakdown;
   recommendedFoods: string[];
   kitchenLists?: KitchenLists;
+  recentMealNames?: Record<MealSlot, string[]>;
 }

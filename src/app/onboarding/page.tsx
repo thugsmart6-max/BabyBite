@@ -521,6 +521,9 @@ export default function OnboardingPage() {
                       form.kitchenBudget === "tight" ? t("budgetTight") : t("budgetNormal"),
                       form.riceHabit === "refuses-rice" ? t("riceRefuses") : t("riceEats"),
                       form.tiffinNeed === "school-lunch" ? t("tiffinSchool") : t("tiffinHome"),
+                      ...form.challenges.map((item) => t(CHALLENGE_KEYS[item])),
+                      ...form.allergies.map((item) => t(ALLERGY_KEYS[item])),
+                      form.dislikedFoods.trim() || "",
                       t(GOAL_KEYS[form.goal]),
                     ]
                       .filter(Boolean)

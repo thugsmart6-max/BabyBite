@@ -5,15 +5,28 @@ import {
   MEAL_ENGINE_VERSION,
   planNeedsRegeneration,
 } from "@/services/babybite-meal-engine";
-import type { GeneratedMealPlan, PlanTier } from "@/types/babybite";
+import type { GeneratedMealPlan, MealSlot, PlanTier } from "@/types/babybite";
+import { ageBandForYears } from "@/types/babybite";
+import { checklistSummary } from "@/lib/meal-rationale";
 
 export function toResponsePlan(child: IChildProfile, generated: GeneratedMealPlan) {
+  const profile = toBabyBiteProfile(child);
   return {
     childName: child.name,
     ageYears: child.ageYears,
+    ageBand: generated.ageBand ?? ageBandForYears(child.ageYears),
     gender: child.gender,
     goal: child.goal,
     foodStyle: child.foodStyle,
+    dietPreference: child.dietPreference,
+    challenges: child.challenges,
+    allergies: child.allergies,
+    dislikedFoods: child.dislikedFoods,
+    cookTime: child.cookTime,
+    kitchenBudget: child.kitchenBudget,
+    riceHabit: child.riceHabit,
+    tiffinNeed: child.tiffinNeed,
+    checklistSummary: generated.checklistSummary ?? checklistSummary(profile),
     today: generated.today,
     weekly: generated.weekly,
     monthly: generated.monthly,
@@ -21,16 +34,28 @@ export function toResponsePlan(child: IChildProfile, generated: GeneratedMealPla
     recommendedFoods: generated.recommendedFoods,
     kitchenLists: generated.kitchenLists,
     planTier: child.selectedPlan ?? "complete-bundle",
+    recentMealNames: generated.recentMealNames,
   };
 }
 
 export function storedPlanToResponse(child: IChildProfile, plan: IMealPlan) {
+  const profile = toBabyBiteProfile(child);
   return {
     childName: child.name,
     ageYears: child.ageYears,
+    ageBand: ageBandForYears(child.ageYears),
     gender: child.gender,
     goal: child.goal,
     foodStyle: child.foodStyle,
+    dietPreference: child.dietPreference,
+    challenges: child.challenges,
+    allergies: child.allergies,
+    dislikedFoods: child.dislikedFoods,
+    cookTime: child.cookTime,
+    kitchenBudget: child.kitchenBudget,
+    riceHabit: child.riceHabit,
+    tiffinNeed: child.tiffinNeed,
+    checklistSummary: checklistSummary(profile),
     today: plan.today,
     weekly: plan.weekly,
     monthly: plan.monthly,
@@ -38,6 +63,7 @@ export function storedPlanToResponse(child: IChildProfile, plan: IMealPlan) {
     recommendedFoods: plan.recommendedFoods,
     kitchenLists: plan.kitchenLists,
     planTier: plan.planTier,
+    recentMealNames: plan.recentMealNames,
   };
 }
 
@@ -52,8 +78,30 @@ function generatedPayload(userId: string, child: IChildProfile, generated: Gener
     breakdown: generated.breakdown,
     recommendedFoods: generated.recommendedFoods,
     kitchenLists: generated.kitchenLists,
+    recentMealNames: generated.recentMealNames,
     engineVersion: MEAL_ENGINE_VERSION,
   };
+}
+
+const SLOTS: MealSlot[] = ["breakfast", "morningSnack", "lunch", "eveningSnack", "dinner"];
+
+function recentFromExisting(plan: IMealPlan | null): Record<MealSlot, string[]> | undefined {
+  if (!plan) return undefined;
+  if (plan.recentMealNames) return plan.recentMealNames;
+  const recent: Record<MealSlot, string[]> = {
+    breakfast: [],
+    morningSnack: [],
+    lunch: [],
+    eveningSnack: [],
+    dinner: [],
+  };
+  for (const day of [...(plan.weekly ?? []), ...(plan.monthly ?? [])]) {
+    for (const meal of day.meals ?? []) {
+      if (!SLOTS.includes(meal.slot)) continue;
+      recent[meal.slot] = [...recent[meal.slot], meal.name].slice(-10);
+    }
+  }
+  return recent;
 }
 
 export async function saveGeneratedPlan(
@@ -63,7 +111,9 @@ export async function saveGeneratedPlan(
 ) {
   const profile = toBabyBiteProfile(child);
   const tier = (child.selectedPlan ?? "complete-bundle") as PlanTier;
-  const generated = generateBabyBiteMealPlan(profile, tier);
+  const generated = generateBabyBiteMealPlan(profile, tier, {
+    recentMealNames: recentFromExisting(existing),
+  });
   const payload = generatedPayload(userId, child, generated, tier);
 
   if (existing) {
@@ -81,6 +131,23 @@ export async function saveGeneratedPlan(
 
   const mealPlan = await MealPlan.create(payload);
   return { mealPlan, generated, reused: false as const };
+}
+
+export async function loadStoredMealPlan(userId: string, child: IChildProfile) {
+  const existing = await MealPlan.findOne({
+    userId,
+    childProfileId: child._id,
+  }).sort({ createdAt: -1 });
+
+  if (!existing) {
+    return { mealPlan: null, generated: null, reused: false as const };
+  }
+
+  return {
+    mealPlan: existing,
+    generated: storedPlanToResponse(child, existing),
+    reused: true as const,
+  };
 }
 
 export async function getOrRefreshMealPlan(

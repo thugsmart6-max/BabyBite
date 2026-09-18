@@ -224,7 +224,11 @@ export async function signUpNewMother(
   await page.waitForURL(/\/onboarding/, { timeout: 25_000 });
 }
 
-export async function completeOnboarding(page: Page, childName: string) {
+export async function completeOnboarding(
+  page: Page,
+  childName: string,
+  options?: { schoolTiffin?: boolean; riceRefuses?: boolean; sports?: boolean }
+) {
   await expect(page).toHaveURL(/\/onboarding/);
   await expect(page.getByTestId("child-name")).toBeVisible();
   await page.getByTestId("child-name").fill(childName);
@@ -238,6 +242,17 @@ export async function completeOnboarding(page: Page, childName: string) {
   for (const title of nextTitles) {
     await page.getByTestId("onboarding-next").click();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
+    if (title.source.includes("kitchen tonight")) {
+      if (options?.schoolTiffin) {
+        await page.getByRole("button", { name: /school tiffin/i }).click();
+      }
+      if (options?.riceRefuses) {
+        await page.getByRole("button", { name: /no rice tonight/i }).click();
+      }
+    }
+    if (title.source.includes("hard at the table") && options?.sports) {
+      await page.getByRole("button", { name: /active sports child/i }).click();
+    }
   }
   await page.getByTestId("onboarding-next").click();
   await page.waitForURL(/\/payment/, { timeout: 25_000 });

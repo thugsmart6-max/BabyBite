@@ -11,7 +11,7 @@ import type {
   NutritionBreakdown,
   PlanTier,
 } from "@/types/babybite";
-import { kitchenFacts } from "@/types/babybite";
+import { ageBandForYears, kitchenFacts } from "@/types/babybite";
 import { foodStyleLabel } from "@/services/analysis-engine";
 import {
   ALLERGEN_FREE_FALLBACK,
@@ -20,15 +20,32 @@ import {
   type MealTemplate,
 } from "@/lib/data/babybite-meals";
 import { MEAL_ENGINE_VERSION, planNeedsRegeneration } from "@/lib/plan-variety";
+import { checklistSummary, explainMealMatch, isDairyHeavy } from "@/lib/meal-rationale";
 
 export { MEAL_ENGINE_VERSION, planNeedsRegeneration };
-export { planLooksStuck } from "@/lib/plan-variety";
+export { lunchLooksRepeated, planLooksStuck } from "@/lib/plan-variety";
 
 const SLOTS: MealSlot[] = ["breakfast", "morningSnack", "lunch", "eveningSnack", "dinner"];
 const LIST_SIZE = 8;
+const RECENT_LIMIT: Record<MealSlot, number> = {
+  breakfast: 20,
+  morningSnack: 12,
+  lunch: 24,
+  eveningSnack: 12,
+  dinner: 20,
+};
 
 function emptyRecent(): Record<MealSlot, string[]> {
   return { breakfast: [], morningSnack: [], lunch: [], eveningSnack: [], dinner: [] };
+}
+
+export function cloneRecent(seed?: Record<MealSlot, string[]>): Record<MealSlot, string[]> {
+  const recent = emptyRecent();
+  if (!seed) return recent;
+  for (const slot of SLOTS) {
+    recent[slot] = [...(seed[slot] ?? [])].slice(-RECENT_LIMIT[slot]);
+  }
+  return recent;
 }
 
 function fallbackMeal(profile: BabyBiteChildProfile): MealTemplate {
@@ -47,8 +64,8 @@ function isRiceFree(meal: MealTemplate): boolean {
 
 function calorieMultiplier(profile: BabyBiteChildProfile): number {
   let factor = 1;
-  if (profile.ageYears <= 6) factor = 0.85;
-  else if (profile.ageYears >= 10) factor = 1.15;
+  if (profile.ageYears <= 5) factor = 0.85;
+  else if (profile.ageYears >= 9) factor = 1.15;
 
   if (profile.challenges.includes("underweight") || profile.challenges.includes("active-sports")) {
     factor += 0.08;
@@ -65,11 +82,16 @@ function calorieMultiplier(profile: BabyBiteChildProfile): number {
   return Math.max(0.75, Math.min(1.3, factor));
 }
 
-function portionNote(profile: BabyBiteChildProfile): string {
-  if (profile.ageYears <= 6) return "Smaller serving for ages 4–6";
-  if (profile.ageYears >= 10) return "Heartier serving for ages 10–12";
-  if (profile.challenges.includes("underweight")) return "Offer a slightly larger portion for catch-up energy";
-  return "Standard school-age serving";
+function portionNote(profile: BabyBiteChildProfile, meal?: MealTemplate): string {
+  const bits: string[] = [];
+  if (profile.ageYears <= 5) bits.push("Smaller serving for ages 4–5");
+  else if (profile.ageYears >= 9) bits.push("Heartier serving for ages 9–12");
+  if (profile.challenges.includes("underweight")) bits.push("Offer a little more for catch-up energy");
+  if (profile.challenges.includes("poor-appetite")) bits.push("Start small, then offer more if they eat");
+  if (kitchenFacts(profile).cookTime === "ten-min" && meal && meal.minutes <= 10) {
+    bits.push("Fits a 10-minute kitchen");
+  }
+  return bits[0] ?? "Standard school-age serving";
 }
 
 function excludesAllergies(meal: MealTemplate, profile: BabyBiteChildProfile): boolean {
@@ -83,6 +105,16 @@ function excludesDislikes(meal: MealTemplate, profile: BabyBiteChildProfile): bo
   if (disliked.length === 0) return true;
   const text = `${meal.name} ${meal.description}`.toLowerCase();
   return !disliked.some((term) => term.length > 1 && text.includes(term));
+}
+
+function mealFitsAge(meal: MealTemplate, ageYears: number): boolean {
+  const bands = meal.ageBands?.length ? meal.ageBands : (["4-5", "6-8", "9-12"] as const);
+  return bands.includes(ageBandForYears(ageYears));
+}
+
+function isWeekday(date: Date): boolean {
+  const day = date.getDay();
+  return day >= 1 && day <= 5;
 }
 
 /** Non-veg children can eat vegetarian plates. Vegetarian children cannot eat egg/meat/fish. */
@@ -99,22 +131,46 @@ export function kitchenScore(meal: MealTemplate, profile: BabyBiteChildProfile, 
   if (kitchen.riceHabit === "refuses-rice" && isRiceBased(meal)) return -1000;
 
   let score = 0;
+  if (meal.goals.includes(profile.goal)) score += 6;
   if (kitchen.cookTime === "ten-min") {
-    if (meal.tags.includes("ten-min") || meal.minutes <= 10) score += 4;
+    if (meal.tags.includes("ten-min") || meal.minutes <= 10) score += 8;
     else if (meal.minutes <= 20) score += 1;
+    else score -= 2;
   }
-  if (kitchen.kitchenBudget === "tight" && meal.tags.includes("budget")) score += 3;
+  if (kitchen.kitchenBudget === "tight" && meal.tags.includes("budget")) score += 5;
   if (kitchen.tiffinNeed === "school-lunch" && slot === "lunch" && meal.tags.includes("school-tiffin")) {
-    score += 4;
+    score += 10;
   }
-  if (kitchen.riceHabit === "refuses-rice" && isRiceFree(meal)) score += 2;
+  if (kitchen.riceHabit === "refuses-rice" && isRiceFree(meal)) score += 4;
+
+  const challenges = profile.challenges ?? [];
+  if (challenges.includes("picky-eater") || challenges.includes("poor-appetite")) {
+    if (meal.tags.includes("kids-favourite")) score += 8;
+    if (meal.tags.includes("ten-min") || meal.minutes <= 10) score += 3;
+  }
+  if (challenges.includes("no-vegetables")) {
+    if (meal.tags.includes("hidden-veg")) score += 10;
+    else score -= 3;
+  }
+  if (challenges.includes("underweight")) {
+    if (meal.caloriesApprox >= 300) score += 7;
+    if (meal.tags.includes("kids-favourite")) score += 3;
+  }
+  if (challenges.includes("no-milk") || profile.allergies.includes("dairy")) {
+    if (isDairyHeavy(meal)) score -= 10;
+    else score += 5;
+  }
+  if (challenges.includes("low-energy") || challenges.includes("active-sports")) {
+    if (meal.goals.includes("protein-focus")) score += 6;
+    if (meal.caloriesApprox >= 320) score += 3;
+  }
   return score;
 }
 
 export function filterMealPool(
   profile: BabyBiteChildProfile,
   slot: MealSlot,
-  options?: { ignoreStyle?: boolean; ignoreGoal?: boolean; ignoreRice?: boolean }
+  options?: { ignoreStyle?: boolean; ignoreGoal?: boolean; ignoreRice?: boolean; ignoreAge?: boolean }
 ): MealTemplate[] {
   const kitchen = kitchenFacts(profile);
   return BABYBITE_MEALS.filter((meal) => {
@@ -122,6 +178,7 @@ export function filterMealPool(
     if (!mealFitsDiet(meal, profile.dietPreference)) return false;
     if (!excludesAllergies(meal, profile)) return false;
     if (!excludesDislikes(meal, profile)) return false;
+    if (!options?.ignoreAge && !mealFitsAge(meal, profile.ageYears)) return false;
     if (!options?.ignoreRice && kitchen.riceHabit === "refuses-rice" && isRiceBased(meal)) return false;
     if (!options?.ignoreStyle) {
       const styleOk =
@@ -141,28 +198,81 @@ function rankPool(pool: MealTemplate[], profile: BabyBiteChildProfile, slot: Mea
     .sort((a, b) => b.score - a.score || a.meal.name.localeCompare(b.meal.name));
   if (scored.length === 0) return pool;
   const best = scored[0].score;
-  const top = scored.filter((item) => item.score >= best - 1).map((item) => item.meal);
-  return top.length > 0 ? top : scored.map((item) => item.meal);
+  const preferred = scored.filter((item) => item.score >= best - 2);
+  const keepCount = Math.min(scored.length, Math.max(24, preferred.length));
+  return scored.slice(0, keepCount).map((item) => item.meal);
 }
 
-function resolvePool(profile: BabyBiteChildProfile, slot: MealSlot): MealTemplate[] {
-  const tight = filterMealPool(profile, slot);
-  if (tight.length >= 5) return rankPool(tight, profile, slot);
-  const noGoal = filterMealPool(profile, slot, { ignoreGoal: true });
+function resolvePool(
+  profile: BabyBiteChildProfile,
+  slot: MealSlot,
+  options?: { tiffinOnly?: boolean }
+): MealTemplate[] {
+  const applyTiffin = (pool: MealTemplate[]) =>
+    options?.tiffinOnly ? pool.filter((meal) => meal.tags.includes("school-tiffin")) : pool;
+
+  const tight = applyTiffin(filterMealPool(profile, slot));
+  if (tight.length >= 4) return rankPool(tight, profile, slot);
+  const noGoal = applyTiffin(filterMealPool(profile, slot, { ignoreGoal: true }));
   if (noGoal.length >= 4) return rankPool(noGoal, profile, slot);
-  const noStyle = filterMealPool(profile, slot, { ignoreGoal: true, ignoreStyle: true });
+  const noStyle = applyTiffin(filterMealPool(profile, slot, { ignoreGoal: true, ignoreStyle: true }));
   if (noStyle.length > 0) return rankPool(noStyle, profile, slot);
   if (noGoal.length > 0) return rankPool(noGoal, profile, slot);
   if (tight.length > 0) return rankPool(tight, profile, slot);
+  const noAge = applyTiffin(filterMealPool(profile, slot, { ignoreGoal: true, ignoreStyle: true, ignoreAge: true }));
+  if (noAge.length > 0) return rankPool(noAge, profile, slot);
+  if (options?.tiffinOnly) return resolvePool(profile, slot);
   return [fallbackMeal(profile)];
 }
 
-function swapWhy(chosen: MealTemplate, swap: MealTemplate): string {
+function uniqueByName(meals: MealTemplate[]): MealTemplate[] {
+  const seen = new Set<string>();
+  return meals.filter((meal) => {
+    if (seen.has(meal.name)) return false;
+    seen.add(meal.name);
+    return true;
+  });
+}
+
+function tiffinMeals(profile: BabyBiteChildProfile): MealTemplate[] {
+  const tagged = (slot: MealSlot, ignoreStyle: boolean) =>
+    filterMealPool(profile, slot, { ignoreGoal: true, ignoreStyle }).filter((meal) =>
+      meal.tags.includes("school-tiffin")
+    );
+
+  let pool = uniqueByName([...tagged("lunch", false), ...tagged("breakfast", false)]);
+  if (pool.length < 10) {
+    pool = uniqueByName([...pool, ...tagged("lunch", true), ...tagged("breakfast", true)]);
+  }
+  return pool;
+}
+
+function slotPool(profile: BabyBiteChildProfile, slot: MealSlot, date?: Date): MealTemplate[] {
+  const kitchen = kitchenFacts(profile);
+  const tiffinLunch = kitchen.tiffinNeed === "school-lunch" && slot === "lunch" && (!date || isWeekday(date));
+  if (!tiffinLunch) return resolvePool(profile, slot);
+
+  const tiffin = tiffinMeals(profile);
+  if (tiffin.length > 0) return rankPool(tiffin, profile, slot);
+  return resolvePool(profile, slot);
+}
+
+function nameSalt(name: string): number {
+  return name.split("").reduce((sum, ch, index) => sum + ch.charCodeAt(0) * (index + 3), 0);
+}
+
+function swapWhy(chosen: MealTemplate, swap: MealTemplate, profile: BabyBiteChildProfile): string {
   if (isRiceBased(chosen) && isRiceFree(swap)) return "If they refuse rice tonight";
+  if (profile.challenges.includes("no-vegetables") && swap.tags.includes("hidden-veg")) {
+    return "Vegetables stay hidden if they refuse the first plate";
+  }
+  if ((profile.challenges.includes("picky-eater") || profile.challenges.includes("poor-appetite")) && swap.tags.includes("kids-favourite")) {
+    return "A familiar plate if they refuse this one";
+  }
   if (swap.tags.includes("ten-min") || swap.minutes <= 10) return "Ready in 10 minutes";
   if (swap.tags.includes("budget")) return "Uses what is already in the box";
   if (swap.tags.includes("school-tiffin")) return "Travels in a tiffin";
-  return "Another plate for this slot";
+  return "Another plate for this slot from your kitchen answers";
 }
 
 export function pickSwaps(
@@ -176,18 +286,19 @@ export function pickSwaps(
     if (riceFree.length > 0) pool = riceFree;
   }
   const ranked = rankPool(pool, profile, slot);
-  const seen = new Set<string>();
+  if (ranked.length === 0) return [];
+  const band = ranked.slice(0, Math.min(ranked.length, 10));
+  const start = Math.abs(nameSalt(chosen.name)) % band.length;
   const picks: MealTemplate[] = [];
-  for (const meal of ranked) {
-    if (seen.has(meal.name)) continue;
-    seen.add(meal.name);
+  for (let i = 0; i < band.length && picks.length < 2; i += 1) {
+    const meal = band[(start + i) % band.length];
+    if (picks.some((pick) => pick.name === meal.name)) continue;
     picks.push(meal);
-    if (picks.length === 2) break;
   }
   return picks.map((meal) => ({
     name: meal.name,
     description: meal.description,
-    why: swapWhy(chosen, meal),
+    why: swapWhy(chosen, meal, profile),
   }));
 }
 
@@ -198,12 +309,14 @@ function toMealEntry(
   options?: { withSwaps?: boolean }
 ): MealEntry {
   const calories = Math.round(meal.caloriesApprox * calorieMultiplier(profile));
+  const why = explainMealMatch(meal, profile, slot);
   return {
     slot,
     name: meal.name,
     description: meal.description,
     caloriesApprox: calories,
-    portionNote: portionNote(profile),
+    portionNote: portionNote(profile, meal),
+    whyThisPlate: why || undefined,
     minutes: meal.minutes,
     pantry: meal.pantry,
     tags: meal.tags,
@@ -211,28 +324,77 @@ function toMealEntry(
   };
 }
 
+function leastRecentFirst(pool: MealTemplate[], recent: string[]): MealTemplate[] {
+  return [...pool].sort((a, b) => {
+    const aIndex = recent.lastIndexOf(a.name);
+    const bIndex = recent.lastIndexOf(b.name);
+    if (aIndex !== bIndex) return aIndex - bIndex;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function pickFromPool(
+  pool: MealTemplate[],
+  usedNames: Set<string>,
+  recentForSlot: string[],
+  requireFresh: boolean
+): MealTemplate | undefined {
+  const notToday = pool.filter((meal) => !usedNames.has(meal.name));
+  if (notToday.length === 0) return undefined;
+  const fresh = notToday.filter((meal) => !recentForSlot.includes(meal.name));
+  if (fresh.length > 0) return fresh[0];
+  if (requireFresh) return undefined;
+  const last = recentForSlot[recentForSlot.length - 1];
+  const notLast = last ? notToday.filter((meal) => meal.name !== last) : notToday;
+  return leastRecentFirst(notLast.length > 0 ? notLast : notToday, recentForSlot)[0];
+}
+
 export function pickMeal(
   profile: BabyBiteChildProfile,
   slot: MealSlot,
-  dayOffset: number,
+  _dayOffset: number,
   usedNames: Set<string>,
-  recentForSlot: string[] = []
+  recentForSlot: string[] = [],
+  date?: Date
 ): MealEntry {
   const pools = [
-    resolvePool(profile, slot),
+    slotPool(profile, slot, date),
     rankPool(filterMealPool(profile, slot, { ignoreGoal: true }), profile, slot),
     rankPool(filterMealPool(profile, slot, { ignoreGoal: true, ignoreStyle: true }), profile, slot),
   ];
+  if (kitchenFacts(profile).tiffinNeed === "school-lunch" && slot === "lunch") {
+    pools.splice(1, 0, rankPool(
+      filterMealPool(profile, slot, { ignoreGoal: true, ignoreStyle: true }).filter((meal) =>
+        meal.tags.includes("school-tiffin")
+      ),
+      profile,
+      slot
+    ));
+  }
+
+  const monthUnique =
+    slot === "breakfast" || slot === "lunch" || slot === "dinner" || slot === "morningSnack" || slot === "eveningSnack";
 
   let chosen: MealTemplate | undefined;
   for (const pool of pools) {
-    const notToday = pool.filter((meal) => !usedNames.has(meal.name));
-    if (notToday.length === 0) continue;
-    const fresh = notToday.filter((meal) => !recentForSlot.includes(meal.name));
-    const list = fresh.length > 0 ? fresh : notToday;
-    const index = Math.abs(dayOffset * 7 + SLOTS.indexOf(slot) * 11) % list.length;
-    chosen = list[index];
-    break;
+    chosen = pickFromPool(pool, usedNames, recentForSlot, monthUnique);
+    if (chosen) break;
+  }
+
+  if (!chosen && monthUnique) {
+    const extra = rankPool(
+      filterMealPool(profile, slot, { ignoreGoal: true, ignoreStyle: true }),
+      profile,
+      slot
+    );
+    chosen = pickFromPool(extra, usedNames, recentForSlot, true);
+  }
+
+  if (!chosen) {
+    for (const pool of pools) {
+      chosen = pickFromPool(pool, usedNames, recentForSlot, false);
+      if (chosen) break;
+    }
   }
 
   const meal = chosen ?? fallbackMeal(profile);
@@ -251,8 +413,8 @@ function buildDay(
     date: format(date, "yyyy-MM-dd"),
     dayLabel: format(date, "EEEE"),
     meals: SLOTS.map((slot) => {
-      const entry = pickMeal(profile, slot, dayOffset, used, recent[slot]);
-      recent[slot] = [...recent[slot], entry.name].slice(-8);
+      const entry = pickMeal(profile, slot, dayOffset, used, recent[slot], date);
+      recent[slot] = [...recent[slot], entry.name].slice(-RECENT_LIMIT[slot]);
       return entry;
     }),
   };
@@ -261,7 +423,8 @@ function buildDay(
 function uniqueList(
   meals: MealTemplate[],
   slot: MealSlot,
-  profile: BabyBiteChildProfile
+  profile: BabyBiteChildProfile,
+  limit = LIST_SIZE
 ): MealEntry[] {
   const seen = new Set<string>();
   const out: MealEntry[] = [];
@@ -269,7 +432,7 @@ function uniqueList(
     if (seen.has(meal.name)) continue;
     seen.add(meal.name);
     out.push(toMealEntry(meal, slot, profile));
-    if (out.length >= LIST_SIZE) break;
+    if (out.length >= limit) break;
   }
   return out;
 }
@@ -282,6 +445,7 @@ function catalogFor(profile: BabyBiteChildProfile, slot?: MealSlot): MealTemplat
     if (!excludesAllergies(meal, profile)) return false;
     if (!excludesDislikes(meal, profile)) return false;
     if (kitchen.riceHabit === "refuses-rice" && isRiceBased(meal)) return false;
+    if (!mealFitsAge(meal, profile.ageYears)) return false;
     if (profile.foodStyle !== "mixed-indian" && !meal.styles.includes(profile.foodStyle)) return false;
     return true;
   });
@@ -328,13 +492,10 @@ export function buildKitchenLists(profile: BabyBiteChildProfile): KitchenLists {
     ),
     budget: byTag("budget", "lunch"),
     schoolLunch: uniqueList(
-      rankPool(
-        catalogFor(profile, "lunch").filter((meal) => meal.tags.includes("school-tiffin")),
-        profile,
-        "lunch"
-      ),
+      rankPool(tiffinMeals(profile), profile, "lunch"),
       "lunch",
-      profile
+      profile,
+      16
     ),
     kidsFavourite: byTag("kids-favourite", "dinner"),
     riceFree: uniqueList(
@@ -380,8 +541,14 @@ function recommendedFoods(profile: BabyBiteChildProfile): string[] {
   if (kitchen.cookTime === "ten-min") {
     base.unshift("Roasted chana", "Seasonal fruit bowl");
   }
-  if (profile.allergies.includes("dairy")) {
-    return [...new Set(base.filter((item) => !/paneer|curd|milk|raita/i.test(item)))].slice(0, 10);
+  if (profile.challenges.includes("no-vegetables")) {
+    base.unshift("Vegetable poha", "Masala dosa");
+  }
+  if (profile.challenges.includes("underweight")) {
+    base.unshift("Banana almond smoothie", "Moong khichdi");
+  }
+  if (profile.allergies.includes("dairy") || profile.challenges.includes("no-milk")) {
+    return [...new Set(base.filter((item) => !/paneer|curd|milk|raita|smoothie/i.test(item)))].slice(0, 10);
   }
   return [...new Set(base)].slice(0, 10);
 }
@@ -409,7 +576,8 @@ function nutritionBreakdown(profile: BabyBiteChildProfile, tier: PlanTier): Nutr
 
 export function generateBabyBiteMealPlan(
   profile: BabyBiteChildProfile,
-  tier: PlanTier = "complete-bundle"
+  tier: PlanTier = "complete-bundle",
+  options?: { recentMealNames?: Record<MealSlot, string[]> }
 ): GeneratedMealPlan {
   const allergies = profile.allergies ?? [];
   const dislikedFoods = profile.dislikedFoods ?? [];
@@ -420,7 +588,7 @@ export function generateBabyBiteMealPlan(
     ...kitchenFacts(profile),
   };
   const today = new Date();
-  const recent = emptyRecent();
+  const recent = cloneRecent(options?.recentMealNames);
   const monthly = Array.from({ length: 30 }, (_, i) =>
     buildDay(normalized, addDays(today, i), i, recent)
   );
@@ -429,15 +597,26 @@ export function generateBabyBiteMealPlan(
   return {
     childName: profile.name,
     ageYears: profile.ageYears,
+    ageBand: ageBandForYears(profile.ageYears),
     gender: profile.gender,
     goal: profile.goal,
     foodStyle: profile.foodStyle,
+    dietPreference: profile.dietPreference,
+    challenges: profile.challenges,
+    allergies,
+    dislikedFoods,
+    cookTime: normalized.cookTime,
+    kitchenBudget: normalized.kitchenBudget,
+    riceHabit: normalized.riceHabit,
+    tiffinNeed: normalized.tiffinNeed,
+    checklistSummary: checklistSummary(normalized),
     today: monthly[0],
     weekly,
     monthly,
     breakdown: nutritionBreakdown(normalized, tier),
     recommendedFoods: recommendedFoods(normalized),
     kitchenLists: buildKitchenLists(normalized),
+    recentMealNames: cloneRecent(recent),
   };
 }
 

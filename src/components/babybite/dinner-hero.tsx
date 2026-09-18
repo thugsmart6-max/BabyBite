@@ -32,10 +32,11 @@ const FOCUS_KEY: Record<ReturnType<typeof getMealFocus>, MotherCopyKey> = {
 
 export function DinnerHero({ plan }: { plan: GeneratedMealPlan }) {
   const { t, lang } = useMotherLocale();
-  const dinner = plan.today.meals.find((meal) => meal.slot === "dinner") ?? plan.today.meals[0];
+  const meals = plan.today?.meals ?? [];
+  const dinner = meals.find((meal) => meal.slot === "dinner") ?? meals[0];
   if (!dinner) return null;
 
-  const note = t(FOCUS_KEY[getMealFocus(dinner)]);
+  const note = dinner.whyThisPlate || t(FOCUS_KEY[getMealFocus(dinner)]);
   const share = [
     `${t("tonight")} · ${plan.childName}`,
     translateKitchen(lang, dinner.name),
@@ -66,7 +67,7 @@ export function TodayShelf({ plan }: { plan: GeneratedMealPlan }) {
       name: translateKitchen(lang, meal.name),
       slot: mealSlotCopy(lang, meal.slot),
       tone: SLOT_TONE[meal.slot],
-      note: t(FOCUS_KEY[getMealFocus(meal)]),
+      note: meal.whyThisPlate || t(FOCUS_KEY[getMealFocus(meal)]),
     }));
 
   if (items.length === 0) return null;
@@ -76,12 +77,28 @@ export function TodayShelf({ plan }: { plan: GeneratedMealPlan }) {
 export function WeekShelf({ plan }: { plan: GeneratedMealPlan }) {
   const { t, lang } = useMotherLocale();
   const items = plan.weekly.map((day, index) => {
-    const dinner = day.meals.find((meal) => meal.slot === "dinner") ?? day.meals[0];
+    const lunch = day.meals.find((meal) => meal.slot === "lunch") ?? day.meals[0];
     return {
-      name: translateKitchen(lang, dinner?.name ?? "—"),
+      name: translateKitchen(lang, lunch?.name ?? "—"),
       slot: translateKitchen(lang, day.dayLabel),
       tone: WEEK_TONE[index % WEEK_TONE.length],
-      note: dinner ? t(FOCUS_KEY[getMealFocus(dinner)]) : undefined,
+      note: lunch?.whyThisPlate || (lunch ? t(FOCUS_KEY[getMealFocus(lunch)]) : undefined),
+    };
+  });
+
+  if (items.length === 0) return null;
+  return <MealShelf items={items} lift={false} />;
+}
+
+export function MonthShelf({ plan }: { plan: GeneratedMealPlan }) {
+  const { t, lang } = useMotherLocale();
+  const items = plan.monthly.map((day, index) => {
+    const lunch = day.meals.find((meal) => meal.slot === "lunch") ?? day.meals[0];
+    return {
+      name: translateKitchen(lang, lunch?.name ?? "—"),
+      slot: `${index + 1}`,
+      tone: WEEK_TONE[index % WEEK_TONE.length],
+      note: lunch?.whyThisPlate || (lunch ? t(FOCUS_KEY[getMealFocus(lunch)]) : undefined),
     };
   });
 

@@ -65,7 +65,9 @@ export async function GET(request: Request) {
     }
 
     const user = await User.findById(session.user.id).select("email authProvider password");
-    const { child } = await loadChildAndPlan(session.user.id);
+    const child = await ChildProfile.findOne({ userId: session.user.id })
+      .sort({ createdAt: -1 })
+      .select("pdfEmailSentAt pdfDeliveryEmail");
 
     const authProvider =
       user?.authProvider ??
