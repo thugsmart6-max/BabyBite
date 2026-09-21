@@ -74,7 +74,7 @@ export default function ResultsPage() {
     }
   };
 
-  const loadPlan = useCallback(async () => {
+  const loadPlanData = useCallback(async () => {
     const profile = await fetchBabyBiteProfile();
     const childId = profile.child?.id;
     const headers = { "Content-Type": "application/json" };
@@ -101,8 +101,6 @@ export default function ResultsPage() {
       }
     }
 
-    applyData(plansJson, profile);
-
     const savedPlan = plansJson.plan;
     const schoolOn = (profile.child?.tiffinNeed ?? "home-only") === "school-lunch";
     const visibleStuck = savedPlan ? planLooksStuck(overlaySchoolPlan(savedPlan, schoolOn)) : false;
@@ -120,16 +118,19 @@ export default function ResultsPage() {
       const rebuiltJson = await rebuilt.json();
       if (rebuilt.ok && rebuiltJson.plan) {
         plansJson = rebuiltJson;
-        applyData(plansJson, profile);
       }
     }
+
+    return { plansJson, profile };
   }, [t]);
 
   useEffect(() => {
     let ignore = false;
-    setLoading(true);
-    setError(null);
-    loadPlan()
+    loadPlanData()
+      .then((payload) => {
+        if (ignore) return;
+        applyData(payload.plansJson, payload.profile);
+      })
       .catch((err) => {
         if (!ignore) {
           setError(err instanceof BabyBiteApiError || err instanceof Error ? err.message : t("failedPlan"));
@@ -141,21 +142,22 @@ export default function ResultsPage() {
     return () => {
       ignore = true;
     };
-  }, [loadPlan, t]);
+  }, [loadPlanData, t]);
 
   const retry = () => {
     setLoading(true);
     setError(null);
-    loadPlan()
+    loadPlanData()
+      .then((payload) => applyData(payload.plansJson, payload.profile))
       .catch((err) => {
         setError(err instanceof BabyBiteApiError || err instanceof Error ? err.message : t("failedPlan"));
       })
       .finally(() => setLoading(false));
   };
 
-  const leaveAccount = () => {
+  const leaveAccount = async () => {
     endLocalSession();
-    void signOut({ callbackUrl: "/landing" });
+    await signOut({ callbackUrl: "/landing" });
   };
 
   const viewPlan = useMemo(() => (plan ? overlaySchoolPlan(plan, schoolFilter) : null), [plan, schoolFilter]);
@@ -233,7 +235,8 @@ export default function ResultsPage() {
                   writeActiveChildId(kid.id);
                   setLoading(true);
                   setError(null);
-                  loadPlan()
+                  loadPlanData()
+                    .then((payload) => applyData(payload.plansJson, payload.profile))
                     .catch((err) => {
                       setError(err instanceof BabyBiteApiError || err instanceof Error ? err.message : t("failedPlan"));
                     })
@@ -247,7 +250,6 @@ export default function ResultsPage() {
         ) : null}
         <h1 className="os-hero-title">{t("whatsDinner")}</h1>
         <DinnerHero plan={plan} />
-        <ResultsPdfDownload childProfileId={childProfileId} />
       </section>
 
       {childGrowth ? (
@@ -300,6 +302,10 @@ export default function ResultsPage() {
           onSchoolFilter={setSchoolFilter}
         />
         <GroceryTicks plan={viewPlan} />
+      </section>
+
+      <section className="os-results-pdf" id="pdf">
+        <ResultsPdfDownload childProfileId={childProfileId} />
       </section>
     </BbCanvas>
   );

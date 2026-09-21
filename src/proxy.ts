@@ -26,5 +26,6 @@ export const proxy = handler;
 export default handler;
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  // Never run auth() on /api/auth/* — NextAuth route handlers must receive those requests directly.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*|api/auth).*)"],
 };

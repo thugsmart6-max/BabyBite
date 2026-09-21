@@ -2,6 +2,7 @@ export const ACTIVE_CHILD_KEY = "bb-child";
 export const USERS_KEY = "bb-users";
 export const SESSION_KEY = "bb-session";
 export const CURRENT_USER_KEY = "bb-user";
+const LOGOUT_FLAG_KEY = "bb-logging-out";
 
 export type StoredLocalUser = {
   email: string;
@@ -170,6 +171,18 @@ export function rememberActiveChildId(childId: string) {
  * Logout: drop the live session snapshot.
  * Keep bb-users so the same email is recognised on the next login (no duplicate).
  */
+export function isLocalLogoutInProgress(): boolean {
+  try {
+    return memory()?.getItem(LOGOUT_FLAG_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function clearLocalLogoutFlag() {
+  removeKey(LOGOUT_FLAG_KEY);
+}
+
 export function endLocalSession() {
   const email = readSessionEmail();
   if (email) {
@@ -183,9 +196,20 @@ export function endLocalSession() {
     }
   }
 
+  try {
+    memory()?.setItem(LOGOUT_FLAG_KEY, "1");
+  } catch {
+    /* private mode */
+  }
+
   removeKey(SESSION_KEY);
   removeKey(CURRENT_USER_KEY);
   removeKey(ACTIVE_CHILD_KEY);
+}
+
+/** Call when NextAuth reports unauthenticated after logout. */
+export function finishLocalLogout() {
+  clearLocalLogoutFlag();
 }
 
 export function countLocalUsers(): number {

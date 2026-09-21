@@ -2,7 +2,12 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { endLocalSession, rememberLocalUser } from "@/lib/local-user-store";
+import {
+  endLocalSession,
+  finishLocalLogout,
+  isLocalLogoutInProgress,
+  rememberLocalUser,
+} from "@/lib/local-user-store";
 
 /** Keeps one localStorage record per email in sync with the signed-in session. */
 export function LocalUserSync() {
@@ -12,6 +17,8 @@ export function LocalUserSync() {
     if (status === "loading") return;
 
     if (status === "authenticated" && data?.user?.email) {
+      if (isLocalLogoutInProgress()) return;
+
       rememberLocalUser({
         email: data.user.email,
         name: data.user.name ?? undefined,
@@ -23,6 +30,7 @@ export function LocalUserSync() {
     }
 
     if (status === "unauthenticated") {
+      finishLocalLogout();
       endLocalSession();
     }
   }, [status, data]);

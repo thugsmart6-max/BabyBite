@@ -773,14 +773,6 @@ body {
   gap: 1.1rem;
 }
 
-.os-marquee-3d {
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  contain: paint;
-  padding: 0 4vw 1rem;
-}
-
 .os-pay-wait {
   position: fixed;
   inset: 0;

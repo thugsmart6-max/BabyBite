@@ -2795,6 +2795,31 @@ html.dark .bb-studio.is-oats {
   }
 }
 
+/* —— Landing 3D marquee section wrapper —— */
+.os-marquee-3d {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  margin-top: 0.35rem;
+  padding: 0 6vw;
+  box-sizing: border-box;
+}
+
+@media (max-width: 639px) {
+  .os-marquee-3d {
+    padding: 0 3vw;
+  }
+}
+
+@media (min-width: 1024px) {
+  .os-marquee-3d {
+    padding: 0;
+    max-width: min(72rem, 100%);
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 .os-ambient {
   pointer-events: none;
   position: absolute;
@@ -4145,6 +4170,14 @@ html.dark .os-terms-sections p {
   gap: 1rem;
 }
 
+.os-kitchen-browse .os-step-pill.is-on,
+.os-kitchen-browse .os-step-pill[aria-selected="true"] {
+  background: var(--os-forest);
+  color: #fff;
+  border-color: #111;
+  box-shadow: 3px 3px 0 #111;
+}
+
 .os-kitchen-grid {
   display: grid;
   gap: 0.85rem;
@@ -4877,6 +4910,16 @@ html.dark .os-focus-chip.is-iron {
   text-align: left;
 }
 
+.os-results-pdf {
+  width: min(72rem, calc(100% - 8vw));
+  margin: 0 auto 3.2rem;
+  padding-bottom: 1rem;
+}
+
+.os-results-pdf .os-pdf-card {
+  margin-top: 0;
+}
+
 .os-pdf-actions {
   display: flex;
   flex-wrap: wrap;
@@ -5210,6 +5253,12 @@ html.dark .os-growth-card.is-yellow,
 html.dark .os-month-row.is-open {
   background: #f6d326;
   color: #111;
+}
+
+html.dark .os-kitchen-browse .os-step-pill.is-on,
+html.dark .os-kitchen-browse .os-step-pill[aria-selected="true"] {
+  background: var(--os-forest);
+  color: #fff;
 }
 
 html.dark .os-compare-card.is-other {

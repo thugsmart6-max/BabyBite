@@ -175,14 +175,17 @@ export async function expectLocalSession(page: Page, email: string) {
 export async function expectLocalSessionCleared(page: Page, email: string) {
   const key = email.trim().toLowerCase();
   await expect
-    .poll(async () => {
-      const store = await readLocalUserStore(page);
-      return {
-        session: store.session,
-        current: store.current,
-        child: store.child,
-      };
-    })
+    .poll(
+      async () => {
+        const store = await readLocalUserStore(page);
+        return {
+          session: store.session,
+          current: store.current,
+          child: store.child,
+        };
+      },
+      { timeout: 15_000 }
+    )
     .toEqual({ session: null, current: null, child: null });
   const store = await readLocalUserStore(page);
   expect(store.users[key], "registry should keep the email after logout").toBeTruthy();
@@ -190,12 +193,32 @@ export async function expectLocalSessionCleared(page: Page, email: string) {
 
 export async function loginWithCredentials(page: Page, email: string, password: string) {
   await page.goto("/login");
+  if (!page.url().includes("/login")) {
+    await logoutFromMenu(page);
+    await waitForAuthSessionCleared(page);
+    await page.goto("/login");
+  }
   await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
   await page.getByTestId("login-email").fill(email);
   await page.getByTestId("login-password").fill(password);
   await page.getByTestId("login-submit").click();
   await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 20_000 });
   await expect(page.locator("a.os-mascot")).toHaveAttribute("aria-label", /child & kitchen/i, { timeout: 15_000 });
+}
+
+export async function waitForAuthSessionCleared(page: Page) {
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(async () => {
+          const res = await fetch("/api/auth/session");
+          if (!res.ok) return "pending";
+          const body = (await res.json()) as { user?: unknown } | null;
+          return body?.user ? "authed" : "logged-out";
+        }),
+      { timeout: 20_000 }
+    )
+    .toBe("logged-out");
 }
 
 export async function logoutFromMenu(page: Page) {

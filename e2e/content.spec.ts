@@ -29,6 +29,10 @@ test.describe("public content and friendly copy", () => {
     const body = (await page.locator("body").innerText()).toLowerCase();
     expect(body).not.toMatch(/\bdemo\b/);
     expect(body).not.toMatch(/\bfree\b/);
+    expect(body).not.toContain("egg dosa");
+    expect(body).not.toContain("ragi idli");
+    expect(body).not.toContain("rajma rice");
+    await expect(page.getByRole("heading", { name: /help at the table/i })).toBeVisible();
   });
 
   test("see how it looks scrolls to the dinner steps", async ({ page }) => {

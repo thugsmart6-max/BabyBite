@@ -9,7 +9,7 @@ import {
   MealMarquee,
   SiteArt,
 } from "@/components/babybite/oats-brand";
-import ThreeDMarqueeDemo from "@/components/3d-marquee-demo";
+import ThreeDMarqueeDemo from "@/components/ui/3d-marquee-demo";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 
 const STEPS = [
@@ -40,8 +40,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="os-marquee-3d" aria-label={t("ourPlates")}>
-        <ThreeDMarqueeDemo />
+      <section className="os-plates" aria-label={t("benefitKicker")}>
+        <p className="os-band-kicker">{t("benefitKicker")}</p>
+        <h2 className="os-section-title">{t("benefitTitle")}</h2>
+        <div className="os-marquee-3d">
+          <ThreeDMarqueeDemo />
+        </div>
       </section>
 
       <MealMarquee />

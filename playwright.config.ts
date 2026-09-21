@@ -20,6 +20,14 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testIgnore: /auth-storage\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "chromium-auth-storage",
+      testMatch: /auth-storage\.spec\.ts/,
+      fullyParallel: false,
+      workers: 1,
       use: { ...devices["Desktop Chrome"] },
     },
   ],

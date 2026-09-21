@@ -206,6 +206,7 @@ function KitchenBrowse({
             role="tab"
             aria-selected={active === item.id}
             className={cn("os-step-pill", active === item.id && "is-on")}
+            data-testid={`kitchen-option-${item.id}`}
             onClick={() => onActive(item.id)}
           >
             {t(item.key)}

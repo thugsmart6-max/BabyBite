@@ -7,12 +7,12 @@ import { growthBandForAge } from "@/lib/growth-bands";
 import { LoaderFive, LoaderOne } from "@/components/ui/loader";
 
 export const SAMPLE_PACKS = [
-  { name: "Egg dosa", slotKey: "dinnerIs" as const, tone: "yellow" },
-  { name: "Ragi idli", slotKey: "breakfast" as const, tone: "sage" },
-  { name: "Rajma rice", slotKey: "lunch" as const, tone: "cocoa" },
-  { name: "Banana lassi", slotKey: "snack" as const, tone: "pink" },
-  { name: "Paneer paratha", slotKey: "dinnerIs" as const, tone: "sky" },
-  { name: "Sambar rice", slotKey: "lunch" as const, tone: "forest" },
+  { nameKey: "benefitThirty" as const, slotKey: "stickerAges" as const, tone: "yellow" },
+  { nameKey: "benefitTiffin" as const, slotKey: "stickerSchool" as const, tone: "sage" },
+  { nameKey: "benefitPicky" as const, slotKey: "stickerPicky" as const, tone: "cocoa" },
+  { nameKey: "benefitProtein" as const, slotKey: "stickerProtein" as const, tone: "pink" },
+  { nameKey: "benefitPdf" as const, slotKey: "stickerFridge" as const, tone: "sky" },
+  { nameKey: "benefitNoGuess" as const, slotKey: "stickerSeven" as const, tone: "forest" },
 ] as const;
 
 export type PackTone = (typeof SAMPLE_PACKS)[number]["tone"] | "cream" | "saffron";
@@ -82,12 +82,20 @@ export function MealPack({
   name: string;
   slot?: string;
   tone?: PackTone;
-  size?: "md" | "lg";
+  size?: "md" | "lg" | "marquee";
   note?: string;
   lift?: boolean;
 }) {
   return (
-    <article className={cn("os-pack", `is-${tone}`, size === "lg" && "is-lg", !lift && "is-static")}>
+    <article
+      className={cn(
+        "os-pack",
+        `is-${tone}`,
+        size === "lg" && "is-lg",
+        size === "marquee" && "is-marquee-3d",
+        !lift && "is-static",
+      )}
+    >
       <p className="os-pack-brand">BabyBite</p>
       {slot ? <p className="os-pack-slot">{slot}</p> : null}
       <h2 className="os-pack-name">{name}</h2>
@@ -124,8 +132,8 @@ export function MealMarquee() {
           <div className="os-marquee-set" key={copy}>
             {SAMPLE_PACKS.map((item) => (
               <MealPack
-                key={`${copy}-${item.name}`}
-                name={item.name}
+                key={`${copy}-${item.nameKey}`}
+                name={t(item.nameKey)}
                 slot={t(item.slotKey)}
                 tone={item.tone}
                 lift={false}

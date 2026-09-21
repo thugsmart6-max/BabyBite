@@ -69,6 +69,22 @@ test.describe("results school and refuse-this", () => {
     const uniquePairs = new Set(pairs.filter(Boolean));
     expect(uniquePairs.size, `refuse-this repeated the same swaps: ${[...uniquePairs].join(" || ")}`).toBeGreaterThan(1);
 
+    await page.getByRole("tab", { name: /^by meal$/i }).click();
+    const lunchOption = page.getByTestId("kitchen-option-lunch");
+    await lunchOption.click();
+    await expect(lunchOption).toHaveAttribute("aria-selected", "true");
+    await expect(lunchOption).toHaveClass(/is-on/);
+    await expect(page.getByTestId("kitchen-option-breakfast")).toHaveAttribute("aria-selected", "false");
+
+    await page.getByRole("tab", { name: /^by problem$/i }).click();
+    const favouriteOption = page.getByTestId("kitchen-option-kidsFavourite");
+    await favouriteOption.click();
+    await expect(favouriteOption).toHaveAttribute("aria-selected", "true");
+    await expect(favouriteOption).toHaveClass(/is-on/);
+
+    await expect(page.locator("#pdf")).toBeVisible();
+    await expect(page.locator("#pdf").getByRole("button", { name: /download pdf/i })).toBeVisible();
+
     await page.getByRole("tab", { name: /today/i }).click();
     const todayLunch = page.locator(".os-meal-row").filter({
       has: page.locator(".os-band-kicker", { hasText: /^lunch$/i }),
