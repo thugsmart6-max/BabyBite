@@ -11,6 +11,7 @@ import {
 } from "@/components/babybite/oats-brand";
 import ThreeDMarqueeDemo from "@/components/ui/3d-marquee-demo";
 import { useMotherLocale } from "@/components/providers/locale-provider";
+import { LANDING_HERO_DINNER_IMAGE } from "@/lib/landing-art";
 
 const STEPS = [
   { n: "01", tone: "yellow" as const, titleKey: "step1" as const, bodyKey: "step1Body" as const },
@@ -28,7 +29,12 @@ export default function LandingPage() {
         <div className="os-hero-core">
           <p className="os-band-kicker">{t("tonight")}</p>
           <h1 className="os-hero-title">{t("whatsDinner")}</h1>
-          <SiteArt src="/art-tiffin.png" alt={t("artTiffin")} variant="tiffin" priority />
+          <SiteArt
+            src={LANDING_HERO_DINNER_IMAGE}
+            alt={t("artHeroDinner")}
+            variant="photo"
+            priority
+          />
           <div className="os-band-actions os-hero-actions">
             <Link href="/signup" className="bb-cta">
               {t("makePlan")}

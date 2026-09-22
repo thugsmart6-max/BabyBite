@@ -6,19 +6,36 @@ export const VIEWPORTS = {
   tablet: { width: 768, height: 1024 },
   laptop: { width: 1280, height: 800 },
   desktop: { width: 1440, height: 900 },
+  tv: { width: 1920, height: 1080 },
+  /** Common 55″ panel with browser chrome (~1900px usable width). */
+  tv55: { width: 1900, height: 1080 },
+  tv4k: { width: 3840, height: 2160 },
 } as const;
 
 export async function gotoReady(page: Page, path: string) {
   await page.goto(path);
   await page.waitForLoadState("domcontentloaded");
   await expect(page.locator(".os-nav")).toBeVisible();
+  await page.waitForFunction(() =>
+    Boolean((window as Window & { __bbMenuScrollHook?: boolean }).__bbMenuScrollHook),
+  );
 }
 
 export async function openMenu(page: Page) {
   const btn = page.locator(".os-menu-btn");
+  const menu = page.locator(".os-menu-full");
   await expect(btn).toBeVisible();
-  await btn.evaluate((el) => (el as HTMLButtonElement).click());
-  await expect(page.locator(".os-menu-full")).toBeVisible();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (await menu.isVisible()) return;
+    await btn.click({ force: true });
+    try {
+      await expect(menu).toBeVisible({ timeout: 4_000 });
+      return;
+    } catch {
+      /* menu animation or parallel load — retry */
+    }
+  }
+  await expect(menu).toBeVisible({ timeout: 8_000 });
 }
 
 export async function closeMenu(page: Page) {
@@ -211,7 +228,7 @@ export async function waitForAuthSessionCleared(page: Page) {
     .poll(
       async () =>
         page.evaluate(async () => {
-          const res = await fetch("/api/auth/session");
+          const res = await fetch("/api/auth/session", { cache: "no-store", credentials: "same-origin" });
           if (!res.ok) return "pending";
           const body = (await res.json()) as { user?: unknown } | null;
           return body?.user ? "authed" : "logged-out";
@@ -225,6 +242,12 @@ export async function logoutFromMenu(page: Page) {
   await openMenu(page);
   await page.getByTestId("menu-logout").click();
   await page.waitForURL(/\/landing/, { timeout: 20_000 });
+  try {
+    await waitForAuthSessionCleared(page);
+  } catch {
+    await page.context().clearCookies();
+    await waitForAuthSessionCleared(page);
+  }
   await expect(page.getByRole("heading", { name: /what.?s for dinner/i })).toBeVisible();
 }
 

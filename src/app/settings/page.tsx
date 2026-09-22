@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOutToLanding } from "@/lib/client-sign-out";
 import { LogOut } from "lucide-react";
 import { BbCanvas } from "@/components/babybite/bb-canvas";
 import { MealPack } from "@/components/babybite/oats-brand";
@@ -367,7 +368,7 @@ export default function SettingsPage() {
     setLoggingOut(true);
     try {
       endLocalSession();
-      await signOut({ callbackUrl: "/landing" });
+      await signOutToLanding();
     } catch {
       setLoggingOut(false);
     }

@@ -126,9 +126,14 @@ test.describe("mobile content and tap targets", () => {
   test("open menu does not scroll the landing page behind it", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.phone);
     await gotoReady(page, "/landing");
-    await page.evaluate(() => window.scrollTo(0, 240));
+    await page.evaluate(() => {
+      window.scrollTo(0, 240);
+      window.dispatchEvent(new Event("scroll"));
+    });
+    await expect
+      .poll(async () => page.evaluate(() => window.scrollY))
+      .toBeGreaterThan(100);
     const before = await page.evaluate(() => window.scrollY);
-    expect(before).toBeGreaterThan(100);
     await openMenu(page);
     await page.mouse.wheel(0, 500);
     await closeMenu(page);

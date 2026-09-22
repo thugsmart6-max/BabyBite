@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import type { MotherCopyKey } from "@/lib/mother-copy";
 import { growthBandForAge } from "@/lib/growth-bands";
+import { LANDING_BOND_MOTHER_CHILD_IMAGE } from "@/lib/landing-art";
 import { LoaderFive, LoaderOne } from "@/components/ui/loader";
 
 export const SAMPLE_PACKS = [
@@ -53,7 +54,7 @@ export function SiteArt({
 }: {
   src: string;
   alt: string;
-  variant?: "tiffin" | "wide" | "nutrients" | "mark" | "compare";
+  variant?: "tiffin" | "wide" | "nutrients" | "mark" | "compare" | "photo" | "bond";
   priority?: boolean;
 }) {
   return (
@@ -150,21 +151,16 @@ export function BondTable() {
   const { t } = useMotherLocale();
   return (
     <section className="os-bond" id="together">
-      <p className="os-band-kicker">{t("bondKicker")}</p>
-      <h2 className="os-section-title">{t("bondTitle")}</h2>
-      <p className="os-bond-copy">{t("bondBody")}</p>
-      <div className="os-bond-art" aria-hidden>
-        <div className="os-bond-figure is-mom">
-          <span className="os-bond-head" />
-          <span className="os-bond-torso" />
+      <div className="os-bond-layout">
+        <div className="os-bond-copy-block">
+          <p className="os-band-kicker">{t("bondKicker")}</p>
+          <h2 className="os-section-title">{t("bondTitle")}</h2>
+          <p className="os-bond-copy">{t("bondBody")}</p>
         </div>
-        <div className="os-bond-figure is-kid">
-          <span className="os-bond-head" />
-          <span className="os-bond-torso" />
+        <div className="os-bond-visual">
+          <SiteArt src={LANDING_BOND_MOTHER_CHILD_IMAGE} alt={t("artBondMotherChild")} variant="bond" />
+          <span className="os-sticker is-pink os-bond-heart">{t("bondTag")}</span>
         </div>
-        <div className="os-bond-bench" />
-        <div className="os-bond-plate" />
-        <span className="os-sticker is-pink os-bond-heart">{t("bondTag")}</span>
       </div>
     </section>
   );

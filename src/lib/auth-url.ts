@@ -53,7 +53,7 @@ export function applyProductionAuthUrl() {
 
   if (next) {
     process.env.AUTH_URL = next;
-    if (process.env.NEXTAUTH_URL && isLocalHost(process.env.NEXTAUTH_URL)) {
+    if (!process.env.NEXTAUTH_URL || isLocalHost(process.env.NEXTAUTH_URL)) {
       process.env.NEXTAUTH_URL = next;
     }
   }

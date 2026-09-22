@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { signOutToLanding } from "@/lib/client-sign-out";
 import { BbCanvas } from "@/components/babybite/bb-canvas";
 import { DinnerHero, GroceryTicks, MonthShelf, TodayShelf, WeekShelf } from "@/components/babybite/dinner-hero";
 import { GrowthBoard, SiteArt } from "@/components/babybite/oats-brand";
+import { FEEDING_IMAGE } from "@/lib/landing-art";
 import { KitchenSkeleton } from "@/components/babybite/page-skeleton";
 import { ResultsFolder, type ResultsRoom } from "@/components/babybite/results-folder";
 import { ResultsPdfDownload } from "@/components/babybite/results-pdf-download";
@@ -38,6 +39,7 @@ export default function ResultsPage() {
   const [tab, setTab] = useState<Tab>("today");
   const [tiffinNeed, setTiffinNeed] = useState<TiffinNeed>("home-only");
   const [schoolFilter, setSchoolFilter] = useState(false);
+  const [tableHeadline, setTableHeadline] = useState<MotherCopyKey | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [childProfileId, setChildProfileId] = useState<string | undefined>();
@@ -157,7 +159,7 @@ export default function ResultsPage() {
 
   const leaveAccount = async () => {
     endLocalSession();
-    await signOut({ callbackUrl: "/landing" });
+    await signOutToLanding();
   };
 
   const viewPlan = useMemo(() => (plan ? overlaySchoolPlan(plan, schoolFilter) : null), [plan, schoolFilter]);
@@ -181,7 +183,7 @@ export default function ResultsPage() {
         <section className="os-results-hero os-results-empty">
           <p className="os-band-kicker">{t("tonight")}</p>
           <h1 className="os-hero-title">{t("whatsDinner")}</h1>
-          <SiteArt src="/art-tiffin.png" alt={t("artTiffin")} variant="tiffin" />
+          <SiteArt src={FEEDING_IMAGE} alt={t("artHeroDinner")} variant="photo" />
           <p className="os-onboard-lede">{error}</p>
           <button type="button" className="bb-cta" onClick={retry}>
             {t("tryAgain")}
@@ -200,7 +202,7 @@ export default function ResultsPage() {
         <section className="os-results-hero os-results-empty">
           <p className="os-band-kicker">{t("tonight")}</p>
           <h1 className="os-hero-title">{t("whatsDinner")}</h1>
-          <SiteArt src="/art-tiffin.png" alt={t("artTiffin")} variant="tiffin" />
+          <SiteArt src={FEEDING_IMAGE} alt={t("artHeroDinner")} variant="photo" />
           <p className="os-onboard-lede">{t("bandBody")}</p>
           <Link href="/payment" className="bb-cta">
             {t("showThirty")}
@@ -249,6 +251,7 @@ export default function ResultsPage() {
           </div>
         ) : null}
         <h1 className="os-hero-title">{t("whatsDinner")}</h1>
+        <SiteArt src={FEEDING_IMAGE} alt={t("artHeroDinner")} variant="photo" />
         <DinnerHero plan={plan} />
       </section>
 
@@ -280,17 +283,19 @@ export default function ResultsPage() {
       <section className="os-results-board" id="table">
         <p className="os-band-kicker">{t("table")}</p>
         <h2 className="os-section-title">
-          {tab === "monthly"
-            ? t("roomMonth")
-            : tab === "weekly"
-              ? t("roomWeek")
-              : tab === "tiffin"
-                ? t("roomTiffin")
-                : tab === "meals"
-                  ? t("roomByMeal")
-                  : tab === "problems"
-                    ? t("roomByProblem")
-                    : t("roomToday")}
+          {tableHeadline && (tab === "meals" || tab === "problems")
+            ? t(tableHeadline)
+            : tab === "monthly"
+              ? t("roomMonth")
+              : tab === "weekly"
+                ? t("roomWeek")
+                : tab === "tiffin"
+                  ? t("roomTiffin")
+                  : tab === "meals"
+                    ? t("roomByMeal")
+                    : tab === "problems"
+                      ? t("roomByProblem")
+                      : t("roomToday")}
         </h2>
         <SiteArt src="/art-nutrients.png" alt={t("artNutrients")} variant="nutrients" />
         <ResultsFolder
@@ -300,6 +305,7 @@ export default function ResultsPage() {
           tiffinNeed={tiffinNeed}
           schoolFilter={schoolFilter}
           onSchoolFilter={setSchoolFilter}
+          onBrowseHeadline={setTableHeadline}
         />
         <GroceryTicks plan={viewPlan} />
       </section>

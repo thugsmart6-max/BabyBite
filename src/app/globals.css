@@ -376,9 +376,15 @@ body.intro-active {
 
 html {
   color-scheme: light;
-  overflow-x: hidden;
+  overflow-x: clip;
+  max-width: 100%;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+html.is-menu-locked {
+  overflow: hidden !important;
+  overscroll-behavior: none;
 }
 
 html.dark {
@@ -391,8 +397,9 @@ body {
   font-family: var(--font-sans), "Noto Sans Tamil", "Noto Sans Devanagari", system-ui, sans-serif;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
+  overflow-x: clip;
   overflow-y: auto;
+  max-width: 100%;
   letter-spacing: 0;
   font-size: 16px;
   line-height: 1.6;

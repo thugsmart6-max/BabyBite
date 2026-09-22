@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOutToLanding } from "@/lib/client-sign-out";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Settings, X } from "lucide-react";
 import { LocaleToggle } from "@/components/babybite/locale-toggle";
@@ -12,6 +13,34 @@ import { translateCta } from "@/lib/mother-copy";
 import { cn } from "@/lib/utils";
 import { homePathForUser, nextMotherAction } from "@/lib/funnel-gates";
 import { endLocalSession } from "@/lib/local-user-store";
+
+function readDocumentScrollY() {
+  return (
+    window.scrollY ||
+    document.documentElement.scrollTop ||
+    document.body.scrollTop ||
+    0
+  );
+}
+
+function restoreDocumentScrollY(y: number) {
+  document.documentElement.scrollTop = y;
+  document.body.scrollTop = y;
+  window.scrollTo(0, y);
+}
+
+let persistedMenuScrollY = 0;
+
+if (typeof window !== "undefined") {
+  const recordPersistedScroll = () => {
+    if (document.body.style.position !== "fixed") {
+      persistedMenuScrollY = readDocumentScrollY();
+    }
+  };
+  recordPersistedScroll();
+  window.addEventListener("scroll", recordPersistedScroll, { passive: true });
+  (window as Window & { __bbMenuScrollHook?: boolean }).__bbMenuScrollHook = true;
+}
 
 export const DEFAULT_CHIPS = [
   "Ages 4–12",
@@ -48,13 +77,15 @@ export function FeatherTopbar({
   const showLogout = loggedIn || (status === "loading" && onAppPage);
 
   useEffect(() => {
+    menuScrollY.current = persistedMenuScrollY;
+  }, []);
+
+  useEffect(() => {
     if (!menuOpen) return;
     const { body, documentElement } = document;
-    const alreadyLocked = body.style.position === "fixed";
-    const fromTop = Math.abs(Number.parseInt(body.style.top || "0", 10)) || 0;
-    const measured = alreadyLocked ? fromTop : window.scrollY;
-    const scrollY = measured || menuScrollY.current;
+    const scrollY = Math.max(menuScrollY.current, persistedMenuScrollY);
     menuScrollY.current = scrollY;
+
     const previous = {
       position: body.style.position,
       top: body.style.top,
@@ -62,20 +93,32 @@ export function FeatherTopbar({
       overflow: body.style.overflow,
       htmlOverflow: documentElement.style.overflow,
     };
+
+    documentElement.classList.add("is-menu-locked");
     body.style.position = "fixed";
     body.style.top = `-${scrollY}px`;
     body.style.width = "100%";
     body.style.overflow = "hidden";
     documentElement.style.overflow = "hidden";
+
+    const blockBackgroundWheel = (event: WheelEvent) => {
+      const menu = document.querySelector(".os-menu-full");
+      if (menu?.contains(event.target as Node)) return;
+      event.preventDefault();
+    };
+    document.addEventListener("wheel", blockBackgroundWheel, { passive: false });
+
     return () => {
+      document.removeEventListener("wheel", blockBackgroundWheel);
+      const restore = menuScrollY.current;
+      documentElement.classList.remove("is-menu-locked");
       body.style.position = previous.position;
       body.style.top = previous.top;
       body.style.width = previous.width;
       body.style.overflow = previous.overflow;
       documentElement.style.overflow = previous.htmlOverflow;
-      const restore = menuScrollY.current;
-      window.scrollTo(0, restore);
-      requestAnimationFrame(() => window.scrollTo(0, restore));
+      restoreDocumentScrollY(restore);
+      requestAnimationFrame(() => restoreDocumentScrollY(restore));
     };
   }, [menuOpen]);
   const homeHref = homePathForUser({
@@ -93,7 +136,7 @@ export function FeatherTopbar({
   const logout = async () => {
     setMenuOpen(false);
     endLocalSession();
-    await signOut({ callbackUrl: "/landing" });
+    await signOutToLanding();
   };
 
   return (
@@ -105,9 +148,6 @@ export function FeatherTopbar({
           aria-label={t("openMenu")}
           aria-expanded={menuOpen}
           onClick={(event) => {
-            if (!menuOpen) {
-              menuScrollY.current = window.scrollY;
-            }
             setMenuOpen((open) => !open);
             event.currentTarget.blur();
           }}
@@ -203,7 +243,14 @@ export function BbCanvas({
   children?: ReactNode;
 }) {
   return (
-    <div className={cn("bb-studio is-oats", dinnerFirst && "is-hero", full && "is-full", className)}>
+    <div
+      className={cn(
+        "bb-studio is-oats",
+        dinnerFirst && "is-hero",
+        full && "is-full is-display",
+        className,
+      )}
+    >
       {showTopbar ? <FeatherTopbar tagline={tagline} /> : null}
       {full ? (
         children

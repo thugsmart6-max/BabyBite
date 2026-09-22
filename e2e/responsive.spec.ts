@@ -49,6 +49,74 @@ test.describe("responsive public UI", () => {
     await expect(tamil).toBeVisible();
   });
 
+  test("tv landing keeps content centered without horizontal scroll", async ({ page }) => {
+    await page.setViewportSize(VIEWPORTS.tv);
+    await gotoReady(page, "/landing");
+    await assertNoHorizontalOverflow(page, "tv /landing");
+    const hero = page.locator(".os-hero-core");
+    await expect(hero).toBeVisible();
+    const box = await hero.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(VIEWPORTS.tv.width);
+    const rail = await page.evaluate(() => {
+      const heroSection = document.querySelector(".os-hero");
+      if (!heroSection) return null;
+      const r = heroSection.getBoundingClientRect();
+      return { left: r.left, width: r.width, viewport: window.innerWidth };
+    });
+    expect(rail).not.toBeNull();
+    expect(rail!.width).toBeLessThanOrEqual(VIEWPORTS.tv.width - 32);
+    expect(rail!.left).toBeGreaterThanOrEqual(8);
+    expect(rail!.left + rail!.width).toBeLessThanOrEqual(VIEWPORTS.tv.width - 8);
+  });
+
+  test("1900×1080 (55″) landing uses a readable content rail", async ({ page }) => {
+    await page.setViewportSize(VIEWPORTS.tv55);
+    await gotoReady(page, "/landing");
+    await assertNoHorizontalOverflow(page, "tv55 /landing");
+    const metrics = await page.evaluate(() => {
+      const section = document.querySelector(".os-plates");
+      const cta = document.querySelector(".os-hero-actions .bb-cta");
+      if (!section || !cta) return null;
+      const s = section.getBoundingClientRect();
+      const c = cta.getBoundingClientRect();
+      return {
+        sectionWidth: s.width,
+        viewport: window.innerWidth,
+        ctaHeight: c.height,
+      };
+    });
+    expect(metrics).not.toBeNull();
+    expect(metrics!.sectionWidth).toBeLessThan(metrics!.viewport * 0.92);
+    expect(metrics!.ctaHeight).toBeGreaterThanOrEqual(44);
+  });
+
+  test("tablet landing 3d marquee section fits viewport", async ({ page }) => {
+    await page.setViewportSize(VIEWPORTS.tablet);
+    await gotoReady(page, "/landing");
+    await assertNoHorizontalOverflow(page, "tablet /landing");
+    await expect(page.locator(".os-marquee-3d")).toBeVisible();
+  });
+
+  test("tv landing 3d marquee and auth stay inside the viewport", async ({ page }) => {
+    await page.setViewportSize(VIEWPORTS.tv);
+    await gotoReady(page, "/landing");
+    await assertNoHorizontalOverflow(page, "tv landing marquee");
+    const marquee = page.locator(".os-marquee-3d");
+    await expect(marquee).toBeVisible();
+    const box = await marquee.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(VIEWPORTS.tv.width + 1);
+
+    await gotoReady(page, "/login");
+    await assertNoHorizontalOverflow(page, "tv login");
+    const grid = page.locator(".os-auth-grid");
+    await expect(grid).toBeVisible();
+    const gridBox = await grid.boundingBox();
+    expect(gridBox).not.toBeNull();
+    expect(gridBox!.width).toBeLessThan(VIEWPORTS.tv.width * 0.92);
+  });
+
   test("laptop shows language in the header", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.laptop);
     await gotoReady(page, "/landing");
@@ -76,12 +144,13 @@ test.describe("responsive public UI", () => {
     await expect(page.locator("form").getByRole("button", { name: /sign in/i })).toBeVisible();
   });
 
-  test("phone hero stickers stay fully readable and off the tiffin", async ({ page }) => {
+  test("phone hero stickers stay fully readable and off the hero image", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.phone);
     await gotoReady(page, "/landing");
+    await expect(page.locator(".os-hero .os-site-art")).toBeVisible();
     const hits = await page.evaluate(() => {
       const art = document.querySelector(".os-hero .os-site-art");
-      if (!art) return ["missing tiffin"];
+      if (!art) return ["missing hero art"];
       const a = art.getBoundingClientRect();
       return [...document.querySelectorAll(".os-hero .os-sticker")].flatMap((el) => {
         const style = window.getComputedStyle(el);
@@ -89,7 +158,7 @@ test.describe("responsive public UI", () => {
         const r = el.getBoundingClientRect();
         const text = el.textContent?.trim() || "sticker";
         const overlap = !(r.right <= a.left + 4 || r.left >= a.right - 4 || r.bottom <= a.top + 4 || r.top >= a.bottom - 4);
-        if (overlap) return [`${text} overlaps tiffin`];
+        if (overlap) return [`${text} overlaps hero image`];
         if (r.width < 24 || r.height < 16) return [`${text} is clipped`];
         return [];
       });

@@ -86,14 +86,21 @@ test.describe("authenticated screens stay usable", () => {
     await waitForResults(page);
 
     for (const [name, viewport] of Object.entries({
+      phoneSm: VIEWPORTS.phoneSm,
       phone: VIEWPORTS.phone,
       tablet: VIEWPORTS.tablet,
+      laptop: VIEWPORTS.laptop,
       desktop: VIEWPORTS.desktop,
+      tv: VIEWPORTS.tv,
+      tv55: VIEWPORTS.tv55,
     })) {
       await page.setViewportSize(viewport);
       await page.goto("/results");
       await waitForResults(page);
       await assertNoHorizontalOverflow(page, `${name} results`);
+      await page.getByTestId("results-room-problems").click();
+      await page.getByTestId("kitchen-option-tenMin").click();
+      await assertNoHorizontalOverflow(page, `${name} results by-problem`);
       await page.goto("/settings");
       await expect(page.getByTestId("logout-button").first()).toBeVisible();
       await assertNoHorizontalOverflow(page, `${name} settings`);

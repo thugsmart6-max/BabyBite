@@ -25,7 +25,7 @@ test.describe("results school and refuse-this", () => {
     await waitForResults(page);
 
     await expect(page.getByText(/built from your checklist/i).first()).toBeVisible();
-    await expect(page.getByRole("tab", { name: /^school$/i })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /tiffin week/i })).toBeVisible();
 
     await page.getByRole("tab", { name: /30 days/i }).click();
     await expect(page.locator(".os-month-row").first()).toBeVisible();
@@ -46,7 +46,7 @@ test.describe("results school and refuse-this", () => {
       ).toBeFalsy();
     }
 
-    await page.getByRole("tab", { name: /^school$/i }).click();
+    await page.getByRole("tab", { name: /tiffin week/i }).click();
     await expect(page.getByText(/weekday lunch packed for school/i)).toBeVisible();
 
     const body = (await page.locator(".os-folder").innerText()).toLowerCase();
@@ -69,18 +69,24 @@ test.describe("results school and refuse-this", () => {
     const uniquePairs = new Set(pairs.filter(Boolean));
     expect(uniquePairs.size, `refuse-this repeated the same swaps: ${[...uniquePairs].join(" || ")}`).toBeGreaterThan(1);
 
-    await page.getByRole("tab", { name: /^by meal$/i }).click();
+    await page.getByRole("tab", { name: /by meal/i }).click();
     const lunchOption = page.getByTestId("kitchen-option-lunch");
     await lunchOption.click();
     await expect(lunchOption).toHaveAttribute("aria-selected", "true");
     await expect(lunchOption).toHaveClass(/is-on/);
     await expect(page.getByTestId("kitchen-option-breakfast")).toHaveAttribute("aria-selected", "false");
 
-    await page.getByRole("tab", { name: /^by problem$/i }).click();
+    await page.getByRole("tab", { name: /by problem/i }).click();
     const favouriteOption = page.getByTestId("kitchen-option-kidsFavourite");
     await favouriteOption.click();
     await expect(favouriteOption).toHaveAttribute("aria-selected", "true");
     await expect(favouriteOption).toHaveClass(/is-on/);
+
+    const tenMin = page.getByTestId("kitchen-option-tenMin");
+    await tenMin.click();
+    await expect(tenMin).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("kitchen-list-title")).toHaveText(/10-min food/i);
+    await expect(page.locator(".os-kitchen-card .os-band-kicker")).toHaveCount(0);
 
     await expect(page.locator("#pdf")).toBeVisible();
     await expect(page.locator("#pdf").getByRole("button", { name: /download pdf/i })).toBeVisible();
@@ -90,7 +96,7 @@ test.describe("results school and refuse-this", () => {
       has: page.locator(".os-band-kicker", { hasText: /^lunch$/i }),
     }).first();
     await expect(todayLunch).toBeVisible();
-    const schoolFilter = page.getByRole("button", { name: /^school$/i });
+    const schoolFilter = page.getByTestId("school-lunch-switch");
     await expect(schoolFilter).toBeVisible();
     const before = (await todayLunch.locator("h3").innerText()).trim();
     await schoolFilter.click();
