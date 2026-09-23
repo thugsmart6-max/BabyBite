@@ -129,14 +129,13 @@ export async function assertNavDoesNotCollide(page: Page) {
 }
 
 export async function acceptTerms(page: Page) {
-  const gate = page.locator(".os-terms, .os-terms-gate, form").first();
-  const box = gate.locator('input[type="checkbox"]').first();
-  if (await box.count()) {
-    await box.check();
+  const checkbox = page.getByTestId("terms-accept-checkbox");
+  if (await checkbox.count()) {
+    await checkbox.click();
   } else {
-    await page.locator('input[type="checkbox"]').first().check();
+    await page.getByRole("checkbox").first().click();
   }
-  await page.getByRole("button", { name: /i agree/i }).click();
+  await page.getByTestId("terms-agree-button").click();
 }
 
 export async function assertMinTap(box: { width: number; height: number } | null, label: string, min = 36) {

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { TERMS_VERSION } from "@/lib/constants";
 import { termsAgreementLabel, termsDisclaimer, termsSectionsFor } from "@/lib/terms-copy";
 import { useMotherLocale } from "@/components/providers/locale-provider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { GoogleMark } from "@/components/shared/google-mark";
 import { cn } from "@/lib/utils";
 
 type TermsAgreementGateProps = {
@@ -65,18 +67,27 @@ export function TermsAgreementGate({
 
         <div className="os-terms-foot">
           <label className="os-terms-check">
-            <input
-              type="checkbox"
+            <Checkbox
+              data-testid="terms-accept-checkbox"
               checked={checked}
-              onChange={(event) => setChecked(event.target.checked)}
+              onCheckedChange={(value) => setChecked(value === true)}
               aria-describedby="terms-checkbox-hint"
             />
-            <span id="terms-checkbox-hint">{termsAgreementLabel(lang)}</span>
+            <span className="os-terms-check-label" id="terms-checkbox-hint">
+              {termsAgreementLabel(lang)}
+            </span>
           </label>
 
           <div className="os-band-actions os-terms-actions">
             {onGoogle ? (
-              <button type="button" className="bb-cta" disabled={!checked} onClick={onGoogle}>
+              <button
+                type="button"
+                className="bb-cta bb-cta-google"
+                disabled={!checked}
+                onClick={onGoogle}
+                data-testid="terms-continue-google"
+              >
+                <GoogleMark />
                 {t("continueGoogle")}
               </button>
             ) : null}
@@ -85,6 +96,7 @@ export function TermsAgreementGate({
               className={onGoogle ? "os-text-link" : "bb-cta"}
               disabled={!checked}
               onClick={onAccept}
+              data-testid="terms-agree-button"
             >
               {t("termsAgree")}
             </button>

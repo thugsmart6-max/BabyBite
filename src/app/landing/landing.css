@@ -3063,7 +3063,7 @@ html.dark .bb-studio.is-oats {
   background: #fff;
 }
 
-.bb-studio.is-oats input,
+.bb-studio.is-oats input:not([type="checkbox"]):not([type="radio"]),
 .bb-studio.is-oats textarea,
 .bb-studio.is-oats select {
   border: 2px solid #111 !important;
@@ -3816,14 +3816,41 @@ html.dark .os-nav .theme-toggle.is-solo {
   margin-bottom: 1rem;
   font-size: 0.9rem;
   line-height: 1.45;
+  cursor: pointer;
 }
 
-.os-terms-check input {
-  margin-top: 0.15rem;
-  width: 1.35rem;
-  height: 1.35rem;
+.os-terms-check [data-slot="checkbox"] {
+  margin-top: 0.1rem;
+  width: 1.25rem;
+  height: 1.25rem;
   flex-shrink: 0;
-  accent-color: #111;
+  border-width: 2px;
+  border-color: #111;
+  background: #fff;
+  cursor: pointer;
+}
+
+.os-terms-check [data-slot="checkbox"][data-checked] {
+  background: #f6d326;
+  border-color: #111;
+  color: #111;
+}
+
+.os-terms-check-label {
+  flex: 1;
+  cursor: pointer;
+}
+
+.bb-cta-google,
+.bb-google-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.bb-google-mark {
+  flex-shrink: 0;
 }
 
 .os-icon-hit {

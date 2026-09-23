@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { rememberLocalUser } from "@/lib/local-user-store";
 import { KitchenSkeletonScreen } from "@/components/babybite/page-skeleton";
+import { GoogleMark } from "@/components/shared/google-mark";
 
 function SignupForm() {
   const { t } = useMotherLocale();
@@ -213,10 +214,12 @@ function SignupForm() {
       <Button
         type="button"
         variant="outline"
-        className="w-full"
+        className="bb-google-btn w-full"
         disabled={loading}
         onClick={startGoogle}
+        data-testid="signup-continue-google"
       >
+        <GoogleMark />
         {t("continueGoogle")}
       </Button>
 
