@@ -63,12 +63,18 @@ export function TodayShelf({ plan }: { plan: GeneratedMealPlan }) {
   const { t, lang } = useMotherLocale();
   const items = SLOT_ORDER.map((slot) => plan.today.meals.find((meal) => meal.slot === slot))
     .filter((meal): meal is MealEntry => Boolean(meal))
-    .map((meal) => ({
-      name: translateKitchen(lang, meal.name),
-      slot: mealSlotCopy(lang, meal.slot),
-      tone: SLOT_TONE[meal.slot],
-      note: meal.whyThisPlate || t(FOCUS_KEY[getMealFocus(meal)]),
-    }));
+    .map((meal) => {
+      const packable = meal.slot === "lunch";
+      return {
+        name: translateKitchen(lang, meal.name),
+        slot: mealSlotCopy(lang, meal.slot, { packable }),
+        tone: packable ? ("sky" as PackTone) : SLOT_TONE[meal.slot],
+        note: packable
+          ? `${t("packableBadge")} · ${meal.whyThisPlate ? translateKitchen(lang, meal.whyThisPlate) : t(FOCUS_KEY[getMealFocus(meal)])}`
+          : meal.whyThisPlate || t(FOCUS_KEY[getMealFocus(meal)]),
+        packable,
+      };
+    });
 
   if (items.length === 0) return null;
   return <MealShelf items={items} lift={false} />;
@@ -80,9 +86,10 @@ export function WeekShelf({ plan }: { plan: GeneratedMealPlan }) {
     const lunch = day.meals.find((meal) => meal.slot === "lunch") ?? day.meals[0];
     return {
       name: translateKitchen(lang, lunch?.name ?? "—"),
-      slot: translateKitchen(lang, day.dayLabel),
-      tone: WEEK_TONE[index % WEEK_TONE.length],
-      note: lunch?.whyThisPlate || (lunch ? t(FOCUS_KEY[getMealFocus(lunch)]) : undefined),
+      slot: mealSlotCopy(lang, "lunch", { packable: true }),
+      tone: "sky" as PackTone,
+      note: `${translateKitchen(lang, day.dayLabel)} · ${t("packableBadge")}`,
+      packable: true,
     };
   });
 

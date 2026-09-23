@@ -21,9 +21,6 @@ async function ensureTestAccount(request: APIRequestContext) {
       termsVersion: "2026-08-20",
     },
   });
-  // #region agent log
-  fetch("http://127.0.0.1:7803/ingest/95f350a3-7db0-463e-a25d-1bd09a11d00d",{method:"POST",headers:{"Content-Type":"application/json","X-Debug-Session-Id":"422235"},body:JSON.stringify({sessionId:"422235",runId:"post-fix",hypothesisId:"A",location:"e2e/auth-storage.spec.ts:ensureTestAccount",message:"signup status",data:{status:res.status(),hasMongoUri:Boolean(process.env.MONGODB_URI)},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
   expect([201, 409]).toContain(res.status());
 }
 

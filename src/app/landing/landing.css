@@ -7099,5 +7099,460 @@ html.dark .os-pay-off {
   }
 }
 
+/* —— Landing plan footer CTA (Make My Plan) —— */
+.os-plan-footer {
+  margin: 2.5rem var(--os-gutter-inline, 6vw) 2rem;
+  background: #fff;
+  border: 2.5px solid #111;
+  border-radius: 1.75rem;
+  box-shadow: 6px 6px 0 #111;
+  overflow: hidden;
+}
+
+.os-plan-footer-inner {
+  display: grid;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.25rem 1.15rem 1.5rem;
+}
+
+@media (min-width: 48rem) {
+  .os-plan-footer-inner {
+    grid-template-columns: minmax(10rem, 14rem) 1fr;
+    gap: 1.75rem;
+    padding: 1.75rem 2rem 2rem;
+  }
+}
+
+.os-plan-footer-art {
+  position: relative;
+  margin-inline: auto;
+  width: min(100%, 16rem);
+  aspect-ratio: 1;
+}
+
+.os-plan-footer-blob {
+  position: absolute;
+  inset: 8% 4% 4% 8%;
+  border-radius: 58% 42% 55% 45% / 48% 52% 44% 56%;
+  background: color-mix(in srgb, var(--os-yellow) 55%, #fff);
+}
+
+.os-plan-footer-illustration {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.os-plan-footer-title {
+  margin: 0.35rem 0 0.5rem;
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.45rem, 4.5vw, 2.15rem);
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.os-plan-footer-lede {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #333;
+  max-width: 36rem;
+}
+
+.os-plan-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.os-plan-footer-cta {
+  min-width: min(100%, 14rem);
+}
+
+/* —— Results oval / pill alignment —— */
+.os-step-pill,
+.os-plan-tab,
+.os-hero-pack .bb-cta,
+.os-meal-swap-btn,
+.os-lunch-swap-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.os-plan-tab-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.2em;
+  padding-inline: 0.15rem;
+}
+
+.os-hero-pack {
+  display: grid;
+  gap: 0.85rem;
+  justify-items: start;
+}
+
+.os-hero-pack .bb-cta {
+  width: 100%;
+  max-width: 22rem;
+  min-height: 2.85rem;
+  padding-inline: 1.25rem;
+}
+
+.os-meal-swap-btn,
+.os-lunch-swap-trigger {
+  appearance: none;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border: 2px solid #111;
+  border-radius: 999px;
+  background: var(--os-yellow);
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.os-lunch-swap-trigger {
+  margin-top: 0.5rem;
+  background: #fff;
+}
+
+.os-lunch-swap-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(17, 17, 17, 0.45);
+}
+
+@media (min-width: 40rem) {
+  .os-lunch-swap-backdrop {
+    align-items: center;
+  }
+}
+
+.os-lunch-swap-sheet {
+  width: min(100%, 28rem);
+  max-height: min(85vh, 32rem);
+  overflow: auto;
+  padding: 1.1rem 1.15rem 1.25rem;
+  border: 2.5px solid #111;
+  border-radius: 1.25rem;
+  background: #fff;
+  box-shadow: 6px 6px 0 #111;
+}
+
+.os-lunch-swap-list {
+  list-style: none;
+  margin: 0.75rem 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.os-lunch-swap-option {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border: 2px solid #111;
+  border-radius: 1rem;
+  background: #fffef9;
+  cursor: pointer;
+}
+
+.os-lunch-swap-option:hover {
+  background: var(--os-yellow);
+}
+
+.os-lunch-swap-name {
+  display: block;
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+
+.os-lunch-swap-desc {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #444;
+}
+
+.os-lunch-swap-close {
+  width: 100%;
+  min-height: 2.5rem;
+}
+
+/* —— Packable lunch cards —— */
+.os-pack.is-packable-lunch {
+  border-color: #111;
+  background: linear-gradient(165deg, #fffef5 0%, #e8f4ff 55%, #fff 100%);
+  box-shadow: 4px 4px 0 #111;
+}
+
+.os-pack.is-packable-lunch .os-pack-slot {
+  color: #0d5c4a;
+}
+
+.os-meal-row.is-packable-lunch-row {
+  border-left: 4px solid var(--os-yellow);
+  padding-left: 0.65rem;
+}
+
+/* —— Box lunch swap promo + modal —— */
+.os-box-lunch-promo {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+  padding: 0.85rem 0.9rem;
+  border: 2.5px solid #111;
+  border-radius: 1.15rem;
+  background: linear-gradient(180deg, #fffef9 0%, #fff6d8 100%);
+  box-shadow: 4px 4px 0 #111;
+}
+
+.os-box-lunch-promo-title {
+  margin: 0;
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.os-box-lunch-promo-cta {
+  width: 100%;
+  min-height: 2.85rem;
+}
+
+.os-school-toggle-row.is-inline {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  gap: 0.5rem;
+}
+
+.os-box-lunch-swap {
+  width: min(100%, 36rem);
+  max-height: min(92vh, 52rem);
+  overflow: auto;
+  padding: 1.15rem 1.2rem 1.35rem;
+  border: 2.5px solid #111;
+  border-radius: 1.35rem;
+  background: #fff;
+  box-shadow: 8px 8px 0 #111;
+  outline: none;
+}
+
+@media (min-width: 64rem) {
+  .os-box-lunch-swap {
+    width: min(100%, 42rem);
+    padding: 1.35rem 1.5rem 1.5rem;
+  }
+}
+
+@media (min-width: 100rem) {
+  .os-box-lunch-swap {
+    width: min(100%, 56rem);
+    max-width: var(--os-screen-rail, 56rem);
+  }
+
+  .os-box-lunch-swap-title {
+    font-size: clamp(1.35rem, 1.2vw, 1.75rem);
+  }
+}
+
+.os-box-lunch-swap-title {
+  margin: 0.25rem 0 0.35rem;
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.15rem, 3.5vw, 1.55rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.os-box-lunch-section-label {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.os-box-lunch-current-card {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 2.5px solid #111;
+  border-radius: 1rem;
+  background: #fffef9;
+}
+
+@media (min-width: 40rem) {
+  .os-box-lunch-current-card {
+    grid-template-columns: minmax(7rem, 9rem) 1fr;
+    align-items: center;
+  }
+}
+
+.os-box-lunch-art,
+.os-box-lunch-option-art {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #fef6d6;
+  border: 2px solid #111;
+}
+
+.os-box-lunch-art-img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.os-packable-kicker {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0d5c4a;
+}
+
+.os-box-lunch-meal-name,
+.os-box-lunch-option-name {
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1.15;
+}
+
+.os-box-lunch-meal-desc,
+.os-box-lunch-option-desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #444;
+}
+
+.os-box-lunch-swap-arrow {
+  margin: 0.85rem 0;
+  text-align: center;
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.os-box-lunch-options-track {
+  display: flex;
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 48rem) {
+  .os-box-lunch-options-track {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+}
+
+@media (min-width: 64rem) {
+  .os-box-lunch-options-track {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.os-box-lunch-option {
+  appearance: none;
+  flex: 0 0 min(82vw, 16rem);
+  scroll-snap-align: start;
+  display: grid;
+  gap: 0.35rem;
+  text-align: left;
+  padding: 0.65rem;
+  min-height: 11rem;
+  border: 2.5px solid #111;
+  border-radius: 1rem;
+  background: #fff;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.os-box-lunch-option:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #111;
+}
+
+.os-box-lunch-option.is-selected {
+  background: var(--os-yellow);
+  box-shadow: 4px 4px 0 #111;
+}
+
+.os-box-lunch-option-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 999px;
+  border: 2px solid #111;
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.os-box-lunch-check {
+  width: 1rem;
+  height: 1rem;
+}
+
+.os-box-lunch-swap-foot {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.os-box-lunch-confirm {
+  width: 100%;
+  min-height: 3rem;
+}
+
+.os-box-lunch-confirm:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 
 

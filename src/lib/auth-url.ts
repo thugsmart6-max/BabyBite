@@ -1,10 +1,12 @@
-/** Live Vercel site. Used only when this process is actually on Vercel. */
-export const LIVE_SITE = "https://baby-bite.vercel.app";
+import { isLocalHostUrl, resolvePublicAppUrl } from "./app-url";
+
+/** Last-resort production host when env is misconfigured on Vercel. */
+export const LIVE_SITE = resolvePublicAppUrl() ?? "https://baby-bite.vercel.app";
 
 const LOCAL_ORIGIN = "http://localhost:3000";
 
 function isLocalHost(value: string): boolean {
-  return /localhost|127\.0\.0\.1/i.test(value);
+  return isLocalHostUrl(value);
 }
 
 /**
@@ -19,8 +21,9 @@ export function productionAuthUrl(input: {
   vercelUrl?: string;
   productionHost?: string;
 }): string | undefined {
+  const resolved = resolvePublicAppUrl();
   if (input.vercel && input.vercelEnv === "production") {
-    return LIVE_SITE;
+    return resolved ?? LIVE_SITE;
   }
 
   const configured = (input.authUrl || input.nextAuthUrl || "").replace(/\/$/, "");

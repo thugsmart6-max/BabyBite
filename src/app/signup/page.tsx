@@ -64,7 +64,9 @@ function SignupForm() {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast.error(res.status === 409 ? t("emailTaken") : (data.error ?? t("signupFail")));
+        toast.error(
+          res.status === 409 ? t("emailTaken") : (data.message ?? data.error ?? t("signupFail"))
+        );
         if (res.status === 409) {
           router.push("/login");
         }

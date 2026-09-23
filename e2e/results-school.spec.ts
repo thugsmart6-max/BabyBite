@@ -93,7 +93,7 @@ test.describe("results school and refuse-this", () => {
 
     await page.getByRole("tab", { name: /today/i }).click();
     const todayLunch = page.locator(".os-meal-row").filter({
-      has: page.locator(".os-band-kicker", { hasText: /^lunch$/i }),
+      has: page.locator(".os-band-kicker", { hasText: /packable lunch/i }),
     }).first();
     await expect(todayLunch).toBeVisible();
     const schoolFilter = page.getByTestId("school-lunch-switch");

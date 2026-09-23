@@ -33,7 +33,6 @@ test.describe("monitor fit", () => {
             for (let node: Element | null = el; node; node = node.parentElement) {
               const style = window.getComputedStyle(node);
               if (style.overflowX === "hidden" || style.overflowX === "clip") return true;
-              if (node.classList.contains("os-marquee-3d-stage")) return true;
               if (node.classList.contains("os-marquee")) return true;
             }
             return false;

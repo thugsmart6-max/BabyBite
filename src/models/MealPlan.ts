@@ -19,6 +19,8 @@ export interface IMealPlan extends Document {
   kitchenLists?: KitchenLists;
   recentMealNames?: Record<MealSlot, string[]>;
   engineVersion?: number;
+  schoolLunchView?: boolean;
+  lunchOverrides?: Record<string, string>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,9 +47,13 @@ const MealPlanSchema = new Schema<IMealPlan>(
     kitchenLists: { type: Schema.Types.Mixed },
     recentMealNames: { type: Schema.Types.Mixed },
     engineVersion: { type: Number, default: 0 },
+    schoolLunchView: { type: Boolean },
+    lunchOverrides: { type: Schema.Types.Mixed },
   },
   { timestamps: true }
 );
+
+MealPlanSchema.index({ userId: 1, childProfileId: 1 });
 
 if (mongoose.models.MealPlan) {
   delete mongoose.models.MealPlan;

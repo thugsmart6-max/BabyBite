@@ -21,8 +21,18 @@ export function mongoIdSchemaMessage(label = "id"): string {
   return `Invalid ${label}`;
 }
 
-export function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+export function jsonError(message: string, status: number, code?: string) {
+  const payload = {
+    success: false as const,
+    message,
+    code: code ?? `HTTP_${status}`,
+    error: message,
+  };
+  return NextResponse.json(payload, { status });
+}
+
+export function jsonSuccess<T extends Record<string, unknown>>(data: T, status = 200) {
+  return NextResponse.json({ success: true, ...data }, { status });
 }
 
 export function zodErrorResponse(error: ZodError) {

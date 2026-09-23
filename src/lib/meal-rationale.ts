@@ -111,7 +111,7 @@ export function checklistSummary(profile: Pick<
     kitchen.cookTime === "ten-min" ? "10-minute kitchen" : "Normal cook time",
     kitchen.kitchenBudget === "tight" ? "Tight budget" : null,
     kitchen.riceHabit === "refuses-rice" ? "No plated rice" : null,
-    kitchen.tiffinNeed === "school-lunch" ? "School tiffin" : "Home lunch",
+    kitchen.tiffinNeed === "school-lunch" ? "School tiffin" : "Packable lunch",
     ...(profile.allergies ?? []).map((item) => `No ${ALLERGY_LABELS[item].toLowerCase()}`),
     ...(profile.dislikedFoods ?? []).filter(Boolean).map((item) => `Avoid ${item}`),
   ].filter(Boolean);

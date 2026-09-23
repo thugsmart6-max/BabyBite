@@ -24,6 +24,10 @@
 # production
 /build
 
+# local extraction / vendor scratch
+.tmp-npm-pack/
+.tmp-character-filmstrip.json
+
 # misc
 .DS_Store
 *.pem

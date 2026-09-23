@@ -9,7 +9,7 @@ import {
   MealMarquee,
   SiteArt,
 } from "@/components/babybite/oats-brand";
-import ThreeDMarqueeDemo from "@/components/ui/3d-marquee-demo";
+import { LandingPlanFooter } from "@/components/landing/landing-plan-footer";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { LANDING_HERO_DINNER_IMAGE } from "@/lib/landing-art";
 
@@ -49,9 +49,6 @@ export default function LandingPage() {
       <section className="os-plates" aria-label={t("benefitKicker")}>
         <p className="os-band-kicker">{t("benefitKicker")}</p>
         <h2 className="os-section-title">{t("benefitTitle")}</h2>
-        <div className="os-marquee-3d">
-          <ThreeDMarqueeDemo />
-        </div>
       </section>
 
       <MealMarquee />
@@ -89,22 +86,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="os-band">
-        <div className="os-band-color is-blue" />
-        <div className="os-band-color is-yellow">
-          <p className="os-band-kicker">{t("tonight")}</p>
-          <h2 className="os-band-title">{t("noSeven")}</h2>
-          <p className="os-band-copy">{t("bandBody")}</p>
-          <div className="os-band-actions">
-            <Link href="/signup" className="bb-cta">
-              {t("makePlan")}
-            </Link>
-            <a href="#how" className="os-text-link">
-              {t("seeHow")}
-            </a>
-          </div>
-        </div>
-      </section>
+      <LandingPlanFooter />
 
       <footer className="os-foot">
         <p className="os-foot-mark">BabyBite</p>

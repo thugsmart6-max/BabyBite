@@ -79,21 +79,23 @@ export function MealPack({
   size = "md",
   note,
   lift = true,
+  packable = false,
 }: {
   name: string;
   slot?: string;
   tone?: PackTone;
-  size?: "md" | "lg" | "marquee";
+  size?: "md" | "lg";
   note?: string;
   lift?: boolean;
+  packable?: boolean;
 }) {
   return (
     <article
       className={cn(
         "os-pack",
         `is-${tone}`,
+        packable && "is-packable-lunch",
         size === "lg" && "is-lg",
-        size === "marquee" && "is-marquee-3d",
         !lift && "is-static",
       )}
     >
@@ -109,14 +111,21 @@ export function MealShelf({
   items,
   lift = true,
 }: {
-  items: { name: string; slot?: string; tone?: PackTone; note?: string }[];
+  items: { name: string; slot?: string; tone?: PackTone; note?: string; packable?: boolean }[];
   lift?: boolean;
 }) {
   return (
     <div className="os-shelf" role="list">
       {items.map((item) => (
         <div key={`${item.slot}-${item.name}`} role="listitem">
-          <MealPack name={item.name} slot={item.slot} tone={item.tone} note={item.note} lift={lift} />
+          <MealPack
+            name={item.name}
+            slot={item.slot}
+            tone={item.tone}
+            note={item.note}
+            lift={lift}
+            packable={item.packable}
+          />
         </div>
       ))}
     </div>

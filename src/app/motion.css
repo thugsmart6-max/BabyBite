@@ -1,0 +1,222 @@
+/* BabyBite interaction & motion system */
+
+.bb-cursor-follower {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #111;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.bb-motion-magnetic {
+  transform: translate3d(var(--bb-mag-x, 0), var(--bb-mag-y, 0), 0);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bb-motion-magnetic:hover {
+  transform: translate3d(var(--bb-mag-x, 0), var(--bb-mag-y, 0), 0) scale(1.02);
+}
+
+.bb-motion-card {
+  transform: translate3d(var(--bb-card-x, 0), var(--bb-card-y, 0), 0);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bb-motion-parallax,
+.bb-parallax-art {
+  transform: translate3d(var(--bb-parallax-x, 0), var(--bb-parallax-y, 0), 0);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.bb-cta,
+a.bb-cta,
+button.bb-cta,
+[data-slot="button"]:not(:disabled) {
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bb-cta:not(:disabled):hover,
+  a.bb-cta:hover,
+  button.bb-cta:not(:disabled):hover,
+  [data-slot="button"]:not(:disabled):hover {
+    transform: translate3d(var(--bb-mag-x, 0), calc(var(--bb-mag-y, 0) - 1px), 0);
+  }
+
+  .os-pack:not(.is-static):hover,
+  .os-compare-card:hover,
+  .os-box-lunch-option:hover:not(:disabled) {
+    transform: translate3d(var(--bb-card-x, 0), calc(var(--bb-card-y, 0) - 4px), 0) scale(1.01);
+    box-shadow: 0 14px 28px rgba(17, 17, 17, 0.1);
+    border-color: #111;
+  }
+
+  .os-pack:not(.is-static):hover .os-pack-name,
+  .os-box-lunch-option:hover .os-focus-chip {
+    opacity: 1;
+  }
+}
+
+.bb-cta:active:not(:disabled),
+button.bb-cta:active:not(:disabled),
+[data-slot="button"]:not(:disabled):active {
+  transform: translate3d(var(--bb-mag-x, 0), var(--bb-mag-y, 0), 0) scale(0.97);
+}
+
+/* Living illustration accents (PNG heroes — subtle float) */
+@keyframes bb-art-float {
+  0%,
+  100% {
+    transform: translate3d(var(--bb-parallax-x, 0), var(--bb-parallax-y, 0), 0) translateY(0);
+  }
+  50% {
+    transform: translate3d(var(--bb-parallax-x, 0), calc(var(--bb-parallax-y, 0) - 3px), 0);
+  }
+}
+
+.os-site-art.is-nutrients,
+.os-site-art.is-wide {
+  animation: bb-art-float 2.6s ease-in-out infinite;
+}
+
+.os-site-art.is-photo {
+  animation: bb-art-float 3s ease-in-out infinite;
+}
+
+/* Optional draw-on for mark/compare decorative art */
+.os-site-art.is-mark.bb-draw-on,
+.os-site-art.is-compare.bb-draw-on {
+  animation: bb-art-float 2.8s ease-in-out infinite;
+}
+
+/* Box lunch swap motion */
+.os-lunch-swap-backdrop.bb-swap-open {
+  animation: bb-fade-in 280ms ease-out forwards;
+}
+
+.os-box-lunch-swap.bb-swap-panel {
+  animation: bb-rise-in 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.os-box-lunch-current-card.bb-swap-current {
+  animation: bb-swap-current 380ms ease-out forwards;
+}
+
+.os-box-lunch-option.bb-swap-option {
+  animation: bb-rise-in 500ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.os-box-lunch-option.is-selected {
+  transform: translate3d(var(--bb-card-x, 0), var(--bb-card-y, 0), 0) scale(1.02);
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.os-box-lunch-check {
+  animation: bb-check-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes bb-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bb-rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes bb-swap-current {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(0.98);
+  }
+}
+
+@keyframes bb-check-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes bb-meal-updated {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.bb-meal-updated-flash {
+  animation: bb-meal-updated 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bb-page-transition {
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-cursor-follower {
+    display: none !important;
+  }
+
+  .bb-motion-magnetic,
+  .bb-motion-card,
+  .bb-motion-parallax,
+  .bb-parallax-art,
+  .os-site-art {
+    animation: none !important;
+    transform: none !important;
+    transition: opacity 200ms ease !important;
+  }
+
+  .os-box-lunch-swap.bb-swap-panel,
+  .os-lunch-swap-backdrop.bb-swap-open,
+  .os-box-lunch-option.bb-swap-option,
+  .os-box-lunch-current-card.bb-swap-current {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 1023px), (pointer: coarse) {
+  .bb-cursor-follower {
+    display: none;
+  }
+
+  .bb-motion-magnetic,
+  .bb-motion-card,
+  .bb-motion-parallax {
+    transform: none !important;
+  }
+}

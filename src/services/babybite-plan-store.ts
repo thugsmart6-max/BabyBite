@@ -119,7 +119,13 @@ export async function saveGeneratedPlan(
   if (existing) {
     const mealPlan = await MealPlan.findByIdAndUpdate(
       existing._id,
-      { $set: payload },
+      {
+        $set: {
+          ...payload,
+          lunchOverrides: existing.lunchOverrides,
+          schoolLunchView: existing.schoolLunchView,
+        },
+      },
       { new: true }
     );
     if (!mealPlan) {

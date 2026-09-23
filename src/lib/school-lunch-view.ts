@@ -41,7 +41,7 @@ function replaceLunch(day: DailyPlan, alt: MealEntry, current: MealEntry | undef
     swaps: current?.swaps ?? alt.swaps,
     whyThisPlate: schoolOn
       ? alt.whyThisPlate || "Packed because you asked for school tiffin."
-      : alt.whyThisPlate || "Home lunch from your kitchen answers.",
+      : alt.whyThisPlate || "Packable lunch from your kitchen lists.",
   };
   return {
     ...day,

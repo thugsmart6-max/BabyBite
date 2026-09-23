@@ -128,6 +128,8 @@ export function ResultsFolder({
   tiffinNeed = "home-only",
   schoolFilter = false,
   onSchoolFilter,
+  onOpenLunchSwap,
+  lunchSwapBusy = false,
   onBrowseHeadline,
 }: {
   plan: GeneratedMealPlan;
@@ -136,6 +138,8 @@ export function ResultsFolder({
   tiffinNeed?: TiffinNeed;
   schoolFilter?: boolean;
   onSchoolFilter?: (on: boolean) => void;
+  onOpenLunchSwap?: (day: DailyPlan) => void;
+  lunchSwapBusy?: boolean;
   onBrowseHeadline?: (key: MotherCopyKey | null) => void;
 }) {
   const { t } = useMotherLocale();
@@ -210,23 +214,38 @@ export function ResultsFolder({
           </div>
 
           {dateView && onSchoolFilter ? (
-            <div className="os-school-toggle-row">
-              <button
-                type="button"
-                role="switch"
-                aria-checked={schoolFilter}
-                aria-label={t("schoolFilter")}
-                data-testid="school-lunch-switch"
-                className={cn("os-school-switch", schoolFilter && "is-on")}
-                onClick={() => onSchoolFilter(!schoolFilter)}
-              >
-                <span className="os-school-switch-track" aria-hidden>
-                  <span className="os-school-switch-thumb" />
-                </span>
-              </button>
-              <div className="os-school-toggle-copy">
-                <p className="os-school-toggle-title">{t("schoolFilter")}</p>
+            <div className="os-box-lunch-promo">
+              <div className="os-box-lunch-promo-copy">
+                <p className="os-box-lunch-promo-title">{t("boxLunchSwapTitle")}</p>
                 <p className="os-school-toggle-hint">{t("schoolFilterHint")}</p>
+              </div>
+              {onOpenLunchSwap ? (
+                <button
+                  type="button"
+                  className="bb-cta os-box-lunch-promo-cta"
+                  data-testid="box-lunch-swap-open"
+                  disabled={lunchSwapBusy}
+                  onClick={() => onOpenLunchSwap(plan.today)}
+                >
+                  {t("boxLunchSwapTitle")}
+                </button>
+              ) : null}
+              <div className="os-school-toggle-row is-inline">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={schoolFilter}
+                  aria-label={t("packableLunch")}
+                  data-testid="school-lunch-switch"
+                  className={cn("os-school-switch", schoolFilter && "is-on")}
+                  disabled={lunchSwapBusy}
+                  onClick={() => onSchoolFilter(!schoolFilter)}
+                >
+                  <span className="os-school-switch-track" aria-hidden>
+                    <span className="os-school-switch-thumb" />
+                  </span>
+                </button>
+                <p className="os-school-toggle-hint">{t("packableLunch")}</p>
               </div>
             </div>
           ) : null}
@@ -304,17 +323,30 @@ export function ResultsFolder({
       ) : null}
 
       <div className="os-results-panel">
-      {room === "today" ? <DayMeals day={plan.today} detailed /> : null}
+      {room === "today" ? (
+        <DayMeals
+          day={plan.today}
+          detailed
+          packableLunchLabels
+          onSwapLunch={onOpenLunchSwap}
+          lunchSwapBusy={lunchSwapBusy}
+        />
+      ) : null}
       {room === "weekly" ? (
         <>
           {lunchRepeat ? <p className="os-onboard-lede">{t("sameLunchNote")}</p> : null}
-          <DaysBoard days={plan.weekly} />
+          <DaysBoard
+            days={plan.weekly}
+            packableLunchLabels
+            onSwapLunch={onOpenLunchSwap}
+            lunchSwapBusy={lunchSwapBusy}
+          />
         </>
       ) : null}
       {room === "monthly" ? (
         <div className="os-month-top">
           <p className="os-onboard-lede">{t("monthHint")}</p>
-          <MonthBoard days={plan.monthly} />
+          <MonthBoard days={plan.monthly} onSwapLunch={onOpenLunchSwap} lunchSwapBusy={lunchSwapBusy} />
         </div>
       ) : null}
       {room === "tiffin" ? (
@@ -504,7 +536,17 @@ function MealSwaps({ meal }: { meal: MealEntry }) {
   );
 }
 
-function MonthBoard({ days }: { days: DailyPlan[] }) {
+function MonthBoard({
+  days,
+  onSwapLunch,
+  lunchSwapBusy,
+  packableLunchLabels = false,
+}: {
+  days: DailyPlan[];
+  onSwapLunch?: (day: DailyPlan) => void;
+  lunchSwapBusy?: boolean;
+  packableLunchLabels?: boolean;
+}) {
   const { t, lang } = useMotherLocale();
   const [openDate, setOpenDate] = useState<string | null>(null);
 
@@ -532,7 +574,13 @@ function MonthBoard({ days }: { days: DailyPlan[] }) {
                 <p className="os-band-kicker">
                   {day.date} · {mealSlotCopy(lang, "lunch")}
                 </p>
-                <DayMeals day={day} detailed />
+                <DayMeals
+                  day={day}
+                  detailed
+                  packableLunchLabels={packableLunchLabels}
+                  onSwapLunch={onSwapLunch}
+                  lunchSwapBusy={lunchSwapBusy}
+                />
               </div>
             ) : null}
           </div>
@@ -542,21 +590,49 @@ function MonthBoard({ days }: { days: DailyPlan[] }) {
   );
 }
 
-function DaysBoard({ days }: { days: DailyPlan[] }) {
+function DaysBoard({
+  days,
+  onSwapLunch,
+  lunchSwapBusy,
+  packableLunchLabels = false,
+}: {
+  days: DailyPlan[];
+  onSwapLunch?: (day: DailyPlan) => void;
+  lunchSwapBusy?: boolean;
+  packableLunchLabels?: boolean;
+}) {
   const { lang } = useMotherLocale();
   return (
     <div className="os-days-board">
       {days.map((day) => (
         <section key={day.date} className="os-day-block">
           <p className="os-band-kicker">{translateKitchen(lang, day.dayLabel)}</p>
-          <DayMeals day={day} detailed />
+          <DayMeals
+            day={day}
+            detailed
+            packableLunchLabels={packableLunchLabels}
+            onSwapLunch={onSwapLunch}
+            lunchSwapBusy={lunchSwapBusy}
+          />
         </section>
       ))}
     </div>
   );
 }
 
-function DayMeals({ day, detailed }: { day: DailyPlan; detailed?: boolean }) {
+function DayMeals({
+  day,
+  detailed,
+  onSwapLunch,
+  lunchSwapBusy,
+  packableLunchLabels = false,
+}: {
+  day: DailyPlan;
+  detailed?: boolean;
+  onSwapLunch?: (day: DailyPlan) => void;
+  lunchSwapBusy?: boolean;
+  packableLunchLabels?: boolean;
+}) {
   const { t, lang } = useMotherLocale();
   const meals = SLOT_ORDER.map((slot) => day.meals.find((meal) => meal.slot === slot)).filter(
     (meal): meal is MealEntry => Boolean(meal)
@@ -567,10 +643,30 @@ function DayMeals({ day, detailed }: { day: DailyPlan; detailed?: boolean }) {
       {meals.map((meal) => {
         const focus = getMealFocus(meal);
         return (
-          <article key={`${day.date}-${meal.slot}`} className={cn("os-meal-row", detailed && "is-open")}>
-            <p className="os-band-kicker">{mealSlotCopy(lang, meal.slot)}</p>
+          <article
+            key={`${day.date}-${meal.slot}`}
+            className={cn(
+              "os-meal-row",
+              detailed && "is-open",
+              meal.slot === "lunch" && packableLunchLabels && "is-packable-lunch-row",
+            )}
+          >
+            <p className="os-band-kicker">
+              {mealSlotCopy(lang, meal.slot, { packable: packableLunchLabels && meal.slot === "lunch" })}
+            </p>
             <h3>{translateKitchen(lang, meal.name)}</h3>
             <span className={cn("os-focus-chip", `is-${focus.toLowerCase()}`)}>{t(FOCUS_KEY[focus])}</span>
+            {detailed && meal.slot === "lunch" && onSwapLunch ? (
+              <button
+                type="button"
+                className="os-meal-swap-btn"
+                data-testid={`lunch-swap-day-${day.date}`}
+                disabled={lunchSwapBusy}
+                onClick={() => onSwapLunch(day)}
+              >
+                {t("boxLunchSwapTitle")}
+              </button>
+            ) : null}
             {detailed ? (
               <>
                 <p className="os-meal-desc">{translateKitchen(lang, meal.description)}</p>

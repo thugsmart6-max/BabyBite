@@ -91,18 +91,18 @@ test.describe("responsive public UI", () => {
     expect(metrics!.ctaHeight).toBeGreaterThanOrEqual(44);
   });
 
-  test("tablet landing 3d marquee section fits viewport", async ({ page }) => {
+  test("tablet landing benefit marquee fits viewport", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.tablet);
     await gotoReady(page, "/landing");
     await assertNoHorizontalOverflow(page, "tablet /landing");
-    await expect(page.locator(".os-marquee-3d")).toBeVisible();
+    await expect(page.locator(".os-marquee")).toBeVisible();
   });
 
-  test("tv landing 3d marquee and auth stay inside the viewport", async ({ page }) => {
+  test("tv landing benefit marquee and auth stay inside the viewport", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.tv);
     await gotoReady(page, "/landing");
     await assertNoHorizontalOverflow(page, "tv landing marquee");
-    const marquee = page.locator(".os-marquee-3d");
+    const marquee = page.locator(".os-marquee");
     await expect(marquee).toBeVisible();
     const box = await marquee.boundingBox();
     expect(box).not.toBeNull();

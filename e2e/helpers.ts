@@ -1,14 +1,22 @@
 import { expect, type Page } from "@playwright/test";
 
 export const VIEWPORTS = {
+  phoneXs: { width: 320, height: 568 },
   phone: { width: 375, height: 812 },
+  phoneMd: { width: 390, height: 844 },
+  phoneLg: { width: 414, height: 896 },
   phoneSm: { width: 360, height: 640 },
+  tabletSm: { width: 600, height: 960 },
   tablet: { width: 768, height: 1024 },
+  tabletLg: { width: 820, height: 1180 },
+  tabletXl: { width: 1024, height: 768 },
   laptop: { width: 1280, height: 800 },
+  laptopMd: { width: 1366, height: 768 },
   desktop: { width: 1440, height: 900 },
+  desktopLg: { width: 1600, height: 900 },
   tv: { width: 1920, height: 1080 },
-  /** Common 55″ panel with browser chrome (~1900px usable width). */
   tv55: { width: 1900, height: 1080 },
+  tvQhd: { width: 2560, height: 1440 },
   tv4k: { width: 3840, height: 2160 },
 } as const;
 
@@ -121,7 +129,13 @@ export async function assertNavDoesNotCollide(page: Page) {
 }
 
 export async function acceptTerms(page: Page) {
-  await page.getByRole("checkbox").check();
+  const gate = page.locator(".os-terms, .os-terms-gate, form").first();
+  const box = gate.locator('input[type="checkbox"]').first();
+  if (await box.count()) {
+    await box.check();
+  } else {
+    await page.locator('input[type="checkbox"]').first().check();
+  }
   await page.getByRole("button", { name: /i agree/i }).click();
 }
 

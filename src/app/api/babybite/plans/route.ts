@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/permissions";
 import { connectDB } from "@/lib/mongodb";
 import { generatePlanSchema } from "@/schemas/babybite";
 import { getOrRefreshMealPlan, loadStoredMealPlan } from "@/services/babybite-plan-store";
+import { applyLunchOverrides } from "@/lib/plan-lunch-overrides";
 import { MEAL_ENGINE_VERSION } from "@/lib/plan-variety";
 import { handleRouteError, zodErrorResponse } from "@/lib/api-route";
 import { ChildProfile } from "@/models/ChildProfile";
@@ -83,8 +84,20 @@ export async function GET(request: Request) {
       return NextResponse.json({ plan: null });
     }
 
+    const overrides = result.mealPlan.lunchOverrides ?? undefined;
+    const plan = applyLunchOverrides(result.generated, overrides);
+    const schoolLunchView =
+      result.mealPlan.schoolLunchView ??
+      (child.tiffinNeed === "school-lunch" ? true : false);
+
     return NextResponse.json(
-      { plan: result.generated, engineVersion: result.mealPlan.engineVersion ?? 0, reused: result.reused },
+      {
+        plan,
+        schoolLunchView,
+        lunchOverrides: overrides ?? {},
+        engineVersion: result.mealPlan.engineVersion ?? 0,
+        reused: result.reused,
+      },
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (error) {

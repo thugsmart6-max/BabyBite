@@ -10,7 +10,9 @@ import { FEEDING_IMAGE } from "@/lib/landing-art";
 import { KitchenSkeleton } from "@/components/babybite/page-skeleton";
 import { ResultsFolder, type ResultsRoom } from "@/components/babybite/results-folder";
 import { ResultsPdfDownload } from "@/components/babybite/results-pdf-download";
-import type { GeneratedMealPlan, TiffinNeed } from "@/types/babybite";
+import type { GeneratedMealPlan, MealEntry, TiffinNeed } from "@/types/babybite";
+import { LunchSwapSheet } from "@/components/babybite/lunch-swap-sheet";
+import { toast } from "sonner";
 import { ageBandForYears } from "@/types/babybite";
 import {
   fetchBabyBiteProfile,
@@ -20,6 +22,8 @@ import {
 } from "@/lib/babybite-client";
 import { MEAL_ENGINE_VERSION, planLooksStuck } from "@/lib/plan-variety";
 import { overlaySchoolPlan } from "@/lib/school-lunch-view";
+import { applyLunchOverrides } from "@/lib/plan-lunch-overrides";
+import { planForTodayWeekDisplay } from "@/lib/packable-lunch-plan";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import type { MotherCopyKey } from "@/lib/mother-copy";
 import { endLocalSession } from "@/lib/local-user-store";
@@ -42,6 +46,12 @@ export default function ResultsPage() {
   const [tableHeadline, setTableHeadline] = useState<MotherCopyKey | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lunchSwap, setLunchSwap] = useState<{ dayDate: string; dayLabel: string; currentName?: string } | null>(
+    null
+  );
+  const [swapLoading, setSwapLoading] = useState(false);
+  const [schoolSaving, setSchoolSaving] = useState(false);
+  const [lunchOverrides, setLunchOverrides] = useState<Record<string, string>>({});
   const [childProfileId, setChildProfileId] = useState<string | undefined>();
   const [children, setChildren] = useState<BabyBiteChildSummary[]>([]);
   const [childGrowth, setChildGrowth] = useState<{
@@ -53,17 +63,27 @@ export default function ResultsPage() {
   } | null>(null);
 
   const applyData = (
-    plansJson: { plan?: GeneratedMealPlan; error?: string },
+    plansJson: {
+      plan?: GeneratedMealPlan;
+      error?: string;
+      schoolLunchView?: boolean;
+      lunchOverrides?: Record<string, string>;
+    },
     profile: Awaited<ReturnType<typeof fetchBabyBiteProfile>>
   ) => {
     if (plansJson.error) {
       throw new Error(plansJson.error);
     }
     setPlan(plansJson.plan ?? null);
+    setLunchOverrides(plansJson.lunchOverrides ?? {});
     if (profile.child?.id) setChildProfileId(profile.child.id);
     const nextTiffin = profile.child?.tiffinNeed ?? "home-only";
     setTiffinNeed(nextTiffin);
-    setSchoolFilter(nextTiffin === "school-lunch");
+    setSchoolFilter(
+      typeof plansJson.schoolLunchView === "boolean"
+        ? plansJson.schoolLunchView
+        : true
+    );
     setChildren(profile.children ?? (profile.child ? [profile.child] : []));
     if (profile.child) {
       setChildGrowth({
@@ -162,7 +182,78 @@ export default function ResultsPage() {
     await signOutToLanding();
   };
 
-  const viewPlan = useMemo(() => (plan ? overlaySchoolPlan(plan, schoolFilter) : null), [plan, schoolFilter]);
+  const viewPlan = useMemo(() => {
+    if (!plan) return null;
+    const overlaid = overlaySchoolPlan(plan, schoolFilter);
+    return applyLunchOverrides(overlaid, lunchOverrides);
+  }, [plan, schoolFilter, lunchOverrides]);
+
+  const platesPlan = useMemo(() => {
+    if (!plan) return null;
+    return planForTodayWeekDisplay(plan, lunchOverrides);
+  }, [plan, lunchOverrides]);
+
+  const persistSchoolView = async (on: boolean) => {
+    setSchoolFilter(on);
+    if (!childProfileId) return;
+    setSchoolSaving(true);
+    try {
+      const res = await fetch("/api/babybite/plans/school-view", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ childProfileId, schoolLunchView: on }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.message ?? json.error ?? t("failedPlan"));
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("failedPlan"));
+    } finally {
+      setSchoolSaving(false);
+    }
+  };
+
+  const openLunchSwap = (day: { date: string; dayLabel: string; meals: MealEntry[] }) => {
+    const lunch = day.meals.find((meal) => meal.slot === "lunch");
+    setLunchSwap({
+      dayDate: day.date,
+      dayLabel: day.dayLabel,
+      currentName: lunch?.name,
+    });
+  };
+
+  const confirmLunchSwap = async (meal: MealEntry) => {
+    if (!lunchSwap || !childProfileId || !plan) return;
+    setSwapLoading(true);
+    try {
+      const res = await fetch("/api/babybite/plans/lunch-swap", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          childProfileId,
+          dayDate: lunchSwap.dayDate,
+          mealName: meal.name,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.message ?? json.error ?? t("failedPlan"));
+      }
+      if (json.plan) {
+        setPlan(json.plan);
+      }
+      if (json.lunchOverrides) {
+        setLunchOverrides(json.lunchOverrides);
+      }
+      setLunchSwap(null);
+      toast.success(t("lunchSwapUpdated"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("lunchSwapFailed"));
+    } finally {
+      setSwapLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -272,11 +363,11 @@ export default function ResultsPage() {
         </h2>
         <SiteArt src="/art-tiffins.png" alt={t("artTiffins")} variant="wide" />
         {tab === "weekly" ? (
-          <WeekShelf plan={viewPlan} />
+          <WeekShelf plan={platesPlan ?? viewPlan!} />
         ) : tab === "monthly" ? (
           <MonthShelf plan={viewPlan} />
         ) : (
-          <TodayShelf plan={viewPlan} />
+          <TodayShelf plan={platesPlan ?? viewPlan!} />
         )}
       </section>
 
@@ -304,9 +395,23 @@ export default function ResultsPage() {
           onRoom={setTab}
           tiffinNeed={tiffinNeed}
           schoolFilter={schoolFilter}
-          onSchoolFilter={setSchoolFilter}
+          onSchoolFilter={persistSchoolView}
+          onOpenLunchSwap={openLunchSwap}
+          lunchSwapBusy={swapLoading || schoolSaving}
           onBrowseHeadline={setTableHeadline}
         />
+        {plan ? (
+          <LunchSwapSheet
+            open={Boolean(lunchSwap)}
+            plan={platesPlan ?? plan}
+            dayDate={lunchSwap?.dayDate ?? plan.today.date}
+            dayLabel={lunchSwap?.dayLabel ?? ""}
+            currentName={lunchSwap?.currentName}
+            loading={swapLoading}
+            onClose={() => setLunchSwap(null)}
+            onConfirm={(meal) => void confirmLunchSwap(meal)}
+          />
+        ) : null}
         <GroceryTicks plan={viewPlan} />
       </section>
 
