@@ -37,8 +37,8 @@ test.describe("new email funnel", () => {
 
     await paySimulatedCheckout(page);
     await waitForResults(page);
-    await expect(page.getByText(/the plates/i).first()).toBeVisible();
-    await expect(page.getByRole("tab", { name: /today/i }).first()).toBeVisible();
+    await expect(page.locator("#table")).toBeVisible();
+    await expect(page.locator("#table").getByRole("tab", { name: /today/i })).toBeVisible();
 
     const afterPay = await readLocalUserStore(page);
     expect(Object.keys(afterPay.users).filter((key) => key === email.toLowerCase())).toHaveLength(1);

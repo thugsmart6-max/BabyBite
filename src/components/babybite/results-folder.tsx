@@ -15,18 +15,10 @@ import { mealSlotCopy, type MotherCopyKey } from "@/lib/mother-copy";
 import { translateKitchen } from "@/lib/kitchen-translate";
 import { lunchLooksRepeated } from "@/lib/plan-variety";
 import { cn } from "@/lib/utils";
-import {
-  Backpack,
-  CalendarDays,
-  CalendarRange,
-  ChevronDown,
-  ListFilter,
-  Sun,
-  UtensilsCrossed,
-} from "lucide-react";
+import { CalendarDays, CalendarRange, ListFilter, Sun, UtensilsCrossed } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export type ResultsRoom = "today" | "weekly" | "monthly" | "tiffin" | "meals" | "problems";
+export type ResultsRoom = "today" | "weekly" | "monthly" | "meals" | "problems";
 
 const FOCUS_KEY: Record<ReturnType<typeof getMealFocus>, MotherCopyKey> = {
   Iron: "focusIron",
@@ -68,7 +60,6 @@ const ROOM_CAPTION: Record<ResultsRoom, MotherCopyKey> = {
   today: "roomCaptionToday",
   weekly: "roomCaptionWeek",
   monthly: "roomCaptionMonth",
-  tiffin: "roomCaptionTiffin",
   meals: "roomCaptionMeals",
   problems: "roomCaptionProblems",
 };
@@ -77,33 +68,8 @@ const PLAN_ROOMS: { id: ResultsRoom; key: MotherCopyKey; Icon: LucideIcon }[] = 
   { id: "today", key: "roomToday", Icon: Sun },
   { id: "weekly", key: "roomWeek", Icon: CalendarDays },
   { id: "monthly", key: "roomMonth", Icon: CalendarRange },
-  { id: "tiffin", key: "roomTiffin", Icon: Backpack },
-];
-
-const BROWSE_ROOMS: {
-  id: ResultsRoom;
-  key: MotherCopyKey;
-  hintKey: MotherCopyKey;
-  optionCount: number;
-  Icon: LucideIcon;
-  tone: KitchenBrowseTone;
-}[] = [
-  {
-    id: "meals",
-    key: "roomByMeal",
-    hintKey: "roomBrowseMealHint",
-    optionCount: MEAL_LISTS.length,
-    Icon: UtensilsCrossed,
-    tone: "sage",
-  },
-  {
-    id: "problems",
-    key: "roomByProblem",
-    hintKey: "roomBrowseProblemHint",
-    optionCount: PROBLEM_LISTS.length,
-    Icon: ListFilter,
-    tone: "forest",
-  },
+  { id: "meals", key: "roomByMeal", Icon: UtensilsCrossed },
+  { id: "problems", key: "roomByProblem", Icon: ListFilter },
 ];
 
 function emptyLists(): KitchenLists {
@@ -127,9 +93,6 @@ export function ResultsFolder({
   onRoom,
   tiffinNeed = "home-only",
   schoolFilter = false,
-  onSchoolFilter,
-  onOpenLunchSwap,
-  lunchSwapBusy = false,
   onBrowseHeadline,
 }: {
   plan: GeneratedMealPlan;
@@ -137,9 +100,6 @@ export function ResultsFolder({
   onRoom: (room: ResultsRoom) => void;
   tiffinNeed?: TiffinNeed;
   schoolFilter?: boolean;
-  onSchoolFilter?: (on: boolean) => void;
-  onOpenLunchSwap?: (day: DailyPlan) => void;
-  lunchSwapBusy?: boolean;
   onBrowseHeadline?: (key: MotherCopyKey | null) => void;
 }) {
   const { t } = useMotherLocale();
@@ -154,11 +114,8 @@ export function ResultsFolder({
     return "tenMin";
   });
   const lunchRepeat = lunchLooksRepeated(plan.weekly);
-  const weekdayLunches = plan.weekly.filter((day) => {
-    const label = day.dayLabel.toLowerCase();
-    return !label.startsWith("sat") && !label.startsWith("sun");
-  });
   const dateView = room === "today" || room === "weekly" || room === "monthly";
+  const browseView = room === "meals" || room === "problems";
   const schoolPoolEmpty = (lists.schoolLunch ?? []).length === 0;
   const activeListOption =
     room === "meals"
@@ -204,6 +161,7 @@ export function ResultsFolder({
                   role="tab"
                   aria-selected={selected}
                   className={cn("os-plan-tab", selected && "is-on")}
+                  data-testid={`results-room-${item.id}`}
                   onClick={() => onRoom(item.id)}
                 >
                   <Icon className="os-plan-tab-icon" aria-hidden strokeWidth={2.4} />
@@ -213,96 +171,27 @@ export function ResultsFolder({
             })}
           </div>
 
-          {dateView && onSchoolFilter ? (
-            <div className="os-box-lunch-promo">
-              <div className="os-box-lunch-promo-copy">
-                <p className="os-box-lunch-promo-title">{t("boxLunchSwapTitle")}</p>
-                <p className="os-school-toggle-hint">{t("schoolFilterHint")}</p>
-              </div>
-              {onOpenLunchSwap ? (
-                <button
-                  type="button"
-                  className="bb-cta os-box-lunch-promo-cta"
-                  data-testid="box-lunch-swap-open"
-                  disabled={lunchSwapBusy}
-                  onClick={() => onOpenLunchSwap(plan.today)}
-                >
-                  {t("boxLunchSwapTitle")}
-                </button>
-              ) : null}
-              <div className="os-school-toggle-row is-inline">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={schoolFilter}
-                  aria-label={t("packableLunch")}
-                  data-testid="school-lunch-switch"
-                  className={cn("os-school-switch", schoolFilter && "is-on")}
-                  disabled={lunchSwapBusy}
-                  onClick={() => onSchoolFilter(!schoolFilter)}
-                >
-                  <span className="os-school-switch-track" aria-hidden>
-                    <span className="os-school-switch-thumb" />
-                  </span>
-                </button>
-                <p className="os-school-toggle-hint">{t("packableLunch")}</p>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="os-results-nav-block is-browse">
-          <p className="os-results-nav-title">{t("roomBrowseLabel")}</p>
-          <p className="os-results-nav-note">{t("roomBrowseKicker")}</p>
-          <div className="os-browse-grid" role="tablist">
-            {BROWSE_ROOMS.map((item) => {
-              const selected = room === item.id;
-              const Icon = item.Icon;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  aria-haspopup="listbox"
-                  aria-label={`${t(item.key)} · ${item.optionCount}. ${t("roomHasMoreLists")}`}
-                  className={cn("os-browse-card", `is-${item.tone}`, selected && "is-on", selected && "is-open")}
-                  data-testid={`results-room-${item.id}`}
-                  onClick={() => onRoom(item.id)}
-                >
-                  <span className={cn("os-browse-card-icon", `is-${item.tone}`)} aria-hidden>
-                    <Icon strokeWidth={2.35} />
-                  </span>
-                  <span className="os-browse-card-body">
-                    <span className="os-browse-card-title">{t(item.key)}</span>
-                    <span className="os-browse-card-hint">{t(item.hintKey)}</span>
-                    <span className="os-browse-card-meta">
-                      {item.optionCount} {t("kitchenListCount")}
-                    </span>
-                  </span>
-                  <ChevronDown className="os-browse-card-chevron" aria-hidden strokeWidth={2.75} />
-                </button>
-              );
-            })}
-          </div>
-
-          {room === "meals" ? (
-            <ListPickGrid
-              options={MEAL_LISTS}
-              lists={lists}
-              active={mealList}
-              onPick={(id) => pickBrowseList("meal", id)}
-              pickLabel={t("kitchenPickMeal")}
-            />
-          ) : null}
-          {room === "problems" ? (
-            <ListPickGrid
-              options={PROBLEM_LISTS}
-              lists={lists}
-              active={problemList}
-              onPick={(id) => pickBrowseList("problem", id)}
-              pickLabel={t("kitchenPickProblem")}
-            />
+          {browseView ? (
+            <>
+              <p className="os-results-nav-note">{t(room === "meals" ? "roomBrowseMealHint" : "roomBrowseProblemHint")}</p>
+              {room === "meals" ? (
+                <ListPickGrid
+                  options={MEAL_LISTS}
+                  lists={lists}
+                  active={mealList}
+                  onPick={(id) => pickBrowseList("meal", id)}
+                  pickLabel={t("kitchenPickMeal")}
+                />
+              ) : (
+                <ListPickGrid
+                  options={PROBLEM_LISTS}
+                  lists={lists}
+                  active={problemList}
+                  onPick={(id) => pickBrowseList("problem", id)}
+                  pickLabel={t("kitchenPickProblem")}
+                />
+              )}
+            </>
           ) : null}
         </div>
 
@@ -323,61 +212,17 @@ export function ResultsFolder({
       ) : null}
 
       <div className="os-results-panel">
-      {room === "today" ? (
-        <DayMeals
-          day={plan.today}
-          detailed
-          packableLunchLabels
-          onSwapLunch={onOpenLunchSwap}
-          lunchSwapBusy={lunchSwapBusy}
-        />
-      ) : null}
+      {room === "today" ? <DayMeals day={plan.today} detailed packableLunchLabels /> : null}
       {room === "weekly" ? (
         <>
           {lunchRepeat ? <p className="os-onboard-lede">{t("sameLunchNote")}</p> : null}
-          <DaysBoard
-            days={plan.weekly}
-            packableLunchLabels
-            onSwapLunch={onOpenLunchSwap}
-            lunchSwapBusy={lunchSwapBusy}
-          />
+          <DaysBoard days={plan.weekly} packableLunchLabels />
         </>
       ) : null}
       {room === "monthly" ? (
         <div className="os-month-top">
           <p className="os-onboard-lede">{t("monthHint")}</p>
-          <MonthBoard days={plan.monthly} onSwapLunch={onOpenLunchSwap} lunchSwapBusy={lunchSwapBusy} />
-        </div>
-      ) : null}
-      {room === "tiffin" ? (
-        <div className="os-kitchen-browse">
-          <p className="os-onboard-lede">{t("tiffinWeekHint")}</p>
-          {lunchRepeat ? <p className="os-onboard-lede">{t("sameLunchNote")}</p> : null}
-          {weekdayLunches.length === 0 ? (
-            <p className="os-onboard-lede">{t("emptyKitchenList")}</p>
-          ) : (
-            <DaysBoard
-              days={weekdayLunches.map((day) => ({
-                ...day,
-                meals: day.meals.filter((meal) => meal.slot === "lunch"),
-              }))}
-            />
-          )}
-          <KitchenBrowse
-            lists={lists}
-            options={[
-              {
-                id: "schoolLunch",
-                key: "listSchool",
-                hintKey: "hintListSchool",
-                tone: "sky",
-                glyph: "▣",
-              },
-            ]}
-            active="schoolLunch"
-            onActive={() => undefined}
-            pickerKind="problem"
-          />
+          <MonthBoard days={plan.monthly} />
         </div>
       ) : null}
       {room === "meals" ? (
@@ -538,13 +383,9 @@ function MealSwaps({ meal }: { meal: MealEntry }) {
 
 function MonthBoard({
   days,
-  onSwapLunch,
-  lunchSwapBusy,
   packableLunchLabels = false,
 }: {
   days: DailyPlan[];
-  onSwapLunch?: (day: DailyPlan) => void;
-  lunchSwapBusy?: boolean;
   packableLunchLabels?: boolean;
 }) {
   const { t, lang } = useMotherLocale();
@@ -574,13 +415,7 @@ function MonthBoard({
                 <p className="os-band-kicker">
                   {day.date} · {mealSlotCopy(lang, "lunch")}
                 </p>
-                <DayMeals
-                  day={day}
-                  detailed
-                  packableLunchLabels={packableLunchLabels}
-                  onSwapLunch={onSwapLunch}
-                  lunchSwapBusy={lunchSwapBusy}
-                />
+                <DayMeals day={day} detailed packableLunchLabels={packableLunchLabels} />
               </div>
             ) : null}
           </div>
@@ -592,13 +427,9 @@ function MonthBoard({
 
 function DaysBoard({
   days,
-  onSwapLunch,
-  lunchSwapBusy,
   packableLunchLabels = false,
 }: {
   days: DailyPlan[];
-  onSwapLunch?: (day: DailyPlan) => void;
-  lunchSwapBusy?: boolean;
   packableLunchLabels?: boolean;
 }) {
   const { lang } = useMotherLocale();
@@ -607,13 +438,7 @@ function DaysBoard({
       {days.map((day) => (
         <section key={day.date} className="os-day-block">
           <p className="os-band-kicker">{translateKitchen(lang, day.dayLabel)}</p>
-          <DayMeals
-            day={day}
-            detailed
-            packableLunchLabels={packableLunchLabels}
-            onSwapLunch={onSwapLunch}
-            lunchSwapBusy={lunchSwapBusy}
-          />
+          <DayMeals day={day} detailed packableLunchLabels={packableLunchLabels} />
         </section>
       ))}
     </div>
@@ -623,14 +448,10 @@ function DaysBoard({
 function DayMeals({
   day,
   detailed,
-  onSwapLunch,
-  lunchSwapBusy,
   packableLunchLabels = false,
 }: {
   day: DailyPlan;
   detailed?: boolean;
-  onSwapLunch?: (day: DailyPlan) => void;
-  lunchSwapBusy?: boolean;
   packableLunchLabels?: boolean;
 }) {
   const { t, lang } = useMotherLocale();
@@ -656,17 +477,6 @@ function DayMeals({
             </p>
             <h3>{translateKitchen(lang, meal.name)}</h3>
             <span className={cn("os-focus-chip", `is-${focus.toLowerCase()}`)}>{t(FOCUS_KEY[focus])}</span>
-            {detailed && meal.slot === "lunch" && onSwapLunch ? (
-              <button
-                type="button"
-                className="os-meal-swap-btn"
-                data-testid={`lunch-swap-day-${day.date}`}
-                disabled={lunchSwapBusy}
-                onClick={() => onSwapLunch(day)}
-              >
-                {t("boxLunchSwapTitle")}
-              </button>
-            ) : null}
             {detailed ? (
               <>
                 <p className="os-meal-desc">{translateKitchen(lang, meal.description)}</p>

@@ -25,7 +25,8 @@ test.describe("results school and refuse-this", () => {
     await waitForResults(page);
 
     await expect(page.getByText(/built from your checklist/i).first()).toBeVisible();
-    await expect(page.getByRole("tab", { name: /tiffin week/i })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /by meal/i })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /by problem/i })).toBeVisible();
 
     await page.getByRole("tab", { name: /30 days/i }).click();
     await expect(page.locator(".os-month-row").first()).toBeVisible();
@@ -46,13 +47,15 @@ test.describe("results school and refuse-this", () => {
       ).toBeFalsy();
     }
 
-    await page.getByRole("tab", { name: /tiffin week/i }).click();
-    await expect(page.getByText(/weekday lunch packed for school/i)).toBeVisible();
+    await page.getByRole("tab", { name: /by problem/i }).click();
+    await page.getByTestId("kitchen-option-schoolLunch").click();
+    await expect(page.getByTestId("kitchen-list-title")).toHaveText(/school/i);
 
     const body = (await page.locator(".os-folder").innerText()).toLowerCase();
     expect(body).not.toContain("banana with peanut chutney");
     expect(body).not.toMatch(/peanut chutney/);
 
+    await page.getByRole("tab", { name: /today/i }).click();
     const swapBlocks = page.locator(".os-swap-box");
     await expect(swapBlocks.first()).toBeVisible();
     const refuseCount = await page.getByText(/if they refuse this/i).count();
@@ -96,11 +99,6 @@ test.describe("results school and refuse-this", () => {
       has: page.locator(".os-band-kicker", { hasText: /packable lunch/i }),
     }).first();
     await expect(todayLunch).toBeVisible();
-    const schoolFilter = page.getByTestId("school-lunch-switch");
-    await expect(schoolFilter).toBeVisible();
-    const before = (await todayLunch.locator("h3").innerText()).trim();
-    await schoolFilter.click();
-    await expect.poll(async () => (await todayLunch.locator("h3").innerText()).trim()).not.toBe(before);
 
     expect(errors).toEqual([]);
   });

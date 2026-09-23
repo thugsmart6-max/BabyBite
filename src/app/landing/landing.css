@@ -2481,8 +2481,8 @@ html.dark .bb-studio.is-oats {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  padding: 1.4rem 1.1rem 2.1rem;
+  justify-content: center;
+  padding: 1.4rem 1.1rem;
   text-align: center;
   flex-shrink: 0;
   background: var(--os-yellow);
@@ -4475,7 +4475,13 @@ html.dark .os-terms-sections p {
 
 @media (min-width: 36rem) {
   .os-plan-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 52rem) {
+  .os-plan-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 

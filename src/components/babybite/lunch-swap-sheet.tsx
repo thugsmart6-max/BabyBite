@@ -30,16 +30,7 @@ function currentLunchMeal(plan: GeneratedMealPlan, dayDate: string, currentName?
   return collectLunchAlternatives(plan, true).find((m) => m.name === currentName);
 }
 
-export function LunchSwapSheet({
-  open,
-  plan,
-  dayDate,
-  dayLabel,
-  currentName,
-  loading,
-  onClose,
-  onConfirm,
-}: {
+type LunchSwapSheetProps = {
   open: boolean;
   plan: GeneratedMealPlan;
   dayDate: string;
@@ -48,7 +39,22 @@ export function LunchSwapSheet({
   loading?: boolean;
   onClose: () => void;
   onConfirm: (meal: MealEntry) => void;
-}) {
+};
+
+export function LunchSwapSheet(props: LunchSwapSheetProps) {
+  if (!props.open) return null;
+  return <LunchSwapSheetDialog key={`${props.dayDate}-${props.currentName ?? ""}`} {...props} />;
+}
+
+function LunchSwapSheetDialog({
+  plan,
+  dayDate,
+  dayLabel,
+  currentName,
+  loading,
+  onClose,
+  onConfirm,
+}: LunchSwapSheetProps) {
   const { t, lang } = useMotherLocale();
   const [selected, setSelected] = useState<MealEntry | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -58,24 +64,18 @@ export function LunchSwapSheet({
   const current = currentLunchMeal(plan, dayDate, currentName);
 
   useEffect(() => {
-    if (!open) {
-      setSelected(null);
-      return;
-    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !loading) onClose();
     };
     window.addEventListener("keydown", onKey);
     dialogRef.current?.focus();
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, loading, onClose]);
+  }, [loading, onClose]);
 
   const pick = useCallback((meal: MealEntry) => {
     setSelected(meal);
     requestAnimationFrame(() => confirmRef.current?.focus());
   }, []);
-
-  if (!open) return null;
 
   return (
     <div className="os-lunch-swap-backdrop" role="presentation" onClick={loading ? undefined : onClose}>
