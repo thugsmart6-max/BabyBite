@@ -37,7 +37,9 @@ test.describe("public content and friendly copy", () => {
 
   test("see how it looks scrolls to the dinner steps", async ({ page }) => {
     await gotoReady(page, "/landing");
-    await page.locator(".os-band").getByRole("link", { name: /see how it looks/i }).click();
+    const seeHow = page.getByRole("link", { name: /see how it looks/i });
+    await seeHow.scrollIntoViewIfNeeded();
+    await seeHow.click();
     await expect(page.locator("#how")).toBeInViewport();
     await expect(page.getByRole("heading", { name: /no 7pm question/i }).first()).toBeVisible();
   });

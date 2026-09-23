@@ -82,7 +82,7 @@ export function TodayShelf({ plan }: { plan: GeneratedMealPlan }) {
 
 export function WeekShelf({ plan }: { plan: GeneratedMealPlan }) {
   const { t, lang } = useMotherLocale();
-  const items = plan.weekly.map((day, index) => {
+  const items = plan.weekly.map((day) => {
     const lunch = day.meals.find((meal) => meal.slot === "lunch") ?? day.meals[0];
     return {
       name: translateKitchen(lang, lunch?.name ?? "—"),
