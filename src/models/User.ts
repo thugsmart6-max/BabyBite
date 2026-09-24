@@ -12,6 +12,8 @@ export interface IUser extends Document {
   role: UserRole;
   emailVerified?: Date;
   onboardingComplete: boolean;
+  /** When the intro 80% / follow-up 50% payment windows begin. */
+  paymentOfferStartedAt?: Date;
   termsAcceptedAt?: Date;
   termsVersion?: string;
   parentProfile?: {
@@ -40,6 +42,7 @@ const UserSchema = new Schema<IUser>(
     },
     emailVerified: Date,
     onboardingComplete: { type: Boolean, default: false },
+    paymentOfferStartedAt: Date,
     termsAcceptedAt: Date,
     termsVersion: { type: String, default: "2025-06-01" },
     parentProfile: {

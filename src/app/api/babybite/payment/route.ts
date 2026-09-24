@@ -5,9 +5,10 @@ import { ChildProfile } from "@/models/ChildProfile";
 import { Payment } from "@/models/Payment";
 import { paymentSchema } from "@/schemas/babybite";
 import { PLAN_TIERS, type PlanTier } from "@/types/babybite";
-import { COMPLETE_BUNDLE_CHECKOUT } from "@/lib/babybite-pricing";
 import { handleRouteError, zodErrorResponse } from "@/lib/api-route";
 import { markCheckoutPaid } from "@/lib/mark-checkout-paid";
+import { ensurePaymentOfferClock } from "@/lib/ensure-payment-offer-start";
+import { User } from "@/models/User";
 import {
   createRazorpayOrder,
   demoCheckoutAllowed,
@@ -38,11 +39,22 @@ export async function POST(request: Request) {
 
     const tier = parsed.data.planTier as PlanTier;
     const plan = PLAN_TIERS[tier];
-    const originalPrice =
-      tier === "complete-bundle" ? COMPLETE_BUNDLE_CHECKOUT.originalPrice : plan.price;
-    const discountPercent =
-      tier === "complete-bundle" ? COMPLETE_BUNDLE_CHECKOUT.discountPercent : 0;
-    const finalPrice = plan.price;
+
+    let originalPrice = plan.price;
+    let finalPrice = plan.price;
+    let discountPercent = 0;
+
+    if (tier === "complete-bundle") {
+      const dbUser = await User.findById(session.user.id).select("onboardingComplete");
+      const familyPaid = await ChildProfile.exists({ userId: session.user.id, hasPaid: true });
+      const offer = await ensurePaymentOfferClock(session.user.id, {
+        onboardingComplete: Boolean(dbUser?.onboardingComplete),
+        familyHasPaid: Boolean(familyPaid),
+      });
+      originalPrice = offer.listPrice;
+      finalPrice = offer.finalPrice;
+      discountPercent = offer.discountPercent;
+    }
 
     const useRazorpay = isRazorpayConfigured() && !demoCheckoutAllowed();
 

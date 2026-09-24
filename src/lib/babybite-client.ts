@@ -48,9 +48,21 @@ export type BabyBiteChildSummary = {
   tiffinNeed?: TiffinNeed;
 };
 
+export type BabyBitePaymentOffer = {
+  tier: "intro-80" | "followup-50" | "list";
+  listPrice: number;
+  finalPrice: number;
+  discountPercent: number;
+  showStrike: boolean;
+  offerBadge: "80" | "50" | null;
+  endsAt: string | null;
+  msRemaining: number;
+};
+
 export type BabyBiteProfileResponse = {
   child: BabyBiteChildSummary | null;
   children?: BabyBiteChildSummary[];
+  paymentOffer?: BabyBitePaymentOffer;
   analysis: {
     score: number;
     summary: string;

@@ -12,7 +12,7 @@ import { useMotherLocale } from "@/components/providers/locale-provider";
 import { translateCta } from "@/lib/mother-copy";
 import { cn } from "@/lib/utils";
 import { homePathForUser, nextMotherAction, pathStartsWith } from "@/lib/funnel-gates";
-import { endLocalSession } from "@/lib/local-user-store";
+import { endLocalSession, readCurrentLocalUser } from "@/lib/local-user-store";
 
 function readDocumentScrollY() {
   return (
@@ -121,16 +121,19 @@ export function FeatherTopbar({
       requestAnimationFrame(() => restoreDocumentScrollY(restore));
     };
   }, [menuOpen]);
+  const hasPaidForNav = Boolean(
+    data?.user?.hasPaid || readCurrentLocalUser()?.hasPaid
+  );
   const homeHref = homePathForUser({
     isLoggedIn: loggedIn,
     onboardingComplete: Boolean(data?.user?.onboardingComplete),
-    hasPaid: Boolean(data?.user?.hasPaid),
+    hasPaid: hasPaidForNav,
   });
   const cta = nextMotherAction({
     pathname,
     isLoggedIn: loggedIn,
     onboardingComplete: Boolean(data?.user?.onboardingComplete),
-    hasPaid: Boolean(data?.user?.hasPaid),
+    hasPaid: hasPaidForNav,
   });
   const ctaBase = cta?.href.split("?")[0] ?? "";
   const onFunnelStep = cta ? pathStartsWith(pathname, ctaBase) : true;

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { signOutToLanding } from "@/lib/client-sign-out";
 import { BbCanvas } from "@/components/babybite/bb-canvas";
 import { GroceryTicks } from "@/components/babybite/dinner-hero";
@@ -25,6 +26,7 @@ import { useMotherLocale } from "@/components/providers/locale-provider";
 import { checklistSummaryLocalized } from "@/lib/checklist-i18n";
 import type { MotherCopyKey } from "@/lib/mother-copy";
 import { endLocalSession } from "@/lib/local-user-store";
+import { ensureSessionReflectsPaid } from "@/lib/client-sync-paid-session";
 
 type Tab = ResultsRoom;
 
@@ -37,6 +39,7 @@ function plateAgeCopy(ageYears: number): MotherCopyKey {
 
 export default function ResultsPage() {
   const { t, lang } = useMotherLocale();
+  const { data: session, update } = useSession();
   const [plan, setPlan] = useState<GeneratedMealPlan | null>(null);
   const [tab, setTab] = useState<Tab>("today");
   const [tiffinNeed, setTiffinNeed] = useState<TiffinNeed>("home-only");
@@ -91,6 +94,11 @@ export default function ResultsPage() {
 
   const loadPlanData = useCallback(async () => {
     const profile = await fetchBabyBiteProfile();
+    await ensureSessionReflectsPaid(
+      update,
+      Boolean(profile.child?.hasPaid),
+      Boolean(session?.user?.hasPaid)
+    );
     const childId = profile.child?.id;
     const headers = { "Content-Type": "application/json" };
     const plansUrl = childId
@@ -137,7 +145,7 @@ export default function ResultsPage() {
     }
 
     return { plansJson, profile };
-  }, [t]);
+  }, [session?.user?.hasPaid, t, update]);
 
   useEffect(() => {
     let ignore = false;

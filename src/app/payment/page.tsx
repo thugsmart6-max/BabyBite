@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -9,13 +9,17 @@ import { SiteArt } from "@/components/babybite/oats-brand";
 import { KitchenSkeleton } from "@/components/babybite/page-skeleton";
 import { LoaderFive, LoaderOne } from "@/components/ui/loader";
 import { useBabyBiteFunnel, useBabyBiteProfile } from "@/hooks/use-babybite-funnel";
-import { COMPLETE_BUNDLE_CHECKOUT, formatRupee } from "@/lib/babybite-pricing";
+import { formatRupee } from "@/lib/babybite-pricing";
+import {
+  formatOfferTimeRemaining,
+  PAYMENT_LIST_PRICE_INR,
+  resolvePaymentOffer,
+} from "@/lib/payment-offer";
 import { patchCurrentLocalUser } from "@/lib/local-user-store";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/shared/error-state";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 
-const CHECKOUT = COMPLETE_BUNDLE_CHECKOUT;
 const PROCESS_MS = 1800;
 const DONE_MS = 900;
 
@@ -24,11 +28,13 @@ function pause(ms: number) {
 }
 
 export default function PaymentPage() {
-  const { t } = useMotherLocale();
+  const { t, lang } = useMotherLocale();
   const router = useRouter();
   const { update } = useSession();
   const [phase, setPhase] = useState<"idle" | "processing" | "done">("idle");
-  const { childId, loading: profileLoading, error: profileError } = useBabyBiteProfile();
+  const [tick, setTick] = useState(0);
+  const { childId, loading: profileLoading, error: profileError, paymentOffer } =
+    useBabyBiteProfile();
 
   useBabyBiteFunnel({ redirectIfPaid: true });
 
@@ -38,6 +44,24 @@ export default function PaymentPage() {
       toast.error(t("finishStep"));
     }
   }, [t]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setTick((n) => n + 1), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const offer = useMemo(() => {
+    if (paymentOffer) {
+      if (!paymentOffer.endsAt || paymentOffer.tier === "list") return paymentOffer;
+      const ends = new Date(paymentOffer.endsAt).getTime();
+      const msRemaining = Math.max(0, ends - Date.now());
+      return { ...paymentOffer, msRemaining };
+    }
+    return resolvePaymentOffer(null);
+  }, [paymentOffer, tick]);
+
+  const offerLabel =
+    offer.offerBadge === "50" ? t("payOff50") : offer.offerBadge === "80" ? t("payOff") : null;
 
   const buyPdfAccess = async () => {
     if (!childId) {
@@ -99,9 +123,25 @@ export default function PaymentPage() {
         <div className="os-onboard-form">
           <p className="os-band-kicker">{t("payKicker")}</p>
           <h1 className="os-auth-title">{t("payTitle")}</h1>
-          <article className="os-pay-deal">
-            <p className="os-pay-now">{formatRupee(CHECKOUT.salePrice)}</p>
-            <p className="os-pay-just">{t("payJust")}</p>
+          <article className="os-pay-deal" data-testid="pay-offer" data-offer-tier={offer.tier}>
+            {offer.showStrike ? (
+              <>
+                <p className="os-pay-was">{formatRupee(PAYMENT_LIST_PRICE_INR)}</p>
+                {offerLabel ? <p className="os-pay-off">{offerLabel}</p> : null}
+              </>
+            ) : offer.tier === "list" ? (
+              <p className="os-pay-off">{t("payListPrice")}</p>
+            ) : null}
+            <p className="os-pay-now">{formatRupee(offer.finalPrice)}</p>
+            <p className="os-pay-just">
+              {formatRupee(offer.finalPrice)} {t("payJustBundle")}
+            </p>
+            {offer.msRemaining > 0 && offer.tier !== "list" ? (
+              <p className="os-compare-note" data-testid="pay-offer-countdown" aria-live="polite">
+                {t("payOfferEnds")}{" "}
+                <span className="os-pay-countdown">{formatOfferTimeRemaining(offer.msRemaining, lang)}</span>
+              </p>
+            ) : null}
           </article>
 
           <p className="os-onboard-lede">{t("paySecure")}</p>
@@ -130,7 +170,7 @@ export default function PaymentPage() {
               disabled={busy}
               aria-busy={busy}
             >
-              {busy ? t("paying") : t("payNowBtn")}
+              {busy ? t("paying") : `${formatRupee(offer.finalPrice)} · ${t("payNowShort")}`}
             </button>
           )}
         </div>

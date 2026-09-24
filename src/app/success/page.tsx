@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { ensureSessionReflectsPaid } from "@/lib/client-sync-paid-session";
 import { BbCanvas } from "@/components/babybite/bb-canvas";
 import { KitchenSkeleton } from "@/components/babybite/page-skeleton";
 import { SiteArt } from "@/components/babybite/oats-brand";
@@ -12,6 +14,7 @@ import { useMotherLocale } from "@/components/providers/locale-provider";
 
 export default function SuccessPage() {
   const router = useRouter();
+  const { data: session, update } = useSession();
   const { t } = useMotherLocale();
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -37,6 +40,12 @@ export default function SuccessPage() {
           router.replace("/payment?reason=payment_required");
           return;
         }
+
+        await ensureSessionReflectsPaid(
+          update,
+          true,
+          Boolean(session?.user?.hasPaid)
+        );
 
         try {
           const res = await fetch("/api/babybite/plans", {
@@ -73,7 +82,7 @@ export default function SuccessPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, t]);
+  }, [router, session?.user?.hasPaid, t, update]);
 
   useEffect(() => {
     if (!ready) return;

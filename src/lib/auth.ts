@@ -205,11 +205,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         await applyDbUserToToken(token, userId);
       }
 
-      if (
-        token.id &&
-        mongoose.Types.ObjectId.isValid(token.id as string) &&
-        !token.hasPaid
-      ) {
+      if (token.id && mongoose.Types.ObjectId.isValid(token.id as string)) {
         token.hasPaid = await loadUserHasPaid(token.id as string);
       }
 

@@ -139,12 +139,8 @@ export function resolveFunnelGate(input: FunnelGateInput): FunnelGateResult {
     return { type: "redirect", path: "/results" };
   }
 
-  if (
-    PAID_PAGE_PREFIXES.some((prefix) => pathStartsWith(pathname, prefix)) &&
-    !hasPaid
-  ) {
-    return { type: "redirect", path: "/payment?reason=payment_required" };
-  }
+  // Paid access is enforced by APIs (child.hasPaid). Do not gate /results here:
+  // middleware JWT often lags Mongo after checkout and caused payment ↔ results loops.
 
   return { type: "next" };
 }

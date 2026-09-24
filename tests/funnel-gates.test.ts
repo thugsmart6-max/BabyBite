@@ -96,7 +96,7 @@ describe("resolveFunnelGate", () => {
     ).toEqual({ type: "redirect", path: "/onboarding" });
   });
 
-  it("blocks unpaid users from results", () => {
+  it("lets unpaid users reach results (APIs enforce payment)", () => {
     expect(
       resolveFunnelGate({
         pathname: "/results",
@@ -104,7 +104,7 @@ describe("resolveFunnelGate", () => {
         onboardingComplete: true,
         hasPaid: false,
       })
-    ).toEqual({ type: "redirect", path: "/payment?reason=payment_required" });
+    ).toEqual({ type: "next" });
   });
 
   it("reroutes finished onboarding away from onboarding", () => {

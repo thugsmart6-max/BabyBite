@@ -6685,6 +6685,15 @@ html.dark .os-menu-tools .bb-lang-btn.is-active {
   text-transform: uppercase;
 }
 
+.os-pay-countdown {
+  display: inline-block;
+  margin-left: 0.15rem;
+  font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
 html.dark .os-pay-deal {
   background: var(--os-yellow);
   color: #111;

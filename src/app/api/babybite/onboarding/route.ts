@@ -8,6 +8,7 @@ import { babybiteOnboardingSchema } from "@/schemas/babybite";
 import { generateNutritionAnalysis } from "@/services/analysis-engine";
 import { handleRouteError, zodErrorResponse } from "@/lib/api-route";
 import { nextGrowthFields } from "@/lib/growth-measure";
+import { ensurePaymentOfferClock } from "@/lib/ensure-payment-offer-start";
 import mongoose from "mongoose";
 
 function serializeChild(child: IChildProfile) {
@@ -121,11 +122,16 @@ export async function POST(request: Request) {
 
     const analysis = await writeAnalysis(session.user.id, child);
     await User.findByIdAndUpdate(session.user.id, { onboardingComplete: true });
+    const paymentOffer = await ensurePaymentOfferClock(session.user.id, {
+      onboardingComplete: true,
+      familyHasPaid: paid,
+    });
 
     return NextResponse.json({
       success: true,
       childProfileId: child._id.toString(),
       hasPaid: child.hasPaid,
+      paymentOffer,
       analysis: {
         score: analysis.score,
         summary: analysis.summary,
@@ -161,9 +167,17 @@ export async function GET(request: Request) {
       childProfileId: selected._id,
     }).sort({ createdAt: -1 });
 
+    const dbUser = await User.findById(session.user.id).select("onboardingComplete");
+    const familyPaid = await familyHasPaid(session.user.id);
+    const paymentOffer = await ensurePaymentOfferClock(session.user.id, {
+      onboardingComplete: Boolean(dbUser?.onboardingComplete),
+      familyHasPaid: familyPaid,
+    });
+
     return NextResponse.json({
       child: serializeChild(selected),
       children: children.map(serializeChild),
+      paymentOffer,
       analysis: analysis
         ? {
             score: analysis.score,
