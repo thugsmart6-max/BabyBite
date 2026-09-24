@@ -21,13 +21,36 @@ const HAIR = "#E8E8E8";
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 36,
-    paddingBottom: 52,
+    paddingTop: 58,
+    paddingBottom: 48,
     paddingHorizontal: 40,
     fontFamily: "Helvetica",
     fontSize: 10,
     color: INK,
     backgroundColor: PAPER,
+  },
+  coverPage: {
+    paddingBottom: 56,
+  },
+  pageHeader: {
+    position: "absolute",
+    top: 18,
+    left: 40,
+    right: 40,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: HAIR,
+    backgroundColor: PAPER,
+  },
+  pageHeaderTitle: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    marginBottom: 3,
+  },
+  pageHeaderMeta: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   topRule: {
     height: 18,
@@ -37,31 +60,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  brandRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    marginBottom: 18,
-    marginTop: 8,
-  },
-  brand: {
-    fontSize: 11,
-    letterSpacing: 2.8,
-    color: INK,
-    fontFamily: "Helvetica-Bold",
-  },
-  brandMeta: { fontSize: 8, color: MUTED },
-  title: { fontSize: 22, fontFamily: "Helvetica-Bold", marginBottom: 6, lineHeight: 1.2 },
-  subtitle: { fontSize: 11, color: MUTED, marginBottom: 16, lineHeight: 1.45 },
+  brandMeta: { fontSize: 7, color: MUTED },
+  title: { fontSize: 17, fontFamily: "Helvetica-Bold", marginBottom: 4, lineHeight: 1.2 },
+  subtitle: { fontSize: 9, color: MUTED, marginBottom: 10, lineHeight: 1.4 },
   kicker: {
     fontSize: 8,
-    letterSpacing: 1.6,
     textTransform: "uppercase",
     color: INK,
-    marginBottom: 6,
+    marginBottom: 4,
     fontFamily: "Helvetica-Bold",
   },
-  section: { marginTop: 16 },
+  section: { marginTop: 10 },
   sectionTitle: {
     fontSize: 12,
     fontFamily: "Helvetica-Bold",
@@ -71,18 +80,29 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2.5,
     borderBottomColor: INK,
   },
-  profileGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  profileGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  profileGridDense: { flexDirection: "row", flexWrap: "wrap", gap: 5 },
   profileCell: {
     width: "48%",
-    padding: 8,
+    padding: 6,
     backgroundColor: YELLOW,
-    borderRadius: 8,
-    marginBottom: 6,
+    borderRadius: 6,
+    marginBottom: 4,
     borderWidth: 2,
     borderColor: INK,
   },
-  profileLabel: { fontSize: 7, letterSpacing: 1, color: INK, marginBottom: 3, textTransform: "uppercase" },
-  profileValue: { fontSize: 10, fontFamily: "Helvetica-Bold" },
+  profileCellDense: {
+    width: "31.5%",
+    padding: 5,
+    backgroundColor: YELLOW,
+    borderRadius: 5,
+    marginBottom: 3,
+    borderWidth: 2,
+    borderColor: INK,
+    minHeight: 34,
+  },
+  profileLabel: { fontSize: 7, color: INK, marginBottom: 2, textTransform: "uppercase", fontFamily: "Helvetica-Bold" },
+  profileValue: { fontSize: 9, fontFamily: "Helvetica-Bold", lineHeight: 1.25 },
   meal: {
     marginBottom: 8,
     paddingLeft: 10,
@@ -90,7 +110,7 @@ const styles = StyleSheet.create({
     borderLeftColor: YELLOW,
     paddingBottom: 6,
   },
-  mealSlot: { fontSize: 8, letterSpacing: 1, color: INK, marginBottom: 2, textTransform: "uppercase", fontFamily: "Helvetica-Bold" },
+  mealSlot: { fontSize: 8, color: INK, marginBottom: 2, textTransform: "uppercase", fontFamily: "Helvetica-Bold" },
   mealName: { fontFamily: "Helvetica-Bold", fontSize: 11, marginBottom: 2 },
   mealDesc: { color: MUTED, lineHeight: 1.4 },
   mealMeta: { fontSize: 8, color: MUTED, marginTop: 3 },
@@ -104,17 +124,33 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 5,
-    paddingHorizontal: 4,
+    paddingVertical: 3,
+    paddingHorizontal: 3,
     borderBottomWidth: 1,
     borderBottomColor: HAIR,
     borderLeftWidth: 2,
     borderRightWidth: 2,
     borderColor: INK,
+    alignItems: "flex-start",
   },
-  colDay: { width: "16%", fontSize: 8 },
-  colMeal: { width: "28%", fontSize: 8 },
-  colSnack: { width: "28%", fontSize: 8 },
+  colDay: { width: "11%", fontSize: 6.5, lineHeight: 1.2 },
+  colMeal: { width: "17.5%", fontSize: 6.5, lineHeight: 1.2 },
+  colSnack: { width: "17.5%", fontSize: 6.5, lineHeight: 1.2 },
+  coverTitle: { fontSize: 20, fontFamily: "Helvetica-Bold", lineHeight: 1.08, marginBottom: 5 },
+  coverLine: { fontSize: 9.5, marginBottom: 2, color: INK },
+  coverMuted: { fontSize: 8.5, color: MUTED, marginBottom: 6, lineHeight: 1.35 },
+  coverChecklist: { fontSize: 8, color: MUTED, marginBottom: 8, lineHeight: 1.35 },
+  coverProfileTitle: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    marginBottom: 6,
+    paddingBottom: 3,
+    borderBottomWidth: 2,
+    borderBottomColor: INK,
+  },
+  monthColDate: { width: "19%", fontSize: 6.5, fontFamily: "Helvetica-Bold", lineHeight: 1.2 },
+  monthColMeal: { width: "20%", fontSize: 6.5, lineHeight: 1.2 },
+  listBullet: { fontSize: 8, marginBottom: 3, lineHeight: 1.35 },
   monthRow: { flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: HAIR },
   monthDate: { width: "22%", fontSize: 8, color: MUTED, fontFamily: "Helvetica-Bold" },
   monthMeals: { width: "78%", fontSize: 8, lineHeight: 1.35 },
@@ -178,23 +214,97 @@ function mealOf(day: DailyPlan, slot: DailyPlan["meals"][number]["slot"]) {
   return day.meals.find((meal) => meal.slot === slot)?.name ?? "—";
 }
 
+function truncateCoverText(text: string, maxLen = 240): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLen) return trimmed;
+  return `${trimmed.slice(0, maxLen).trim()}…`;
+}
+
 function PdfFooter({ childName }: { childName: string }) {
   return (
     <View style={styles.footer} fixed>
-      <Text>BabyBite · {childName} · Educational guidance only, not medical advice · Ages 4–12</Text>
-      <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+      <Text>BabyBite · {childName} · Educational guidance only</Text>
     </View>
   );
 }
 
-function PageChrome({ prepared }: { prepared: string }) {
+function PageChrome({ childName }: { childName: string }) {
   return (
     <>
       <View style={styles.topRule} fixed />
-      <View style={styles.brandRow}>
-        <Text style={styles.brand}>BABYBITE</Text>
-        <Text style={styles.brandMeta}>{prepared}</Text>
+      <View style={styles.pageHeader} fixed>
+        <Text style={styles.pageHeaderTitle}>BABYBITE PERSONALIZED KITCHEN PLAN</Text>
+        <View style={styles.pageHeaderMeta}>
+          <Text style={styles.brandMeta}>BabyBite · {childName} · Educational guidance only</Text>
+          <Text style={styles.brandMeta} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+        </View>
       </View>
+    </>
+  );
+}
+
+function ProfileFields({
+  profile,
+  allergyText,
+  challengeText,
+  kitchen,
+  dense = false,
+}: {
+  profile: BabyBiteChildProfile;
+  allergyText: string;
+  challengeText: string;
+  kitchen: ReturnType<typeof kitchenFacts>;
+  dense?: boolean;
+}) {
+  const cellStyle = dense ? styles.profileCellDense : styles.profileCell;
+  const gridStyle = dense ? styles.profileGridDense : styles.profileGrid;
+  const fields: [string, string][] = [
+    ["Age", `${profile.ageYears} years`],
+    ["Plate", AGE_BAND_LABELS[ageBandForYears(profile.ageYears)]],
+    ["Goal", GOAL_LABELS[profile.goal]],
+    ["Diet", DIET_LABELS[profile.dietPreference]],
+    ["Kitchen style", foodStyleLabel(profile.foodStyle)],
+    ["Allergies", allergyText],
+    ["Challenges", challengeText],
+    ["Cook time", kitchen.cookTime === "ten-min" ? "10 minutes" : "Normal"],
+    ["Budget", kitchen.kitchenBudget === "tight" ? "Tight" : "Normal"],
+    ["Rice", kitchen.riceHabit === "refuses-rice" ? "No plated rice" : "Eats rice"],
+    ["Lunch", kitchen.tiffinNeed === "school-lunch" ? "School tiffin" : "Home table"],
+  ];
+
+  return (
+    <View style={gridStyle}>
+      {fields.map(([label, value]) => (
+        <View key={label} style={cellStyle}>
+          <Text style={styles.profileLabel}>{label}</Text>
+          <Text style={styles.profileValue}>{value}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function MonthCalendarTable({ days }: { days: DailyPlan[] }) {
+  return (
+    <>
+      <View style={styles.tableHeader}>
+        <Text style={[styles.monthColDate, { fontFamily: "Helvetica-Bold" }]}>Date</Text>
+        <Text style={[styles.monthColMeal, { fontFamily: "Helvetica-Bold" }]}>Breakfast</Text>
+        <Text style={[styles.monthColMeal, { fontFamily: "Helvetica-Bold" }]}>Lunch</Text>
+        <Text style={[styles.monthColMeal, { fontFamily: "Helvetica-Bold" }]}>Dinner</Text>
+        <Text style={[styles.monthColMeal, { fontFamily: "Helvetica-Bold" }]}>Snack</Text>
+      </View>
+      {days.map((day) => (
+        <View key={day.date} style={styles.tableRow}>
+          <Text style={styles.monthColDate}>
+            {day.date} · {day.dayLabel}
+          </Text>
+          <Text style={styles.monthColMeal}>{mealOf(day, "breakfast")}</Text>
+          <Text style={styles.monthColMeal}>{mealOf(day, "lunch")}</Text>
+          <Text style={styles.monthColMeal}>{mealOf(day, "dinner")}</Text>
+          <Text style={styles.monthColMeal}>{mealOf(day, "eveningSnack")}</Text>
+        </View>
+      ))}
     </>
   );
 }
@@ -206,11 +316,6 @@ export function BabyBitePDFDocument({
   profile: BabyBiteChildProfile;
   plan: GeneratedMealPlan;
 }) {
-  const prepared = new Date().toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
   const allergyText = profile.allergies.length
     ? profile.allergies.map((item) => ALLERGY_LABELS[item]).join(", ")
     : "None listed";
@@ -223,6 +328,10 @@ export function BabyBitePDFDocument({
   const band = growthBandForAge(profile.ageYears);
   const heightNote = profile.heightCm ? `You noted ${profile.heightCm} cm.` : "Height not noted yet.";
   const weightNote = profile.weightKg ? `You noted ${profile.weightKg} kg.` : "Weight not noted yet.";
+  const nameUpper = profile.name.toUpperCase();
+  const monthMid = Math.ceil(plan.monthly.length / 2);
+  const monthFirst = plan.monthly.slice(0, monthMid);
+  const monthSecond = plan.monthly.slice(monthMid);
 
   return (
     <Document
@@ -230,74 +339,74 @@ export function BabyBitePDFDocument({
       author="BabyBite"
       subject="Personalized Indian nutrition plan for ages 4–12"
     >
-      <Page size="A4" style={styles.page}>
-        <PageChrome prepared={prepared} />
-        <Text style={styles.kicker}>Personalized kitchen plan</Text>
-        <Text style={styles.title}>{`${profile.name}’s meals for the next 30 days`}</Text>
-        <Text style={styles.subtitle}>
-          {`Written for the mother who already runs this table. Indian plates, five meals a day, ages 4–12. Built from your checklist: ${checklist}. Educational only. Ask your paediatrician for growth concerns.`}
-        </Text>
-
-        <View style={styles.profileGrid}>
-          {[
-            ["Age", `${profile.ageYears} years`],
-            ["Plate", AGE_BAND_LABELS[ageBandForYears(profile.ageYears)]],
-            ["Goal", GOAL_LABELS[profile.goal]],
-            ["Diet", DIET_LABELS[profile.dietPreference]],
-            ["Kitchen style", foodStyleLabel(profile.foodStyle)],
-            ["Allergies", allergyText],
-            ["Challenges", challengeText],
-            ["Cook time", kitchen.cookTime === "ten-min" ? "10 minutes" : "Normal"],
-            ["Budget", kitchen.kitchenBudget === "tight" ? "Tight" : "Normal"],
-            ["Rice", kitchen.riceHabit === "refuses-rice" ? "No plated rice" : "Eats rice"],
-            ["Lunch", kitchen.tiffinNeed === "school-lunch" ? "School tiffin" : "Home table"],
-          ].map(([label, value]) => (
-            <View key={label} style={styles.profileCell}>
-              <Text style={styles.profileLabel}>{label}</Text>
-              <Text style={styles.profileValue}>{value}</Text>
-            </View>
-          ))}
-        </View>
-        <Text style={{ fontSize: 9, color: MUTED, marginTop: 4 }}>Foods to avoid: {avoidText}</Text>
-
-        <View style={styles.section}>
-          <Text style={styles.kicker}>Height and weight</Text>
-          <Text style={styles.sectionTitle}>What this kitchen is for</Text>
-          <Text style={{ fontSize: 10, lineHeight: 1.45, marginBottom: 8 }}>
-            Children aged {profile.ageYears} often sit around {band.heightCm} and {band.weightKg}.
-            These plates fill energy, protein, and calcium so {profile.name}’s body can do its own
-            growing. BabyBite does not promise extra centimetres of height.
+      <Page size="A4" style={[styles.page, styles.coverPage]}>
+        <PageChrome childName={profile.name} />
+        <Text style={styles.coverTitle}>{`${nameUpper}’S 30-DAY MEAL PLAN`}</Text>
+        <Text style={styles.coverLine}>A personalized kitchen plan</Text>
+        <Text style={styles.coverLine}>Indian plates · Five meals a day · Ages 4–12</Text>
+        <Text style={styles.coverMuted}>Designed around the checklist provided for {profile.name}.</Text>
+        <Text style={styles.coverChecklist}>Checklist: {truncateCoverText(checklist)}</Text>
+        <Text style={styles.coverProfileTitle}>{profile.name}’s kitchen profile</Text>
+        <ProfileFields
+          profile={profile}
+          allergyText={allergyText}
+          challengeText={challengeText}
+          kitchen={kitchen}
+          dense
+        />
+        <Text style={{ fontSize: 8, color: MUTED, marginTop: 6 }}>Foods to avoid: {avoidText}</Text>
+        <View style={[styles.callout, { marginTop: 8, padding: 7 }]}>
+          <Text style={styles.calloutText}>
+            Educational guidance only. Today’s meals and growth bands are on page 2.
           </Text>
-          <View style={styles.profileGrid}>
-            <View style={styles.profileCell}>
-              <Text style={styles.profileLabel}>Usual height band</Text>
-              <Text style={styles.profileValue}>{band.heightCm}</Text>
-              <Text style={{ fontSize: 8, color: MUTED, marginTop: 3 }}>{heightNote}</Text>
-            </View>
-            <View style={styles.profileCell}>
-              <Text style={styles.profileLabel}>Usual weight band</Text>
-              <Text style={styles.profileValue}>{band.weightKg}</Text>
-              <Text style={{ fontSize: 8, color: MUTED, marginTop: 3 }}>{weightNote}</Text>
-            </View>
+        </View>
+        <PdfFooter childName={profile.name} />
+      </Page>
+
+      <Page size="A4" style={styles.page}>
+        <PageChrome childName={profile.name} />
+        <Text style={styles.kicker}>Height and weight</Text>
+        <Text style={styles.sectionTitle}>What this kitchen is for</Text>
+        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 8 }}>
+          Children aged {profile.ageYears} often sit around {band.heightCm} and {band.weightKg}. These plates
+          fill energy, protein, and calcium so {profile.name}’s body can grow. BabyBite does not promise extra
+          centimetres of height.
+        </Text>
+        <View style={styles.profileGrid}>
+          <View style={styles.profileCell}>
+            <Text style={styles.profileLabel}>Usual height band</Text>
+            <Text style={styles.profileValue}>{band.heightCm}</Text>
+            <Text style={{ fontSize: 8, color: MUTED, marginTop: 3 }}>{heightNote}</Text>
+          </View>
+          <View style={styles.profileCell}>
+            <Text style={styles.profileLabel}>Usual weight band</Text>
+            <Text style={styles.profileValue}>{band.weightKg}</Text>
+            <Text style={{ fontSize: 8, color: MUTED, marginTop: 3 }}>{weightNote}</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Today — {plan.today.dayLabel}</Text>
-          {plan.today.meals.map((meal) => (
-            <View key={meal.slot} style={styles.meal} wrap={false}>
-              <Text style={styles.mealSlot}>{MEAL_SLOT_LABELS[meal.slot]}</Text>
-              <Text style={styles.mealName}>{meal.name}</Text>
-              <Text style={styles.mealDesc}>{meal.description}</Text>
-              {meal.whyThisPlate ? <Text style={styles.mealMeta}>Why this plate: {meal.whyThisPlate}</Text> : null}
-              <Text style={styles.mealMeta}>
-                ~{meal.caloriesApprox} kcal
-                {meal.portionNote ? `  ·  ${meal.portionNote}` : ""}
-              </Text>
-            </View>
-          ))}
+          <Text style={styles.kicker}>Today’s plate</Text>
+          <Text style={styles.sectionTitle}>
+            {plan.today.dayLabel} · Breakfast to dinner
+          </Text>
         </View>
-
+        {plan.today.meals.map((meal) => (
+          <View key={meal.slot} style={styles.meal}>
+            <Text style={styles.mealSlot}>
+              {MEAL_SLOT_LABELS[meal.slot]} · Why this plate
+            </Text>
+            <Text style={styles.mealName}>
+              {meal.name}
+              {meal.whyThisPlate ? ` ${meal.whyThisPlate}` : ""}
+            </Text>
+            <Text style={styles.mealDesc}>{meal.description}</Text>
+            <Text style={styles.mealMeta}>
+              ~{meal.caloriesApprox} kcal
+              {meal.portionNote ? ` · ${meal.portionNote}` : ""}
+            </Text>
+          </View>
+        ))}
         <View style={styles.callout}>
           <Text style={styles.calloutText}>
             Print this PDF for the fridge. It is educational nutrition guidance, not a medical
@@ -309,27 +418,32 @@ export function BabyBitePDFDocument({
       </Page>
 
       <Page size="A4" style={styles.page}>
-        <PageChrome prepared={prepared} />
+        <PageChrome childName={profile.name} />
         <Text style={styles.sectionTitle}>This week</Text>
+        <Text style={{ fontSize: 9, color: MUTED, marginBottom: 8 }}>Main meals + two snack slots</Text>
         <View style={styles.tableHeader}>
           <Text style={[styles.colDay, { fontFamily: "Helvetica-Bold" }]}>Day</Text>
           <Text style={[styles.colMeal, { fontFamily: "Helvetica-Bold" }]}>Breakfast</Text>
           <Text style={[styles.colMeal, { fontFamily: "Helvetica-Bold" }]}>Lunch</Text>
-          <Text style={[styles.colSnack, { fontFamily: "Helvetica-Bold" }]}>Dinner</Text>
+          <Text style={[styles.colMeal, { fontFamily: "Helvetica-Bold" }]}>Dinner</Text>
+          <Text style={[styles.colSnack, { fontFamily: "Helvetica-Bold" }]}>Snack 1</Text>
+          <Text style={[styles.colSnack, { fontFamily: "Helvetica-Bold" }]}>Snack 2</Text>
         </View>
         {plan.weekly.map((day) => (
-          <View key={day.date} style={styles.tableRow} wrap={false}>
+          <View key={day.date} style={styles.tableRow}>
             <Text style={styles.colDay}>{day.dayLabel}</Text>
             <Text style={styles.colMeal}>{mealOf(day, "breakfast")}</Text>
             <Text style={styles.colMeal}>{mealOf(day, "lunch")}</Text>
-            <Text style={styles.colSnack}>{mealOf(day, "dinner")}</Text>
+            <Text style={styles.colMeal}>{mealOf(day, "dinner")}</Text>
+            <Text style={styles.colSnack}>{mealOf(day, "morningSnack")}</Text>
+            <Text style={styles.colSnack}>{mealOf(day, "eveningSnack")}</Text>
           </View>
         ))}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Snacks this week</Text>
           {plan.weekly.map((day) => (
-            <Text key={`${day.date}-snack`} style={{ marginBottom: 3, fontSize: 9 }}>
+            <Text key={`${day.date}-snack`} style={styles.listBullet}>
               {day.dayLabel}: {mealOf(day, "morningSnack")} · {mealOf(day, "eveningSnack")}
             </Text>
           ))}
@@ -338,20 +452,21 @@ export function BabyBitePDFDocument({
       </Page>
 
       <Page size="A4" style={styles.page}>
-        <PageChrome prepared={prepared} />
+        <PageChrome childName={profile.name} />
         <Text style={styles.kicker}>Kitchen options</Text>
         <Text style={styles.sectionTitle}>If they refuse the plate</Text>
+        <Text style={styles.kicker}>Rice refusal</Text>
         <Text style={{ fontSize: 9, color: MUTED, marginBottom: 10 }}>
-          Tape this next to dinner. Rice refusal means plated rice — roti, dosa, poha, and millets stay.
+          Rice refusal means plated rice — roti, dosa, poha, and millets stay.
         </Text>
         {plan.today.meals.map((meal) => (
           <View key={`swap-${meal.slot}`} style={styles.meal} wrap={false}>
             <Text style={styles.mealSlot}>{MEAL_SLOT_LABELS[meal.slot]}</Text>
             <Text style={styles.mealName}>{meal.name}</Text>
             {meal.minutes ? <Text style={styles.mealMeta}>{meal.minutes} minutes</Text> : null}
-            {(meal.swaps ?? []).map((swap) => (
+            {(meal.swaps ?? []).map((swap, index) => (
               <Text key={swap.name} style={styles.mealDesc}>
-                If they refuse this: {swap.name} — {swap.why}
+                Option {index + 1}: {swap.name} — {swap.why}
               </Text>
             ))}
           </View>
@@ -359,35 +474,40 @@ export function BabyBitePDFDocument({
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Evening snacks this week</Text>
-          {plan.weekly.map((day) => (
-            <Text key={`${day.date}-eve`} style={{ marginBottom: 3, fontSize: 9 }}>
-              {day.dayLabel}: {mealOf(day, "eveningSnack")}
-            </Text>
-          ))}
+          <Text style={styles.listBullet}>
+            {plan.weekly.map((day) => `${day.dayLabel}: ${mealOf(day, "eveningSnack")}`).join(" · ")}
+          </Text>
         </View>
+        <PdfFooter childName={profile.name} />
+      </Page>
+
+      <Page size="A4" style={styles.page}>
+        <PageChrome childName={profile.name} />
+        <Text style={styles.kicker}>Quick food guide</Text>
+        <Text style={styles.sectionTitle}>School tiffin · 10-minute food · No plated rice</Text>
 
         {profile.tiffinNeed === "school-lunch" || plan.kitchenLists?.schoolLunch?.length ? (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>School tiffin</Text>
+            <Text style={styles.kicker}>School tiffin</Text>
             {(plan.kitchenLists?.schoolLunch?.length ?? 0) > 0 ? (
               plan.kitchenLists!.schoolLunch.slice(0, 8).map((meal) => (
-                <Text key={meal.name} style={{ marginBottom: 3, fontSize: 9 }}>
-                  {meal.name}
+                <Text key={meal.name} style={styles.listBullet}>
+                  • {meal.name}
                   {meal.minutes ? ` · ${meal.minutes} min` : ""}
                 </Text>
               ))
             ) : (
-              <Text style={{ marginBottom: 3, fontSize: 9 }}>No school box meals in this kitchen yet.</Text>
+              <Text style={styles.listBullet}>No school box meals in this kitchen yet.</Text>
             )}
           </View>
         ) : null}
 
         {plan.kitchenLists?.tenMin?.length ? (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>10-minute food</Text>
-            {plan.kitchenLists.tenMin.slice(0, 6).map((meal) => (
-              <Text key={meal.name} style={{ marginBottom: 3, fontSize: 9 }}>
-                {meal.name}
+            <Text style={styles.kicker}>10-minute food</Text>
+            {plan.kitchenLists.tenMin.slice(0, 8).map((meal) => (
+              <Text key={meal.name} style={styles.listBullet}>
+                • {meal.name}
                 {meal.minutes ? ` · ${meal.minutes} min` : ""}
               </Text>
             ))}
@@ -396,10 +516,10 @@ export function BabyBitePDFDocument({
 
         {plan.kitchenLists?.riceFree?.length ? (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>No plated rice</Text>
-            {plan.kitchenLists.riceFree.slice(0, 6).map((meal) => (
-              <Text key={meal.name} style={{ marginBottom: 3, fontSize: 9 }}>
-                {meal.name}
+            <Text style={styles.kicker}>No plated rice</Text>
+            {plan.kitchenLists.riceFree.slice(0, 8).map((meal) => (
+              <Text key={meal.name} style={styles.listBullet}>
+                • {meal.name}
               </Text>
             ))}
           </View>
@@ -408,28 +528,26 @@ export function BabyBitePDFDocument({
       </Page>
 
       <Page size="A4" style={styles.page}>
-        <PageChrome prepared={prepared} />
+        <PageChrome childName={profile.name} />
         <Text style={styles.sectionTitle}>30-day calendar</Text>
-        <Text style={{ fontSize: 9, color: MUTED, marginBottom: 10 }}>
-          A rotating pool of Indian meals, filtered for {foodStyleLabel(profile.foodStyle).toLowerCase()}{" "}
-          cooking and the allergies you listed.
-        </Text>
-        {plan.monthly.map((day) => (
-          <View key={day.date} style={styles.monthRow} wrap={false}>
-            <Text style={styles.monthDate}>
-              {day.date}  {day.dayLabel}
-            </Text>
-            <Text style={styles.monthMeals}>
-              {mealOf(day, "breakfast")}  ·  {mealOf(day, "lunch")}  ·  {mealOf(day, "dinner")}  ·  {mealOf(day, "eveningSnack")}
-            </Text>
-          </View>
-        ))}
+        <Text style={styles.kicker}>Part 1 · A rotating pool of Indian meals</Text>
+        <MonthCalendarTable days={monthFirst} />
         <PdfFooter childName={profile.name} />
       </Page>
 
       <Page size="A4" style={styles.page}>
-        <PageChrome prepared={prepared} />
-        <Text style={styles.sectionTitle}>Nutrition notes (daily average)</Text>
+        <PageChrome childName={profile.name} />
+        <Text style={styles.sectionTitle}>30-day calendar</Text>
+        <Text style={styles.kicker}>Part 2 · A rotating pool of Indian meals</Text>
+        <MonthCalendarTable days={monthSecond} />
+        <PdfFooter childName={profile.name} />
+      </Page>
+
+      <Page size="A4" style={styles.page}>
+        <PageChrome childName={profile.name} />
+        <Text style={styles.kicker}>Nutrition notes</Text>
+        <Text style={styles.sectionTitle}>Daily average + kitchen reference</Text>
+        <Text style={[styles.kicker, { marginTop: 8 }]}>Daily average</Text>
         {Object.entries(plan.breakdown).map(([key, value]) => (
           <View key={key} style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>{BREAKDOWN_LABELS[key] ?? key}</Text>
@@ -439,13 +557,9 @@ export function BabyBitePDFDocument({
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Keep these in the kitchen</Text>
-          <View style={styles.chips}>
-            {plan.recommendedFoods.map((food) => (
-              <Text key={food} style={styles.chip}>
-                {food}
-              </Text>
-            ))}
-          </View>
+          <Text style={{ fontSize: 9, lineHeight: 1.45 }}>
+            {plan.recommendedFoods.join(" · ")}
+          </Text>
         </View>
 
         <View style={styles.callout}>

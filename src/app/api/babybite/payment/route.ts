@@ -7,6 +7,13 @@ import { paymentSchema } from "@/schemas/babybite";
 import { PLAN_TIERS, type PlanTier } from "@/types/babybite";
 import { COMPLETE_BUNDLE_CHECKOUT } from "@/lib/babybite-pricing";
 import { handleRouteError, zodErrorResponse } from "@/lib/api-route";
+import { markCheckoutPaid } from "@/lib/mark-checkout-paid";
+import {
+  createRazorpayOrder,
+  demoCheckoutAllowed,
+  isRazorpayConfigured,
+  razorpayPublicKeyId,
+} from "@/lib/razorpay";
 
 export async function POST(request: Request) {
   try {
@@ -33,8 +40,56 @@ export async function POST(request: Request) {
     const plan = PLAN_TIERS[tier];
     const originalPrice =
       tier === "complete-bundle" ? COMPLETE_BUNDLE_CHECKOUT.originalPrice : plan.price;
-    const discountPercent = tier === "complete-bundle" ? COMPLETE_BUNDLE_CHECKOUT.discountPercent : 0;
+    const discountPercent =
+      tier === "complete-bundle" ? COMPLETE_BUNDLE_CHECKOUT.discountPercent : 0;
     const finalPrice = plan.price;
+
+    const useRazorpay = isRazorpayConfigured() && !demoCheckoutAllowed();
+
+    if (useRazorpay) {
+      const payment = await Payment.create({
+        userId: session.user.id,
+        childProfileId: child._id,
+        planTier: tier,
+        planName: plan.name,
+        originalPrice,
+        discountPercent,
+        finalPrice,
+        spinResult: discountPercent,
+        status: "pending",
+      });
+
+      const receipt = `bb_${payment._id.toString()}`;
+      const order = await createRazorpayOrder({
+        amountInr: finalPrice,
+        receipt,
+        notes: {
+          userId: session.user.id,
+          childProfileId: child._id.toString(),
+          paymentId: payment._id.toString(),
+          planTier: tier,
+        },
+      });
+
+      payment.razorpayOrderId = order.orderId;
+      await payment.save();
+
+      const keyId = razorpayPublicKeyId();
+      if (!keyId) {
+        return NextResponse.json({ error: "Razorpay is not configured" }, { status: 503 });
+      }
+
+      return NextResponse.json({
+        mode: "razorpay",
+        paymentId: payment._id.toString(),
+        orderId: order.orderId,
+        amount: order.amountPaise,
+        currency: order.currency,
+        keyId,
+        planName: plan.name,
+        finalPrice,
+      });
+    }
 
     const payment = await Payment.create({
       userId: session.user.id,
@@ -48,12 +103,14 @@ export async function POST(request: Request) {
       status: "demo_paid",
     });
 
-    await ChildProfile.updateMany(
-      { userId: session.user.id },
-      { $set: { hasPaid: true, selectedPlan: tier } }
-    );
+    await markCheckoutPaid({
+      userId: session.user.id,
+      childProfileId: child._id,
+      planTier: tier,
+    });
 
     return NextResponse.json({
+      mode: "demo",
       success: true,
       paymentId: payment._id.toString(),
       originalPrice,

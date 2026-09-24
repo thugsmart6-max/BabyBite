@@ -1,4 +1,5 @@
-import type { MotherLang } from "@/lib/mother-copy";
+import { MEAL_DESCRIPTION_I18N } from "@/lib/kitchen-meal-descriptions-i18n";
+import { motherCopy, type MotherCopyKey, type MotherLang } from "@/lib/mother-copy";
 
 const KITCHEN: Record<string, { ta: string; hi: string }> = {
   "ragi dosa with coconut chutney": { ta: "ராகி தோசை தேங்காய் சட்னி", hi: "रागी डोसा नारियल चटनी" },
@@ -105,10 +106,193 @@ const KITCHEN: Record<string, { ta: string; hi: string }> = {
   friday: { ta: "வெள்ளி", hi: "शुक्रवार" },
   saturday: { ta: "சனி", hi: "शनिवार" },
   sunday: { ta: "ஞாயிறு", hi: "रविवार" },
+  "you marked picky eating — this is a plate children usually finish.": {
+    ta: "தேர்ச்சி செய்த picky eating — குழந்தைகள் பொதுவாக முடிக்கும் தட்டு.",
+    hi: "चुनी हुई picky eating — बच्चे अक्सर यह थाली खत्म करते हैं।",
+  },
+  "vegetables are mixed in, because they refuse plain sabzi.": {
+    ta: "காய்கறி கலந்துள்ளது — சாதா சப்ஜி மறுக்கிறார்கள்.",
+    hi: "सब्ज़ी मिली है — सादी sabzi नहीं खाते।",
+  },
+  "vegetables stay hidden if they refuse the first plate": {
+    ta: "முதல் தட்டை மறுத்தாலும் காய்கறி மறைந்திருக்கும்",
+    hi: "पहली थाली मना करें तो भी सब्ज़ी छिपी रहे",
+  },
+  "no milk or curd on this plate, as you asked.": {
+    ta: "நீங்கள் கேட்டபடி இந்தத் தட்டில் பால்/தயிர் இல்லை.",
+    hi: "जैसा आपने कहा, इस थाली में दूध या दही नहीं।",
+  },
+  "higher-energy plate for catch-up eating.": {
+    ta: "எடை/ஆற்றல் குறைவுக்கு அதிக ஆற்றல் தட்டு.",
+    hi: "पकड़ने वाले खाने के लिए ज़्यादा ऊर्जा वाली थाली।",
+  },
+  "protein-forward, for the energy and sports you noted.": {
+    ta: "குறித்த ஆற்றல், விளையாட்டுக்கு புரதம் முன்னிலை.",
+    hi: "आपकी ऊर्जा और खेल के लिए प्रोटीन पर ज़ोर।",
+  },
+  "uses pantry staples for a tight kitchen.": {
+    ta: "இறுக்கமான சமையலறை — பெட்டியில் உள்ள பொருட்கள்.",
+    hi: "कम बजट — रसोई के बुनियादी सामान।",
+  },
+  "packs in a school box, from your tiffin answer.": {
+    ta: "பள்ளி டிப்பின் பதிலின்படி பெட்டியில் போகும்.",
+    hi: "स्कूल टिफिन जवाब से बॉक्स में जाता है।",
+  },
+  "no plated rice — you asked to skip rice.": {
+    ta: "தட்டில் சாதம் இல்லை — சாதம் வேண்டாம் என்றீர்கள்.",
+    hi: "थाली में चावल नहीं — आपने चावल छोड़ने को कहा।",
+  },
+  "softer serving for ages 4–5.": {
+    ta: "4–5 வயதுக்கு மென்மையான அளவு.",
+    hi: "4–5 साल के लिए हल्की मात्रा।",
+  },
+  "heartier plate for ages 9–12.": {
+    ta: "9–12 வயதுக்கு பெரிய அளவு தட்டு.",
+    hi: "9–12 साल के लिए भरपूर थाली।",
+  },
+  "better eating habits": { ta: "சிறந்த உணவுப் பழக்கம்", hi: "बेहतर खाने की आदतें" },
+  "a familiar plate if they refuse this one": {
+    ta: "இதை மறுத்தால் பழகிய தட்டு",
+    hi: "अगर यह मना करें तो जानी-पहचानी थाली",
+  },
+  "a familiar plate if they refuse this one.": {
+    ta: "இதை மறுத்தால் பழகிய தட்டு.",
+    hi: "अगर यह मना करें तो जानी-पहचानी थाली।",
+  },
+  "another plate for this slot from your kitchen answers": {
+    ta: "உங்கள் பதில்களிலிருந்து இதே நேரத்துக்கு வேறு தட்டு",
+    hi: "आपके जवाबों से इसी समय की दूसरी थाली",
+  },
+  "another plate for this slot from your kitchen answers.": {
+    ta: "உங்கள் பதில்களிலிருந்து இதே நேரத்துக்கு வேறு தட்டு.",
+    hi: "आपके जवाबों से इसी समय की दूसरी थाली।",
+  },
+  "packed because you asked for school tiffin.": {
+    ta: "பள்ளி டிப்பின் கேட்டதால் packing.",
+    hi: "स्कूल टिफिन मांगा था — पैक किया।",
+  },
+  "packable lunch from your kitchen lists.": {
+    ta: "உங்கள் kitchen lists-லிருந்து packable lunch.",
+    hi: "आपकी kitchen lists से packable lunch।",
+  },
+  poha: { ta: "அவல்", hi: "पोहा" },
+  peas: { ta: "பட்டாணி", hi: "मटर" },
+  lemon: { ta: "எலுமிச்சை", hi: "नींबू" },
+  papaya: { ta: "பப்பாளி", hi: "पपीता" },
+  pomegranate: { ta: "மாதுளை", hi: "अनार" },
+  fruit: { ta: "பழம்", hi: "फल" },
+  almonds: { ta: "பாதாம்", hi: "बादाम" },
+  honey: { ta: "தேன்", hi: "शहद" },
+  "dosa batter": { ta: "தோசை மாவு", hi: "डोसा घोल" },
+  tomato: { ta: "தக்காளி", hi: "टमाटर" },
+  "bajra flour": { ta: "கம்பு மாவு", hi: "बाजरा आटा" },
+  vegetables: { ta: "காய்கறி", hi: "सब्ज़ी" },
+  oil: { ta: "எண்ணெய்", hi: "तेल" },
+  "idli batter": { ta: "இட்லி மாவு", hi: "इडली घोल" },
+  "toor dal": { ta: "துவரம் பருப்பு", hi: "अरहर दाल" },
+  ghee: { ta: "நெய்", hi: "घी" },
+  pepper: { ta: "மிளகு", hi: "काली मिर्च" },
+  peanuts: { ta: "வேர்க்கடலை", hi: "मूंगफली" },
+  carrots: { ta: "கேரட்", hi: "गाजर" },
+  beans: { ta: "பீன்ஸ்", hi: "बीन्स" },
+  cucumber: { ta: "வெள்ளரிக்காய்", hi: "खीरा" },
+  jeera: { ta: "சீரகம்", hi: "जीरा" },
+  jaggery: { ta: "வெல்லம்", hi: "गुड़" },
+  cashews: { ta: "முந்திரி", hi: "काजू" },
+  dates: { ta: "பேரீச்சை", hi: "खजूर" },
+  bread: { ta: "ரொட்டி", hi: "ब्रेड" },
+  roti: { ta: "ரொட்டி", hi: "रोटी" },
+  appam: { ta: "அப்பம்", hi: "अप्पम" },
+  "soy milk": { ta: "சோயா பால்", hi: "सोया दूध" },
+  apple: { ta: "ஆப்பிள்", hi: "सेब" },
+  raita: { ta: "ராய்த்தா", hi: "रायता" },
+  pickle: { ta: "ஊறுகாய்", hi: "अचार" },
+  turmeric: { ta: "மஞ்சள்", hi: "हल्दी" },
+  potato: { ta: "உருளைக்கிழங்கு", hi: "आलू" },
+  cabbage: { ta: "முட்டைகோஸ்", hi: "पत्तागोभी" },
+  onion: { ta: "வெங்காயம்", hi: "प्याज" },
+  tofu: { ta: "டோஃபு", hi: "टोफू" },
+  bajra: { ta: "கம்பு", hi: "बाजरा" },
+  sesame: { ta: "எள்", hi: "तिल" },
+  chickpeas: { ta: "கொண்டைக்கடலை", hi: "चना" },
+  "gram flour": { ta: "கடலை மாவு", hi: "बेसन" },
+  mint: { ta: "புதினா", hi: "पुदीना" },
+  "lotus seeds": { ta: "மகானா", hi: "मखाना" },
+  jam: { ta: "ஜாம்", hi: "जैम" },
+  chilli: { ta: "மிளகாய்", hi: "मिर्च" },
+  salt: { ta: "உப்பு", hi: "नमक" },
+  corn: { ta: "சோளம்", hi: "मकई" },
+  "peanut butter": { ta: "வேர்க்கடலை வெண்ணெய்", hi: "पीनट बटर" },
+  "almond powder": { ta: "பாதாம் பொடி", hi: "बादाम पाउडर" },
+  "multigrain bread": { ta: "மல்டி கிரெயின் ரொட்டி", hi: "मल्टीग्रेन ब्रेड" },
+  yogurt: { ta: "தயிர்", hi: "दही" },
+  "mint yogurt dip": { ta: "புதினா தயிர்", hi: "पुदीना दही" },
+  "cumin rice": { ta: "சீரக சாதம்", hi: "जीरा चावल" },
+  "coconut chicken stew": { ta: "தேங்காய் கோழி குளம்பு", hi: "नारियल चिकन स्टू" },
+  "mixed vegetable curry": { ta: "கலப்பு காய்கறி குழம்பு", hi: "मिक्स सब्ज़ी करी" },
+  "tomato vegetable": { ta: "தக்காளி காய்கறி", hi: "टमाटर सब्ज़ी" },
+  "vegetable tadka": { ta: "காய்கறி தாளிப்பு", hi: "सब्ज़ी तड़का" },
+  "moong pancake": { ta: "பாசிப்பயறு பண்கேக்", hi: "मूंग का चीला" },
+  namkeen: { ta: "நம்கீன்", hi: "नमकीन" },
+  chips: { ta: "சிப்ஸ்", hi: "चिप्स" },
+  biscuits: { ta: "பிஸ்கட்", hi: "बिस्कुट" },
 };
+
+const FULL_KITCHEN: Record<string, { ta: string; hi: string }> = {
+  ...KITCHEN,
+  ...MEAL_DESCRIPTION_I18N,
+};
+
+const KITCHEN_KEYS_LONGEST_FIRST = Object.keys(FULL_KITCHEN).sort((a, b) => b.length - a.length);
+
+const GOAL_PHRASE: Record<string, MotherCopyKey> = {
+  "healthy nutrition": "goalHealthy",
+  "better eating habits": "goalHabits",
+  "protein focus": "goalProtein",
+  "balanced meals": "goalBalance",
+  "improved food variety": "goalVariety",
+};
+
+function translateRationalePatterns(lang: MotherLang, text: string): string | null {
+  const ready = /^ready in (\d+) minutes — you only have a short cook\.$/i.exec(text.trim());
+  if (ready) {
+    return lang === "ta"
+      ? `${ready[1]} நிமிடத்தில் — குறுகிய சமையல் நேரம்.`
+      : `${ready[1]} मिनट में — कम समय में पकाना।`;
+  }
+  const kept = /^kept off (.+) from your allergy list\.$/i.exec(text.trim());
+  if (kept) {
+    const items = translateKitchen(lang, kept[1]);
+    return lang === "ta"
+      ? `நீங்கள் சொன்ன allergy பட்டியலில் இருந்து ${items} விலக்கப்பட்டது.`
+      : `आपकी allergy सूची से ${items} हटाया।`;
+  }
+  const goal = /^chosen for your goal: (.+)\.$/i.exec(text.trim());
+  if (goal) {
+    const goalKey = GOAL_PHRASE[goal[1].trim().toLowerCase()];
+    const label = goalKey ? motherCopy(lang, goalKey) : goal[1];
+    return lang === "ta" ? `உங்கள் இலக்குக்காக: ${label}.` : `आपके लक्ष्य के लिए: ${label}.`;
+  }
+  return null;
+}
 
 export function translateKitchen(lang: MotherLang, text: string): string {
   if (lang === "en" || !text) return text;
-  const hit = KITCHEN[text.trim().toLowerCase()];
-  return hit ? hit[lang] : text;
+  const patterned = translateRationalePatterns(lang, text);
+  if (patterned) return patterned;
+
+  const trimmed = text.trim();
+  const key = trimmed.toLowerCase();
+  const exact = FULL_KITCHEN[trimmed] ?? FULL_KITCHEN[key];
+  if (exact?.[lang]) return exact[lang];
+
+  let out = text;
+  for (const en of KITCHEN_KEYS_LONGEST_FIRST) {
+    if (en.length < 4) continue;
+    const trans = FULL_KITCHEN[en][lang];
+    if (!trans) continue;
+    const re = new RegExp(en.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    out = out.replace(re, trans);
+  }
+  return out;
 }

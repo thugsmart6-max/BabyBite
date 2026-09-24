@@ -36,5 +36,10 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    env: {
+      ...process.env,
+      ALLOW_CREDENTIALS_AUTH: "true",
+      NEXT_PUBLIC_ALLOW_CREDENTIALS_AUTH: "true",
+    },
   },
 });

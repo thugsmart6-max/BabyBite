@@ -20,10 +20,12 @@ import { toast } from "sonner";
 import { rememberLocalUser } from "@/lib/local-user-store";
 import { KitchenSkeletonScreen } from "@/components/babybite/page-skeleton";
 import { GoogleMark } from "@/components/shared/google-mark";
+import { showCredentialsAuthUi } from "@/lib/auth-credentials-flag";
 
 function SignupForm() {
   const { t } = useMotherLocale();
   const router = useRouter();
+  const credentialsUi = showCredentialsAuthUi();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -32,10 +34,6 @@ function SignupForm() {
     signupFormSchema,
     { name: "", email: "", password: "", confirmPassword: "" }
   );
-
-  const goAfterSignup = () => {
-    window.location.assign("/onboarding");
-  };
 
   const startGoogle = () => {
     void signIn("google", { callbackUrl: "/" });
@@ -93,7 +91,7 @@ function SignupForm() {
         hasPaid: false,
       });
       toast.success(t("welcomeBite"));
-      goAfterSignup();
+      window.location.assign("/onboarding");
     } catch {
       toast.error(t("signupFail"));
     } finally {
@@ -111,6 +109,45 @@ function SignupForm() {
           onDecline={() => router.push("/landing")}
         />
       </BbCanvas>
+    );
+  }
+
+  if (!credentialsUi) {
+    return (
+      <AuthShell title={t("createAccount")} subtitle={t("authNote")}>
+        <p className="text-xs text-muted-foreground border border-border p-3 mb-6 leading-relaxed">
+          {t("acceptedTermsNote")}
+        </p>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="bb-google-btn w-full"
+          disabled={loading}
+          onClick={startGoogle}
+          data-testid="signup-continue-google"
+        >
+          <GoogleMark />
+          {t("continueGoogle")}
+        </Button>
+
+        <p className="mt-6 text-xs text-muted-foreground">
+          <button
+            type="button"
+            className="text-foreground hover:text-accent underline-offset-4 hover:underline"
+            onClick={() => setTermsAccepted(false)}
+          >
+            {t("reviewTerms")}
+          </button>
+        </p>
+
+        <p className="mt-4 text-sm text-muted-foreground">
+          {t("haveAccountQ")}{" "}
+          <Link href="/login" className="text-foreground hover:text-accent underline-offset-4 hover:underline">
+            {t("signIn")}
+          </Link>
+        </p>
+      </AuthShell>
     );
   }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { FormField, inputStateClass } from "@/components/forms/form-field";
+import { translateApiError } from "@/lib/api-error-i18n";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,7 @@ export function ResultsPdfDownload({
   childProfileId?: string;
   className?: string;
 }) {
-  const { t } = useMotherLocale();
+  const { t, lang } = useMotherLocale();
   const [status, setStatus] = useState<PdfStatus | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [sending, setSending] = useState(false);
@@ -113,7 +114,7 @@ export function ResultsPdfDownload({
     const json = await res.json();
 
     if (!res.ok) {
-      setError(json.error ?? t("pdfDownloadFail"));
+      setError(translateApiError(lang, json.error) || t("pdfSendFail"));
       setPhase("form");
       setSending(false);
       return;

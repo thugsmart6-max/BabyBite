@@ -7,12 +7,15 @@ import {
   BabyBiteApiError,
   type BabyBiteProfileResponse,
 } from "@/lib/babybite-client";
+import { translateApiError } from "@/lib/api-error-i18n";
+import { useMotherLocale } from "@/components/providers/locale-provider";
 
 type FunnelOptions = {
   redirectIfPaid?: boolean;
 };
 
 export function useBabyBiteProfile() {
+  const { lang } = useMotherLocale();
   const [data, setData] = useState<BabyBiteProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,10 +27,15 @@ export function useBabyBiteProfile() {
         setError(null);
       })
       .catch((err) => {
-        setError(err instanceof BabyBiteApiError ? err.message : "Failed to load profile");
+        setError(
+          translateApiError(
+            lang,
+            err instanceof BabyBiteApiError ? err.message : undefined
+          )
+        );
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [lang]);
 
   return { data, loading, error, childId: data?.child?.id ?? null };
 }

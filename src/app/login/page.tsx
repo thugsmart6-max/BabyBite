@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -18,6 +18,8 @@ import { safeInternalPath } from "@/lib/funnel-gates";
 import { rememberLocalUser } from "@/lib/local-user-store";
 import { KitchenSkeletonScreen } from "@/components/babybite/page-skeleton";
 import { GoogleMark } from "@/components/shared/google-mark";
+import { followAuthRedirect } from "@/lib/client-auth-url";
+import { showCredentialsAuthUi } from "@/lib/auth-credentials-flag";
 
 export default function LoginPage() {
   return (
@@ -32,6 +34,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = safeInternalPath(searchParams.get("callbackUrl"));
   const oauthError = searchParams.get("error");
+  const credentialsUi = showCredentialsAuthUi();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -64,77 +67,96 @@ function LoginForm() {
     }
 
     rememberLocalUser({ email: result.data.email });
-    window.location.assign(callbackUrl === "/login" ? "/" : callbackUrl);
+    const nextPath = callbackUrl === "/login" ? "/" : callbackUrl;
+    if (signInResult?.url) {
+      followAuthRedirect(signInResult.url, nextPath);
+      return;
+    }
+    window.location.assign(nextPath);
+  };
+
+  const startGoogle = () => {
+    void signIn("google", { callbackUrl });
   };
 
   return (
     <AuthShell title={t("welcomeBack")} subtitle={t("authNote")}>
-      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        <FormField id="email" label={t("email")} required error={getError("email")}>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            data-testid="login-email"
-            className={inputStateClass(getError("email"), touched.email)}
-            value={values.email}
-            onChange={(e) => setField("email", e.target.value)}
-            onBlur={() => touchField("email")}
-            aria-invalid={!!getError("email")}
-          />
-        </FormField>
-
-        <FormField id="password" label={t("password")} required error={getError("password")}>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              placeholder="••••••••"
-              data-testid="login-password"
-              className={cn("pr-12", inputStateClass(getError("password"), touched.password))}
-              value={values.password}
-              onChange={(e) => setField("password", e.target.value)}
-              onBlur={() => touchField("password")}
-              aria-invalid={!!getError("password")}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="os-icon-hit absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2 text-muted-foreground hover:text-accent"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
-          </div>
-        </FormField>
-
-        <Button type="submit" variant="gradient" className="w-full" disabled={loading} data-testid="login-submit">
-          {loading ? t("signingIn") : t("signIn")}
-        </Button>
-      </form>
-
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="os-or-chip">{t("or")}</span>
-        </div>
-      </div>
-
       <Button
         type="button"
         variant="outline"
         className="bb-google-btn w-full"
         disabled={loading}
-        onClick={() => signIn("google", { callbackUrl })}
+        onClick={startGoogle}
         data-testid="login-continue-google"
       >
         <GoogleMark />
         {t("continueGoogle")}
       </Button>
+
+      {credentialsUi ? (
+        <>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="os-or-chip">{t("or")}</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            <FormField id="email" label={t("email")} required error={getError("email")}>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                data-testid="login-email"
+                className={inputStateClass(getError("email"), touched.email)}
+                value={values.email}
+                onChange={(e) => setField("email", e.target.value)}
+                onBlur={() => touchField("email")}
+                aria-invalid={!!getError("email")}
+              />
+            </FormField>
+
+            <FormField id="password" label={t("password")} required error={getError("password")}>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  data-testid="login-password"
+                  className={cn("pr-12", inputStateClass(getError("password"), touched.password))}
+                  value={values.password}
+                  onChange={(e) => setField("password", e.target.value)}
+                  onBlur={() => touchField("password")}
+                  aria-invalid={!!getError("password")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="os-icon-hit absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2 text-muted-foreground hover:text-accent"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </FormField>
+
+            <Button
+              type="submit"
+              variant="gradient"
+              className="w-full"
+              disabled={loading}
+              data-testid="login-submit"
+            >
+              {loading ? t("signingIn") : t("signIn")}
+            </Button>
+          </form>
+        </>
+      ) : null}
 
       <p className="mt-8 text-sm text-muted-foreground">
         {t("noAccount")}{" "}

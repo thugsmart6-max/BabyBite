@@ -8,6 +8,7 @@ import { MealPack, MealShelf, type PackTone } from "@/components/babybite/oats-b
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { mealSlotCopy, type MotherCopyKey } from "@/lib/mother-copy";
 import { translateKitchen } from "@/lib/kitchen-translate";
+import { translatePlanText } from "@/lib/translate-plan-text";
 import { cn } from "@/lib/utils";
 
 const SLOT_ORDER: MealSlot[] = ["breakfast", "morningSnack", "lunch", "eveningSnack", "dinner"];
@@ -36,7 +37,9 @@ export function DinnerHero({ plan }: { plan: GeneratedMealPlan }) {
   const dinner = meals.find((meal) => meal.slot === "dinner") ?? meals[0];
   if (!dinner) return null;
 
-  const note = dinner.whyThisPlate || t(FOCUS_KEY[getMealFocus(dinner)]);
+  const note = dinner.whyThisPlate
+    ? translatePlanText(lang, dinner.whyThisPlate)
+    : t(FOCUS_KEY[getMealFocus(dinner)]);
   const share = [
     `${t("tonight")} · ${plan.childName}`,
     translateKitchen(lang, dinner.name),
@@ -70,8 +73,10 @@ export function TodayShelf({ plan }: { plan: GeneratedMealPlan }) {
         slot: mealSlotCopy(lang, meal.slot, { packable }),
         tone: packable ? ("sky" as PackTone) : SLOT_TONE[meal.slot],
         note: packable
-          ? `${t("packableBadge")} · ${meal.whyThisPlate ? translateKitchen(lang, meal.whyThisPlate) : t(FOCUS_KEY[getMealFocus(meal)])}`
-          : meal.whyThisPlate || t(FOCUS_KEY[getMealFocus(meal)]),
+          ? `${t("packableBadge")} · ${meal.whyThisPlate ? translatePlanText(lang, meal.whyThisPlate) : t(FOCUS_KEY[getMealFocus(meal)])}`
+          : meal.whyThisPlate
+            ? translatePlanText(lang, meal.whyThisPlate)
+            : t(FOCUS_KEY[getMealFocus(meal)]),
         packable,
       };
     });
@@ -105,7 +110,11 @@ export function MonthShelf({ plan }: { plan: GeneratedMealPlan }) {
       name: translateKitchen(lang, lunch?.name ?? "—"),
       slot: `${index + 1}`,
       tone: WEEK_TONE[index % WEEK_TONE.length],
-      note: lunch?.whyThisPlate || (lunch ? t(FOCUS_KEY[getMealFocus(lunch)]) : undefined),
+      note: lunch?.whyThisPlate
+        ? translatePlanText(lang, lunch.whyThisPlate)
+        : lunch
+          ? t(FOCUS_KEY[getMealFocus(lunch)])
+          : undefined,
     };
   });
 

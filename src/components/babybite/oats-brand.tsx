@@ -6,6 +6,7 @@ import type { MotherCopyKey } from "@/lib/mother-copy";
 import { growthBandForAge } from "@/lib/growth-bands";
 import { LANDING_BOND_MOTHER_CHILD_IMAGE } from "@/lib/landing-art";
 import { LoaderFive, LoaderOne } from "@/components/ui/loader";
+import { LANDING_MOM_COMPARE_IMAGE } from "@/lib/landing-art";
 
 export const SAMPLE_PACKS = [
   { nameKey: "benefitThirty" as const, slotKey: "stickerAges" as const, tone: "yellow" },
@@ -185,29 +186,25 @@ export function CompareTables({
   const { t } = useMotherLocale();
   return (
     <section className="os-compare" id="compare">
-      <p className="os-band-kicker">{achieved ? t("yourKitchen") : t("compareKicker")}</p>
-      <h2 className="os-section-title">{achieved ? t("growthTitle") : t("compareTitle")}</h2>
-      <p className="os-bond-copy">{achieved ? t("growthBody") : t("compareBody")}</p>
-      <SiteArt src="/art-mark.png" alt={t("artMark")} variant="mark" />
-      <div className="os-compare-grid">
-        <article className="os-compare-card is-other">
-          <p className="os-band-kicker">{t("otherTable")}</p>
-          <ul>
-            <li>{t("otherLine1")}</li>
-            <li>{t("otherLine2")}</li>
-            <li>{t("otherLine3")}</li>
-          </ul>
-        </article>
-        <article className="os-compare-card is-ours">
-          <p className="os-band-kicker">{t("thisTable")}</p>
-          <ul>
-            <li>{childName ? `${childName} · ${t("thisLine1")}` : t("thisLine1")}</li>
-            <li>{t("thisLine2")}</li>
-            <li>{t("thisLine3")}</li>
-          </ul>
-        </article>
+      <div className="os-compare-layout">
+        <div className="os-bond-copy-block">
+          <p className="os-band-kicker">{achieved ? t("yourKitchen") : t("compareKicker")}</p>
+          <h2 className="os-section-title">{achieved ? t("growthTitle") : t("compareTitle")}</h2>
+          <p className="os-bond-copy">{achieved ? t("growthBody") : t("compareBody")}</p>
+          <article className="os-compare-card is-ours">
+            <p className="os-band-kicker">{t("thisTable")}</p>
+            <ul>
+              <li>{childName ? `${childName} · ${t("thisLine1")}` : t("thisLine1")}</li>
+              <li>{t("thisLine2")}</li>
+              <li>{t("thisLine3")}</li>
+            </ul>
+          </article>
+          <p className="os-compare-note">{t("compareNote")}</p>
+        </div>
+        <div className="os-compare-visual">
+          <SiteArt src={LANDING_MOM_COMPARE_IMAGE} alt={t("momCompareAlt")} variant="compare" />
+        </div>
       </div>
-      <p className="os-compare-note">{t("compareNote")}</p>
     </section>
   );
 }

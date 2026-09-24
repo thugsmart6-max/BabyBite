@@ -59,7 +59,27 @@ export function applyProductionAuthUrl() {
     if (!process.env.NEXTAUTH_URL || isLocalHost(process.env.NEXTAUTH_URL)) {
       process.env.NEXTAUTH_URL = next;
     }
+    if (!process.env.NEXT_PUBLIC_APP_URL || isLocalHost(process.env.NEXT_PUBLIC_APP_URL)) {
+      process.env.NEXT_PUBLIC_APP_URL = next;
+    }
   }
+}
+
+/** Auth.js `baseUrl` must not stay on localhost when the app runs on Vercel. */
+export function sanitizeAuthBaseUrl(baseUrl: string): string {
+  const trimmed = baseUrl.replace(/\/$/, "");
+  if (!process.env.VERCEL) return trimmed;
+  if (!isLocalHost(trimmed)) return trimmed;
+  return (
+    productionAuthUrl({
+      authUrl: process.env.AUTH_URL,
+      nextAuthUrl: process.env.NEXTAUTH_URL,
+      vercel: true,
+      vercelEnv: process.env.VERCEL_ENV,
+      vercelUrl: process.env.VERCEL_URL,
+      productionHost: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    }) ?? LIVE_SITE
+  );
 }
 
 /**
@@ -68,7 +88,7 @@ export function applyProductionAuthUrl() {
  */
 export function rewriteAuthRedirect(url: string, baseUrl: string): string {
   const onVercel = Boolean(process.env.VERCEL);
-  const rawBase = baseUrl.replace(/\/$/, "");
+  const rawBase = sanitizeAuthBaseUrl(baseUrl).replace(/\/$/, "");
 
   const origin = onVercel
     ? isLocalHost(rawBase)

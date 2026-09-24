@@ -14,8 +14,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname),
   },
-  // Only pin AUTH_URL on Vercel. Local `npm run dev` must use .env.local (localhost).
-  env: onVercel && authUrl ? { AUTH_URL: authUrl } : {},
+  // On Vercel, never bake localhost from dashboard mistakes into the client bundle.
+  env:
+    onVercel && authUrl
+      ? {
+          AUTH_URL: authUrl,
+          NEXTAUTH_URL: authUrl,
+          NEXT_PUBLIC_APP_URL: authUrl,
+        }
+      : {},
   async headers() {
     return [
       {

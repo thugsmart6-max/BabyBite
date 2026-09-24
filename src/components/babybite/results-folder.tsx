@@ -13,6 +13,7 @@ import { getMealFocus } from "@/lib/meal-goal-notes";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { mealSlotCopy, type MotherCopyKey } from "@/lib/mother-copy";
 import { translateKitchen } from "@/lib/kitchen-translate";
+import { translatePantryList, translatePlanText } from "@/lib/translate-plan-text";
 import { lunchLooksRepeated } from "@/lib/plan-variety";
 import { cn } from "@/lib/utils";
 import { CalendarDays, CalendarRange, ListFilter, Sun, UtensilsCrossed } from "lucide-react";
@@ -331,7 +332,7 @@ function KitchenBrowse({
                 <h4 className="os-kitchen-card-title">{translateKitchen(lang, meal.name)}</h4>
                 <p>{translateKitchen(lang, meal.description)}</p>
                 {meal.whyThisPlate ? (
-                  <p className="os-meal-why">{translateKitchen(lang, meal.whyThisPlate)}</p>
+                  <p className="os-meal-why">{translatePlanText(lang, meal.whyThisPlate)}</p>
                 ) : null}
                 <MealMeta meal={meal} />
               </article>
@@ -345,7 +346,7 @@ function KitchenBrowse({
 
 function MealMeta({ meal }: { meal: MealEntry }) {
   const { t, lang } = useMotherLocale();
-  const pantry = (meal.pantry ?? []).map((item) => translateKitchen(lang, item)).join(" · ");
+  const pantry = translatePantryList(lang, meal.pantry ?? []);
   return (
     <div className="os-meal-meta">
       {meal.minutes ? (
@@ -374,7 +375,7 @@ function MealSwaps({ meal }: { meal: MealEntry }) {
           <strong>{translateKitchen(lang, swap.name)}</strong>
           {" — "}
           {translateKitchen(lang, swap.description)}
-          <span className="os-swap-why"> {translateKitchen(lang, swap.why)}</span>
+          <span className="os-swap-why"> {translatePlanText(lang, swap.why)}</span>
         </p>
       ))}
     </div>
@@ -482,7 +483,7 @@ function DayMeals({
                 <p className="os-meal-desc">{translateKitchen(lang, meal.description)}</p>
                 {meal.whyThisPlate ? (
                   <p className="os-meal-why">
-                    {t("whyThisPlate")}: {translateKitchen(lang, meal.whyThisPlate)}
+                    {t("whyThisPlate")}: {translatePlanText(lang, meal.whyThisPlate)}
                   </p>
                 ) : null}
                 <MealMeta meal={meal} />

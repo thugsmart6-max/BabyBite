@@ -11,7 +11,7 @@ import { LocaleToggle } from "@/components/babybite/locale-toggle";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { translateCta } from "@/lib/mother-copy";
 import { cn } from "@/lib/utils";
-import { homePathForUser, nextMotherAction } from "@/lib/funnel-gates";
+import { homePathForUser, nextMotherAction, pathStartsWith } from "@/lib/funnel-gates";
 import { endLocalSession } from "@/lib/local-user-store";
 
 function readDocumentScrollY() {
@@ -132,6 +132,9 @@ export function FeatherTopbar({
     onboardingComplete: Boolean(data?.user?.onboardingComplete),
     hasPaid: Boolean(data?.user?.hasPaid),
   });
+  const ctaBase = cta?.href.split("?")[0] ?? "";
+  const onFunnelStep = cta ? pathStartsWith(pathname, ctaBase) : true;
+  const showFunnelReroute = Boolean(cta && !onFunnelStep && onAppPage);
 
   const logout = async () => {
     setMenuOpen(false);
@@ -215,6 +218,14 @@ export function FeatherTopbar({
           </motion.nav>
         ) : null}
       </AnimatePresence>
+      {showFunnelReroute && cta ? (
+        <div className="os-funnel-reroute" role="status">
+          <p>{t("funnelRerouteHint")}</p>
+          <Link href={cta.href} className="bb-cta is-compact">
+            {translateCta(lang, cta.label)}
+          </Link>
+        </div>
+      ) : null}
     </header>
   );
 }

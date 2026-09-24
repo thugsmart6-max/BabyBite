@@ -12,6 +12,7 @@ import { loadUserHasPaid } from "@/lib/auth-has-paid";
 import { TERMS_VERSION } from "@/lib/constants";
 import { loginSchema } from "@/schemas/auth";
 import { ensureTestMotherAccount, TEST_MOTHER } from "@/lib/test-mother";
+import { credentialsAuthEnabled } from "@/lib/auth-credentials-flag";
 import type { UserRole } from "@/types";
 
 applyProductionAuthUrl();
@@ -98,39 +99,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }),
         ]
       : []),
-    Credentials({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        const parsed = loginSchema.safeParse(credentials);
-        if (!parsed.success) return null;
+    ...(credentialsAuthEnabled()
+      ? [
+          Credentials({
+            name: "credentials",
+            credentials: {
+              email: { label: "Email", type: "email" },
+              password: { label: "Password", type: "password" },
+            },
+            async authorize(credentials) {
+              const parsed = loginSchema.safeParse(credentials);
+              if (!parsed.success) return null;
 
-        await connectDB();
-        const email = parsed.data.email.trim().toLowerCase();
-        if (email === TEST_MOTHER.email) {
-          await ensureTestMotherAccount().catch((error) => {
-            console.error("[auth] kitchen test login could not be prepared", error);
-          });
-        }
-        const user = await User.findOne({ email }).select("+password");
-        if (!user || !user.password) return null;
+              await connectDB();
+              const email = parsed.data.email.trim().toLowerCase();
+              if (email === TEST_MOTHER.email) {
+                await ensureTestMotherAccount().catch((error) => {
+                  console.error("[auth] kitchen test login could not be prepared", error);
+                });
+              }
+              const user = await User.findOne({ email }).select("+password");
+              if (!user || !user.password) return null;
 
-        const isValid = await bcrypt.compare(parsed.data.password, user.password);
-        if (!isValid) return null;
+              const isValid = await bcrypt.compare(parsed.data.password, user.password);
+              if (!isValid) return null;
 
-        return {
-          id: user._id.toString(),
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          role: user.role,
-          onboardingComplete: user.onboardingComplete,
-        };
-      },
-    }),
+              return {
+                id: user._id.toString(),
+                name: user.name,
+                email: user.email,
+                image: user.image,
+                role: user.role,
+                onboardingComplete: user.onboardingComplete,
+              };
+            },
+          }),
+        ]
+      : []),
   ],
   callbacks: {
     ...authConfig.callbacks,

@@ -22,6 +22,7 @@ import { MEAL_ENGINE_VERSION, planLooksStuck } from "@/lib/plan-variety";
 import { overlaySchoolPlan } from "@/lib/school-lunch-view";
 import { applyLunchOverrides } from "@/lib/plan-lunch-overrides";
 import { useMotherLocale } from "@/components/providers/locale-provider";
+import { checklistSummaryLocalized } from "@/lib/checklist-i18n";
 import type { MotherCopyKey } from "@/lib/mother-copy";
 import { endLocalSession } from "@/lib/local-user-store";
 
@@ -35,7 +36,7 @@ function plateAgeCopy(ageYears: number): MotherCopyKey {
 }
 
 export default function ResultsPage() {
-  const { t } = useMotherLocale();
+  const { t, lang } = useMotherLocale();
   const [plan, setPlan] = useState<GeneratedMealPlan | null>(null);
   const [tab, setTab] = useState<Tab>("today");
   const [tiffinNeed, setTiffinNeed] = useState<TiffinNeed>("home-only");
@@ -199,7 +200,6 @@ export default function ResultsPage() {
         <section className="os-results-hero os-results-empty">
           <p className="os-band-kicker">{t("tonight")}</p>
           <h1 className="os-hero-title">{t("whatsDinner")}</h1>
-          <SiteArt src={FEEDING_IMAGE} alt={t("artHeroDinner")} variant="photo" />
           <p className="os-onboard-lede">{error}</p>
           <button type="button" className="bb-cta" onClick={retry}>
             {t("tryAgain")}
@@ -218,7 +218,6 @@ export default function ResultsPage() {
         <section className="os-results-hero os-results-empty">
           <p className="os-band-kicker">{t("tonight")}</p>
           <h1 className="os-hero-title">{t("whatsDinner")}</h1>
-          <SiteArt src={FEEDING_IMAGE} alt={t("artHeroDinner")} variant="photo" />
           <p className="os-onboard-lede">{t("bandBody")}</p>
           <Link href="/payment" className="bb-cta">
             {t("showThirty")}
@@ -236,8 +235,7 @@ export default function ResultsPage() {
           {plan.ageYears ? ` · ${t(plateAgeCopy(plan.ageYears))}` : ""}
         </p>
         <p className="os-onboard-lede">
-          {t("checklistBuilt")}
-          {plan.checklistSummary ? `: ${plan.checklistSummary}` : ""}
+          {t("checklistBuilt")}: {checklistSummaryLocalized(lang, plan)}
         </p>
         {children.length > 1 ? (
           <div className="os-step-pills" role="tablist" aria-label={t("switchChild")}>
@@ -267,7 +265,6 @@ export default function ResultsPage() {
           </div>
         ) : null}
         <h1 className="os-hero-title">{t("whatsDinner")}</h1>
-        <SiteArt src={FEEDING_IMAGE} alt={t("artHeroDinner")} variant="photo" />
       </section>
 
       {childGrowth ? (
@@ -295,7 +292,7 @@ export default function ResultsPage() {
                       ? t("roomByProblem")
                       : t("roomToday")}
         </h2>
-        <SiteArt src="/art-nutrients.png" alt={t("artNutrients")} variant="nutrients" />
+        <SiteArt src={FEEDING_IMAGE} alt={t("artFeeding")} variant="photo" />
         <ResultsFolder
           plan={viewPlan!}
           room={tab}

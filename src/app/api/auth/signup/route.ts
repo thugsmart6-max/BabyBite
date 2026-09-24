@@ -5,9 +5,14 @@ import { signupSchema } from "@/schemas/auth";
 import { TERMS_VERSION } from "@/lib/constants";
 import { handleRouteError, jsonError, jsonSuccess, zodErrorResponse } from "@/lib/api-route";
 import { logError, logInfo } from "@/lib/logger";
+import { credentialsAuthEnabled } from "@/lib/auth-credentials-flag";
 
 export async function POST(request: Request) {
   try {
+    if (!credentialsAuthEnabled()) {
+      return jsonError("Use Continue with Google to create an account", 403, "GOOGLE_ONLY_SIGNUP");
+    }
+
     const body = await request.json();
     const parsed = signupSchema.safeParse(body);
 

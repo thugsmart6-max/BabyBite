@@ -107,6 +107,28 @@ describe("resolveFunnelGate", () => {
     ).toEqual({ type: "redirect", path: "/payment?reason=payment_required" });
   });
 
+  it("reroutes finished onboarding away from onboarding", () => {
+    expect(
+      resolveFunnelGate({
+        pathname: "/onboarding",
+        isLoggedIn: true,
+        onboardingComplete: true,
+        hasPaid: false,
+      })
+    ).toEqual({ type: "redirect", path: "/payment" });
+  });
+
+  it("reroutes paid mothers away from payment", () => {
+    expect(
+      resolveFunnelGate({
+        pathname: "/payment",
+        isLoggedIn: true,
+        onboardingComplete: true,
+        hasPaid: true,
+      })
+    ).toEqual({ type: "redirect", path: "/results" });
+  });
+
   it("sends leftover analysis URLs home", () => {
     expect(
       resolveFunnelGate({

@@ -2271,6 +2271,30 @@ html.dark .bb-studio.is-oats {
   box-sizing: border-box;
 }
 
+.os-funnel-reroute {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.85rem;
+  margin-top: 0.15rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(17, 17, 17, 0.22);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.os-funnel-reroute p {
+  margin: 0;
+  flex: 1 1 12rem;
+}
+
+.os-funnel-reroute .bb-cta.is-compact {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
 .os-nav-left,
 .os-nav-right {
   display: flex;
@@ -3233,6 +3257,11 @@ html.dark .os-nav .theme-toggle.is-solo {
   border-radius: 2.4rem;
 }
 
+.os-compare-visual .os-site-art.is-compare {
+  width: min(46rem, 100%);
+  margin: 0;
+}
+
 .os-site-art.is-wide {
   width: min(46rem, 88vw);
   margin: 0.2rem auto 0.4rem;
@@ -3244,6 +3273,11 @@ html.dark .os-nav .theme-toggle.is-solo {
 .os-results-board .os-site-art {
   margin-left: auto;
   margin-right: auto;
+}
+
+.os-results-board .os-site-art.is-photo {
+  width: min(26rem, 92vw);
+  margin: 0.35rem auto 0.75rem;
 }
 
 .os-site-art.is-nutrients {
@@ -6069,6 +6103,107 @@ html.dark .os-focus-chip.is-iron {
   box-sizing: border-box;
 }
 
+.os-compare-layout {
+  display: grid;
+  gap: 2rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.os-compare-visual {
+  margin: 0 auto;
+  max-width: 34rem;
+  width: 100%;
+}
+
+.os-compare-layout .os-compare-card.is-ours {
+  max-width: none;
+  margin: 0.75rem 0 0;
+}
+
+.os-compare-layout .os-compare-note {
+  margin-top: 0.85rem;
+}
+
+.os-art-compare-story {
+  margin-top: 1.25rem;
+}
+
+.os-art-compare-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  align-items: stretch;
+}
+
+.os-art-compare-scene {
+  margin: 0;
+  border: 2px solid #111;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: #fff;
+}
+
+.os-art-compare-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.os-art-compare-scene figcaption {
+  padding: 0.65rem 0.85rem 0.75rem;
+  border-top: 2px solid #111;
+  background: var(--os-cream, #f7efe0);
+}
+
+.os-art-compare-scene-kicker {
+  margin: 0;
+  font-family: var(--font-label), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.os-art-compare-scene-caption {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.os-art-compare-arrow {
+  align-self: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  opacity: 0.55;
+}
+
+@media (min-width: 800px) {
+  .os-art-compare-flow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    align-items: start;
+  }
+
+  .os-art-compare-arrow {
+    display: none;
+  }
+}
+
+@media (min-width: 800px) {
+  .os-compare-layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 2.75rem 3rem;
+  }
+
+  .os-compare-visual {
+    margin: 0;
+    max-width: none;
+  }
+}
+
 .os-compare-grid,
 .os-growth-grid {
   display: grid;
@@ -6086,6 +6221,11 @@ html.dark .os-focus-chip.is-iron {
 
 .os-compare-card.is-other {
   background: #f7efe0;
+}
+
+.os-compare-card.is-story {
+  max-width: 28rem;
+  margin: 0 auto;
 }
 
 .os-compare-card.is-ours,

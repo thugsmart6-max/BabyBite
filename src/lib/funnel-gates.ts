@@ -131,6 +131,14 @@ export function resolveFunnelGate(input: FunnelGateInput): FunnelGateResult {
     return { type: "redirect", path: "/onboarding" };
   }
 
+  if (onboardingComplete && pathStartsWith(pathname, "/onboarding")) {
+    return { type: "redirect", path: homePathForUser(input) };
+  }
+
+  if (hasPaid && pathStartsWith(pathname, "/payment")) {
+    return { type: "redirect", path: "/results" };
+  }
+
   if (
     PAID_PAGE_PREFIXES.some((prefix) => pathStartsWith(pathname, prefix)) &&
     !hasPaid

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { productionAuthUrl, rewriteAuthRedirect } from "@/lib/auth-url";
+import { productionAuthUrl, rewriteAuthRedirect, sanitizeAuthBaseUrl } from "@/lib/auth-url";
 
 describe("productionAuthUrl", () => {
   it("keeps a real production AUTH_URL", () => {
@@ -31,6 +31,19 @@ describe("productionAuthUrl", () => {
         vercel: false,
       })
     ).toBe("http://localhost:3000");
+  });
+});
+
+describe("sanitizeAuthBaseUrl", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("replaces localhost base on Vercel", () => {
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "baby-bite.vercel.app");
+    expect(sanitizeAuthBaseUrl("http://localhost:3000")).toBe("https://baby-bite.vercel.app");
   });
 });
 

@@ -9,7 +9,9 @@ export interface IPayment extends Document {
   discountPercent: number;
   finalPrice: number;
   spinResult: number;
-  status: "demo_paid" | "pending" | "failed";
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  status: "demo_paid" | "pending" | "paid" | "failed";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,9 +30,11 @@ const PaymentSchema = new Schema<IPayment>(
     discountPercent: { type: Number, required: true },
     finalPrice: { type: Number, required: true },
     spinResult: { type: Number, required: true },
+    razorpayOrderId: { type: String, index: true, sparse: true },
+    razorpayPaymentId: { type: String, sparse: true },
     status: {
       type: String,
-      enum: ["demo_paid", "pending", "failed"],
+      enum: ["demo_paid", "pending", "paid", "failed"],
       default: "demo_paid",
     },
   },
