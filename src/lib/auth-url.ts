@@ -43,25 +43,27 @@ export function productionAuthUrl(input: {
 }
 
 export function applyProductionAuthUrl() {
+  if (!process.env.VERCEL) return;
+
   const next = productionAuthUrl({
     authUrl: process.env.AUTH_URL,
     nextAuthUrl: process.env.NEXTAUTH_URL,
-    vercel: Boolean(process.env.VERCEL),
+    vercel: true,
     vercelEnv: process.env.VERCEL_ENV,
     vercelUrl: process.env.VERCEL_URL,
     productionHost: process.env.VERCEL_PROJECT_PRODUCTION_URL,
   });
 
-  if (!process.env.VERCEL) return;
+  if (!next) return;
 
-  if (next) {
-    process.env.AUTH_URL = next;
-    if (!process.env.NEXTAUTH_URL || isLocalHost(process.env.NEXTAUTH_URL)) {
-      process.env.NEXTAUTH_URL = next;
-    }
-    if (!process.env.NEXT_PUBLIC_APP_URL || isLocalHost(process.env.NEXT_PUBLIC_APP_URL)) {
-      process.env.NEXT_PUBLIC_APP_URL = next;
-    }
+  // Auth.js OAuth uses AUTH_URL / NEXTAUTH_URL for callback URLs — never leave localhost on Vercel.
+  process.env.AUTH_URL = next;
+  process.env.NEXTAUTH_URL = next;
+  if (
+    !process.env.NEXT_PUBLIC_APP_URL ||
+    isLocalHost(process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, ""))
+  ) {
+    process.env.NEXT_PUBLIC_APP_URL = next;
   }
 }
 
@@ -98,22 +100,28 @@ export function rewriteAuthRedirect(url: string, baseUrl: string): string {
       ? rawBase
       : LOCAL_ORIGIN;
 
-  if (url.startsWith("/")) return `${origin}${url}`;
+  if (url.startsWith("/") && !url.startsWith("//")) {
+    return url;
+  }
 
   try {
     const next = new URL(url);
     if (isLocalHost(next.origin)) {
-      return onVercel ? `${origin}${next.pathname}${next.search}` : url;
+      return onVercel ? `${next.pathname}${next.search}` : url;
     }
-    if (!onVercel && next.origin === LIVE_SITE) {
-      return `${origin}${next.pathname}${next.search}`;
+    if (!onVercel && next.origin === LIVE_SITE.replace(/\/$/, "")) {
+      return `${next.pathname}${next.search}`;
     }
-    if (next.origin === origin || (onVercel && next.origin === LIVE_SITE)) {
-      return url;
+    const live = LIVE_SITE.replace(/\/$/, "");
+    if (onVercel && next.origin === live) {
+      return `${next.pathname}${next.search}`;
+    }
+    if (next.origin === origin) {
+      return `${next.pathname}${next.search}`;
     }
   } catch {
     /* ignore bad urls */
   }
 
-  return `${origin}/landing`;
+  return onVercel ? "/landing" : `${origin}/landing`;
 }

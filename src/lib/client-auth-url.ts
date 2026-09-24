@@ -11,8 +11,12 @@ export function followAuthRedirect(url: string | null | undefined, fallbackPath 
     return;
   }
   try {
-    const next = new URL(url);
+    const next = new URL(url, window.location.origin);
     if (isLocalHostUrl(next.origin) && !isLocalHostUrl(window.location.origin)) {
+      window.location.assign(`${next.pathname}${next.search}`);
+      return;
+    }
+    if (next.origin === window.location.origin) {
       window.location.assign(`${next.pathname}${next.search}`);
       return;
     }

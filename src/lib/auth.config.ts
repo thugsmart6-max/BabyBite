@@ -1,5 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
-import { rewriteAuthRedirect } from "@/lib/auth-url";
+import { applyProductionAuthUrl, rewriteAuthRedirect } from "@/lib/auth-url";
+
+applyProductionAuthUrl();
 
 export default {
   trustHost: true,

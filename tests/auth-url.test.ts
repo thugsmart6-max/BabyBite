@@ -56,28 +56,22 @@ describe("rewriteAuthRedirect", () => {
     expect(rewriteAuthRedirect("http://localhost:3000/landing", "http://localhost:3000")).toBe(
       "http://localhost:3000/landing"
     );
-    expect(rewriteAuthRedirect("/onboarding", "http://localhost:3000")).toBe(
-      "http://localhost:3000/onboarding"
-    );
+    expect(rewriteAuthRedirect("/onboarding", "http://localhost:3000")).toBe("/onboarding");
   });
 
   it("does not send a local session to the live Vercel site", () => {
     expect(rewriteAuthRedirect("https://baby-bite.vercel.app/landing", "http://localhost:3000")).toBe(
-      "http://localhost:3000/landing"
+      "/landing"
     );
-    expect(rewriteAuthRedirect("/landing", "https://baby-bite.vercel.app")).toBe(
-      "http://localhost:3000/landing"
-    );
+    expect(rewriteAuthRedirect("/landing", "https://baby-bite.vercel.app")).toBe("/landing");
   });
 
-  it("on Vercel, rewrites a leaked localhost URL to the live site", () => {
+  it("on Vercel, rewrites a leaked localhost URL to a relative path", () => {
     vi.stubEnv("VERCEL", "1");
     expect(rewriteAuthRedirect("http://localhost:3000/landing", "http://localhost:3000")).toBe(
-      "https://baby-bite.vercel.app/landing"
+      "/landing"
     );
-    expect(rewriteAuthRedirect("/onboarding", "https://baby-bite.vercel.app")).toBe(
-      "https://baby-bite.vercel.app/onboarding"
-    );
+    expect(rewriteAuthRedirect("/onboarding", "https://baby-bite.vercel.app")).toBe("/onboarding");
     vi.unstubAllEnvs();
   });
 });

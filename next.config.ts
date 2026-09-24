@@ -1,14 +1,30 @@
 import type { NextConfig } from "next";
 import path from "path";
-import { LIVE_SITE } from "./src/lib/auth-url";
+
+function vercelAuthUrl(): string | undefined {
+  if (!process.env.VERCEL) return undefined;
+  const fromEnv = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.AUTH_URL,
+    process.env.NEXTAUTH_URL,
+  ]
+    .filter(Boolean)
+    .map((v) => v!.replace(/\/$/, ""))
+    .find((v) => !/localhost|127\.0\.0\.1/i.test(v));
+
+  if (fromEnv) return fromEnv;
+  if (process.env.VERCEL_ENV === "production") {
+    const host = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "baby-bite.vercel.app";
+    return host.startsWith("http") ? host.replace(/\/$/, "") : `https://${host}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL.replace(/\/$/, "")}`;
+  }
+  return undefined;
+}
 
 const onVercel = Boolean(process.env.VERCEL);
-const authUrl =
-  process.env.VERCEL_ENV === "production"
-    ? LIVE_SITE
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : undefined;
+const authUrl = vercelAuthUrl();
 
 const nextConfig: NextConfig = {
   turbopack: {
