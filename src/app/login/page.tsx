@@ -117,7 +117,7 @@ function LoginForm() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t("emailPh")}
                 data-testid="login-email"
                 className={inputStateClass(getError("email"), touched.email)}
                 value={values.email}

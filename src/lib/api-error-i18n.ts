@@ -9,6 +9,10 @@ const ERROR_MAP: Record<string, MotherCopyKey> = {
   "Failed to create account": "couldNotLoad",
   "Failed to send PDF": "pdfSendFail",
   "Failed to send email. Please try again.": "pdfSendFail",
+  "Invalid email": "invalidEmail",
+  "This email is already registered to another account": "emailTaken",
+  REQUEST_TIMEOUT: "requestTimeout",
+  "Email already registered": "emailTaken",
 };
 
 /** Map known API English errors to localized copy; unknown messages fall back safely. */
@@ -17,6 +21,7 @@ export function translateApiError(lang: MotherLang, message: string | undefined 
   if (!raw) return motherCopy(lang, "genericApiError");
   const key = ERROR_MAP[raw];
   if (key) return motherCopy(lang, key);
+  if (raw === "REQUEST_TIMEOUT") return motherCopy(lang, "requestTimeout");
   if (/^Failed/i.test(raw) || /please try again/i.test(raw)) {
     return motherCopy(lang, "genericApiError");
   }

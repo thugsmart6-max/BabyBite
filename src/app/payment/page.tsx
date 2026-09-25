@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { fetchJson, clearClientFetchCache } from "@/lib/client-fetch";
+import { translateApiError } from "@/lib/api-error-i18n";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -26,6 +28,7 @@ export default function PaymentPage() {
   const { update } = useSession();
   const [phase, setPhase] = useState<"idle" | "processing" | "done">("idle");
   const [tick, setTick] = useState(0);
+  const payLock = useRef(false);
   const {
     childId,
     loading: profileLoading,
@@ -54,10 +57,12 @@ export default function PaymentPage() {
     if (paymentOffer) {
       if (!paymentOffer.endsAt || paymentOffer.tier === "list") return paymentOffer;
       const ends = new Date(paymentOffer.endsAt).getTime();
+      // eslint-disable-next-line react-hooks/purity -- countdown uses wall clock via tick
       const msRemaining = Math.max(0, ends - Date.now());
       return { ...paymentOffer, msRemaining };
     }
     return resolvePaymentOffer(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tick refreshes countdown every second
   }, [paymentOffer, tick]);
 
   const offerLabel =
@@ -69,37 +74,56 @@ export default function PaymentPage() {
       router.replace("/onboarding");
       return;
     }
+    if (payLock.current || phase !== "idle") return;
+    payLock.current = true;
     setPhase("processing");
     try {
-      const res = await fetch("/api/babybite/payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          childProfileId: childId,
-          planTier: "complete-bundle",
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? t("couldNotLoad"));
+      const { res, json } = await fetchJson<{ error?: string; alreadyPaid?: boolean; plan?: unknown }>(
+        "/api/babybite/payment",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            childProfileId: childId,
+            planTier: "complete-bundle",
+          }),
+        }
+      );
+      if (!res.ok) {
+        throw new Error(translateApiError(lang, json.error) || t("couldNotLoad"));
+      }
+      if (json.alreadyPaid) {
+        toast.info(t("paymentAlreadyDone"));
+      }
 
       patchCurrentLocalUser({ hasPaid: true });
       await update({ hasPaid: true });
+      clearClientFetchCache();
 
-      const planRes = await fetch("/api/babybite/plans", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ childProfileId: childId, regenerate: true }),
-      });
-      const planJson = await planRes.json();
+      const { res: planRes, json: planJson } = await fetchJson<{ plan?: unknown; error?: string }>(
+        "/api/babybite/plans",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ childProfileId: childId, regenerate: true }),
+        }
+      );
       if (!planRes.ok || !planJson.plan) {
-        throw new Error(planJson.error ?? t("failedPlan"));
+        throw new Error(translateApiError(lang, planJson.error) || t("failedPlan"));
       }
 
+      toast.success(t("paySuccessShort"));
       setPhase("done");
       window.location.assign("/results");
     } catch (e) {
       setPhase("idle");
-      toast.error(e instanceof Error ? e.message : t("couldNotLoad"));
+      if (e instanceof Error && e.message === "REQUEST_TIMEOUT") {
+        toast.error(t("requestTimeout"));
+      } else {
+        toast.error(e instanceof Error ? e.message : t("couldNotLoad"));
+      }
+    } finally {
+      payLock.current = false;
     }
   };
 
@@ -147,7 +171,7 @@ export default function PaymentPage() {
             {offer.msRemaining > 0 && offer.tier !== "list" ? (
               <p className="os-compare-note" data-testid="pay-offer-countdown" aria-live="polite">
                 {t("payOfferEnds")}{" "}
-                <span className="os-pay-countdown">{formatOfferTimeRemaining(offer.msRemaining, lang)}</span>
+                <span className="os-pay-countdown">{formatOfferTimeRemaining(offer.msRemaining)}</span>
               </p>
             ) : null}
           </article>

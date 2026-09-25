@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import type { ZodError } from "zod";
 import { isMongoSrvError } from "@/lib/mongodb-srv";
+import { logError } from "@/lib/logger";
 
 export class ApiError extends Error {
   constructor(
@@ -56,6 +57,6 @@ export function handleRouteError(error: unknown, fallback: string) {
       503
     );
   }
-  console.error(fallback, error);
+  logError("api.route.error", error, { fallback });
   return jsonError(fallback, 500);
 }

@@ -37,6 +37,7 @@ export function useBabyBiteProfile(options: FunnelOptions = {}) {
     if (status === "loading") return;
 
     if (status === "unauthenticated") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- funnel redirect gate
       setLoading(false);
       if (redirectIfUnauthed) {
         router.replace(redirectIfUnauthed);

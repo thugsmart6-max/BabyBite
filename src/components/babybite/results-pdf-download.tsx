@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { FormField, inputStateClass } from "@/components/forms/form-field";
 import { translateApiError } from "@/lib/api-error-i18n";
+import { fetchJson } from "@/lib/client-fetch";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ export function ResultsPdfDownload({
 }) {
   const { t, lang } = useMotherLocale();
   const [status, setStatus] = useState<PdfStatus | null>(null);
+  const [statusLoading, setStatusLoading] = useState(true);
   const [phase, setPhase] = useState<Phase>("idle");
   const [sending, setSending] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -42,12 +44,17 @@ export function ResultsPdfDownload({
     fetch("/api/babybite/plans/pdf")
       .then((res) => (res.ok ? res.json() : null))
       .then((json: PdfStatus | null) => {
-        if (cancelled || !json) return;
-        setStatus(json);
-        setEmail(json.accountEmail ?? "");
-        if (json.pdfEmailSent) setPhase("success");
+        if (cancelled) return;
+        if (json) {
+          setStatus(json);
+          setEmail(json.accountEmail ?? "");
+          if (json.pdfEmailSent) setPhase("success");
+        }
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setStatusLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -102,16 +109,23 @@ export function ResultsPdfDownload({
     setSending(true);
     setError(null);
 
-    const res = await fetch("/api/babybite/plans/pdf", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: deliveryEmail.trim(),
-        childProfileId: childProfileId ?? status?.childProfileId ?? undefined,
-      }),
-    });
-
-    const json = await res.json();
+    let res: Response;
+    let json: { error?: string };
+    try {
+      ({ res, json } = await fetchJson("/api/babybite/plans/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: deliveryEmail.trim(),
+          childProfileId: childProfileId ?? status?.childProfileId ?? undefined,
+        }),
+      }));
+    } catch (err) {
+      setError(err instanceof Error && err.message === "REQUEST_TIMEOUT" ? t("requestTimeout") : t("pdfSendFail"));
+      setPhase("form");
+      setSending(false);
+      return;
+    }
 
     if (!res.ok) {
       setError(translateApiError(lang, json.error) || t("pdfSendFail"));
@@ -132,12 +146,9 @@ export function ResultsPdfDownload({
 
   const handleSendClick = () => {
     setError(null);
-    if (alreadySent && isValidEmailFormat(knownEmail)) {
-      void sendPdf(knownEmail);
-      return;
-    }
-    if (isOAuth && status?.accountEmail) {
-      void sendPdf(status.accountEmail);
+    const candidate = (email.trim() || status?.accountEmail?.trim() || knownEmail.trim() || "").trim();
+    if (isValidEmailFormat(candidate)) {
+      void sendPdf(candidate);
       return;
     }
     setPhase("form");
@@ -153,14 +164,23 @@ export function ResultsPdfDownload({
         <p className="os-pdf-copy">{t("step3Body")}</p>
       )}
 
-      {error ? <p role="alert">{error}</p> : null}
+      {error ? (
+        <p className="os-pdf-error" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className="os-pdf-actions">
         <button type="button" className="bb-cta" disabled={downloading} onClick={() => void downloadPdf()}>
           {downloading ? t("downloading") : t("downloadPdf")}
         </button>
-        <button type="button" className="bb-cta-ghost" disabled={sending} onClick={handleSendClick}>
-          {sending ? t("sendingEmail") : mailLabel}
+        <button
+          type="button"
+          className="bb-cta-ghost"
+          disabled={sending || statusLoading}
+          onClick={handleSendClick}
+        >
+          {statusLoading ? t("holdOn") : sending ? t("sendingEmail") : mailLabel}
         </button>
       </div>
 

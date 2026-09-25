@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import {
   assertPrimaryCopyVisible,
   closeMenu,
@@ -15,7 +15,7 @@ test.describe("public funnel navigation", () => {
   test("sends a logged-out visitor from / to landing", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveURL(/\/landing$/);
-    await assertPrimaryCopyVisible(page, /what.?s for dinner/i);
+    await assertPrimaryCopyVisible(page, /what.?s today.?s baby bite/i);
   });
 
   test("keeps landing, login, and signup public", async ({ page }) => {
@@ -84,7 +84,7 @@ test.describe("public funnel navigation", () => {
 
   test("wordmark and settings icon go to the right place", async ({ page }) => {
     await gotoReady(page, "/login");
-    await page.getByRole("link", { name: "BabyBite" }).click();
+    await page.getByRole("link", { name: /babybite home/i }).click();
     await expect(page).toHaveURL(/\/landing$/);
 
     await page.locator("a.os-mascot").click();
@@ -141,12 +141,12 @@ test.describe("language", () => {
     await openMenu(page);
     await page.locator(".os-menu-full").getByRole("button", { name: "Tamil" }).click();
     await closeMenu(page);
-    await expect(page.getByRole("heading", { name: "இன்றிரவு என்ன?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /இன்றைய Baby Bite/i })).toBeVisible();
 
     await openMenu(page);
     await page.locator(".os-menu-full").getByRole("button", { name: "Hindi" }).click();
     await closeMenu(page);
-    await expect(page.getByRole("heading", { name: "आज रात क्या है?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Today's Baby Bite/i })).toBeVisible();
     expect(errors.filter((text) => /hydrat/i.test(text))).toEqual([]);
   });
 });

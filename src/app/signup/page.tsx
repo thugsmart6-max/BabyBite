@@ -176,6 +176,7 @@ function SignupForm() {
             onBlur={() => touchField("name")}
             className={inputStateClass(getError("name"), touched.name)}
             aria-invalid={!!getError("name")}
+            placeholder={t("namePh")}
           />
         </FormField>
 
@@ -184,6 +185,7 @@ function SignupForm() {
             id="email"
             type="email"
             autoComplete="email"
+            placeholder={t("emailPh")}
             value={values.email}
             data-testid="signup-email"
             onChange={(e) => setField("email", e.target.value)}
@@ -211,6 +213,7 @@ function SignupForm() {
               onBlur={() => touchField("password")}
               className={cn("pr-12", inputStateClass(getError("password"), touched.password))}
               aria-invalid={!!getError("password")}
+              placeholder={t("passwordPh")}
             />
             <button
               type="button"
@@ -239,6 +242,7 @@ function SignupForm() {
             onBlur={() => touchField("confirmPassword")}
             className={inputStateClass(getError("confirmPassword"), touched.confirmPassword)}
             aria-invalid={!!getError("confirmPassword")}
+            placeholder={t("confirmPasswordPh")}
           />
         </FormField>
 

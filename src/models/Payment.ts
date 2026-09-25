@@ -41,5 +41,7 @@ const PaymentSchema = new Schema<IPayment>(
   { timestamps: true }
 );
 
+PaymentSchema.index({ userId: 1, childProfileId: 1, status: 1, createdAt: -1 });
+
 export const Payment: Model<IPayment> =
   mongoose.models.Payment ?? mongoose.model<IPayment>("Payment", PaymentSchema);

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import {
   acceptTerms,
   assertMinTap,
@@ -15,16 +15,17 @@ test.describe("public content and friendly copy", () => {
 
   test("landing shows dinner-first sections and educational copy", async ({ page }) => {
     await gotoReady(page, "/landing");
-    await assertPrimaryCopyVisible(page, /what.?s for dinner/i);
+    await assertPrimaryCopyVisible(page, /what.?s today.?s baby bite/i);
     await expect(page.getByRole("link", { name: /make a plan for my child/i }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: /i already have an account/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /dinner is how you hold them/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /every bite holds your love/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /breakfast, then lunch/i })).toBeVisible();
-    await expect(page.locator("#plates")).toBeVisible();
+    await expect(page.getByText(/not a question anymore/i)).toBeVisible();
     await expect(page.locator("#how")).toBeVisible();
-    await expect(page.getByRole("heading", { name: /other kids look taller/i })).toBeVisible();
+    await page.locator("#compare").scrollIntoViewIfNeeded();
+    await expect(page.getByRole("heading", { name: /with or without a plan/i })).toBeVisible();
     await expect(page.getByText(/educational guidance only/i).first()).toBeVisible();
-    await expect(page.getByText(/we do not promise extra centimetres of height/i)).toBeVisible();
+    await expect(page.getByText(/not extra centimetres|we do not promise extra centimetres/i).first()).toBeVisible();
 
     const body = (await page.locator("body").innerText()).toLowerCase();
     expect(body).not.toMatch(/\bdemo\b/);
@@ -41,7 +42,7 @@ test.describe("public content and friendly copy", () => {
     await seeHow.scrollIntoViewIfNeeded();
     await seeHow.click();
     await expect(page.locator("#how")).toBeInViewport();
-    await expect(page.getByRole("heading", { name: /no 7pm question/i }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /happy bites start here/i })).toBeVisible();
   });
 
   test("login copy and validation stay on the page", async ({ page }) => {

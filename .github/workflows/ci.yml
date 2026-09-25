@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run lint
@@ -25,6 +25,8 @@ jobs:
       AUTH_SECRET: playwright-ci-secret
       AUTH_URL: http://localhost:3000
       MONGODB_URI: mongodb://127.0.0.1:27017/babybite
+      ALLOW_CREDENTIALS_AUTH: "true"
+      NEXT_PUBLIC_ALLOW_CREDENTIALS_AUTH: "true"
     services:
       mongodb:
         image: mongo:7
@@ -40,7 +42,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium

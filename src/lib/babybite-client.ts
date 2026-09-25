@@ -9,6 +9,7 @@ import type {
   TiffinNeed,
 } from "@/types/babybite";
 import { ACTIVE_CHILD_KEY, rememberActiveChildId } from "@/lib/local-user-store";
+import { fetchJson } from "@/lib/client-fetch";
 
 export { ACTIVE_CHILD_KEY } from "@/lib/local-user-store";
 
@@ -86,8 +87,19 @@ export function writeActiveChildId(id: string) {
 export async function fetchBabyBiteProfile(childId?: string): Promise<BabyBiteProfileResponse> {
   const id = childId ?? readActiveChildId();
   const qs = id ? `?childId=${encodeURIComponent(id)}` : "";
-  const res = await fetch(`/api/babybite/onboarding${qs}`);
-  const json = await res.json().catch(() => ({}));
+  let res: Response;
+  let json: BabyBiteProfileResponse & { error?: string };
+  try {
+    ({ res, json } = await fetchJson<BabyBiteProfileResponse & { error?: string }>(
+      `/api/babybite/onboarding${qs}`,
+      { cacheGet: true }
+    ));
+  } catch (err) {
+    if (err instanceof Error && err.message === "REQUEST_TIMEOUT") {
+      throw new BabyBiteApiError(408, "REQUEST_TIMEOUT");
+    }
+    throw err;
+  }
   if (!res.ok) {
     throw new BabyBiteApiError(res.status, json.error ?? "Failed to load profile");
   }

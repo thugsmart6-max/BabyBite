@@ -1,5 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import {
+  assertMinTap,
   assertNavDoesNotCollide,
   assertNoHorizontalOverflow,
   gotoReady,
@@ -91,20 +92,20 @@ test.describe("responsive public UI", () => {
     expect(metrics!.ctaHeight).toBeGreaterThanOrEqual(44);
   });
 
-  test("tablet landing benefit marquee fits viewport", async ({ page }) => {
+  test("tablet landing compare art fits viewport", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.tablet);
     await gotoReady(page, "/landing");
     await assertNoHorizontalOverflow(page, "tablet /landing");
-    await expect(page.locator(".os-marquee")).toBeVisible();
+    await expect(page.locator("#compare .os-site-art.is-compare")).toBeVisible();
   });
 
-  test("tv landing benefit marquee and auth stay inside the viewport", async ({ page }) => {
+  test("tv landing compare section and auth stay inside the viewport", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.tv);
     await gotoReady(page, "/landing");
-    await assertNoHorizontalOverflow(page, "tv landing marquee");
-    const marquee = page.locator(".os-marquee");
-    await expect(marquee).toBeVisible();
-    const box = await marquee.boundingBox();
+    await assertNoHorizontalOverflow(page, "tv landing compare");
+    const compare = page.locator("#compare");
+    await expect(compare).toBeVisible();
+    const box = await compare.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.x + box!.width).toBeLessThanOrEqual(VIEWPORTS.tv.width + 1);
 
@@ -144,29 +145,26 @@ test.describe("responsive public UI", () => {
     await expect(page.locator("form").getByRole("button", { name: /sign in/i })).toBeVisible();
   });
 
-  test("phone hero stickers stay fully readable and off the hero image", async ({ page }) => {
+  test("phone hero keeps art and primary CTA readable without overlap", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.phone);
     await gotoReady(page, "/landing");
     await expect(page.locator(".os-hero .os-site-art")).toBeVisible();
+    const heroCta = page.locator(".os-hero").getByRole("link", { name: /make a plan for my child/i });
+    await expect(heroCta).toBeVisible();
     const hits = await page.evaluate(() => {
       const art = document.querySelector(".os-hero .os-site-art");
+      const cta = document.querySelector(".os-hero a.bb-cta, .os-hero .bb-cta");
       if (!art) return ["missing hero art"];
+      if (!cta) return ["missing hero CTA"];
       const a = art.getBoundingClientRect();
-      return [...document.querySelectorAll(".os-hero .os-sticker")].flatMap((el) => {
-        const style = window.getComputedStyle(el);
-        if (style.display === "none" || style.visibility === "hidden") return [];
-        const r = el.getBoundingClientRect();
-        const text = el.textContent?.trim() || "sticker";
-        const overlap = !(r.right <= a.left + 4 || r.left >= a.right - 4 || r.bottom <= a.top + 4 || r.top >= a.bottom - 4);
-        if (overlap) return [`${text} overlaps hero image`];
-        if (r.width < 24 || r.height < 16) return [`${text} is clipped`];
-        return [];
-      });
+      const r = cta.getBoundingClientRect();
+      const overlap = !(r.right <= a.left + 4 || r.left >= a.right - 4 || r.bottom <= a.top + 4 || r.top >= a.bottom - 4);
+      if (overlap) return ["hero CTA overlaps hero image"];
+      if (r.width < 24 || r.height < 36) return ["hero CTA is too small to tap"];
+      return [];
     });
     expect(hits).toEqual([]);
-    await expect(page.locator(".os-hero .os-sticker", { hasText: "Keep it simple" })).toBeVisible();
-    await expect(page.locator(".os-hero .os-sticker", { hasText: "7pm, sorted" })).toBeVisible();
-    await expect(page.locator(".os-hero .os-sticker", { hasText: "South · North · Mixed" })).toBeVisible();
+    await assertMinTap(await heroCta.boundingBox(), "phone hero plan CTA");
   });
 
   test("landing hero CTAs stay tappable on a small phone", async ({ page }) => {

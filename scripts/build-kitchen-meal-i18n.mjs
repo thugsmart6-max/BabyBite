@@ -44,7 +44,8 @@ let text = fs.readFileSync(path, "utf8");
 for (const [key, val] of Object.entries(T)) {
   const esc = key.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const re = new RegExp(
-    `(  "${esc.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}": \\{\\s*ta: ")[^"]*(",\\s*hi: ")[^"]*(")`s
+    `(  "${esc.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}": \\{\\s*ta: ")[^"]*(",\\s*hi: ")[^"]*(")`,
+    "s"
   );
   if (!re.test(text)) {
     console.error("missing key", key.slice(0, 40));

@@ -16,6 +16,9 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "off",
+    launchOptions: {
+      args: ["--disable-dev-shm-usage"],
+    },
   },
   projects: [
     {
@@ -34,7 +37,8 @@ export default defineConfig({
   webServer: {
     command: "npm run dev",
     url: baseURL,
-    reuseExistingServer: !process.env.CI,
+    // Must start with credential auth enabled; reusing a stray `npm run dev` hides email/password UI and breaks funnel tests.
+    reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "true",
     timeout: 120_000,
     env: {
       ...process.env,

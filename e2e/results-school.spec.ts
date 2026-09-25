@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import {
   collectPageErrors,
   completeOnboarding,
@@ -96,7 +96,7 @@ test.describe("results school and refuse-this", () => {
 
     await page.getByRole("tab", { name: /today/i }).click();
     const todayLunch = page.locator(".os-meal-row").filter({
-      has: page.locator(".os-band-kicker", { hasText: /packable lunch/i }),
+      has: page.locator(".os-meal-slot-line", { hasText: /packable lunch/i }),
     }).first();
     await expect(todayLunch).toBeVisible();
 

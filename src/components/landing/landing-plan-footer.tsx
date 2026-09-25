@@ -25,8 +25,9 @@ export function LandingPlanFooter() {
         <div className="os-plan-footer-copy">
           <p className="os-band-kicker">{t("tonight")}</p>
           <h2 id="os-plan-footer-title" className="os-plan-footer-title">
-            {t("noSeven")}
+            {t("whatsDinner")}
           </h2>
+          <p className="os-plan-footer-tagline">{t("heroNotQuestion")}</p>
           <p className="os-plan-footer-lede">{t("bandBody")}</p>
           <div className="os-plan-footer-actions">
             <Link href="/signup" className="bb-cta os-plan-footer-cta">

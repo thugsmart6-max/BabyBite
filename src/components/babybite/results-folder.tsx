@@ -145,15 +145,12 @@ export function ResultsFolder({
     onBrowseHeadline(key);
   }, [room, mealList, problemList, onBrowseHeadline]);
 
-  const pickBrowseList = (kind: "meal" | "problem", id: keyof KitchenLists) => {
-    if (kind === "meal") {
-      setMealList(id);
-      if (room !== "meals") onRoom("meals");
-      return;
-    }
-    setProblemList(id);
-    if (room !== "problems") onRoom("problems");
-  };
+  useEffect(() => {
+    if (room !== "meals" && room !== "problems") return;
+    requestAnimationFrame(() => {
+      document.getElementById("kitchen-browse-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [room, mealList, problemList]);
 
   return (
     <div className="os-folder">
@@ -182,26 +179,7 @@ export function ResultsFolder({
           </div>
 
           {browseView ? (
-            <>
-              <p className="os-results-nav-note">{t(room === "meals" ? "roomBrowseMealHint" : "roomBrowseProblemHint")}</p>
-              {room === "meals" ? (
-                <ListPickGrid
-                  options={MEAL_LISTS}
-                  lists={lists}
-                  active={mealList}
-                  onPick={(id) => pickBrowseList("meal", id)}
-                  pickLabel={t("kitchenPickMeal")}
-                />
-              ) : (
-                <ListPickGrid
-                  options={PROBLEM_LISTS}
-                  lists={lists}
-                  active={problemList}
-                  onPick={(id) => pickBrowseList("problem", id)}
-                  pickLabel={t("kitchenPickProblem")}
-                />
-              )}
-            </>
+            <p className="os-results-nav-note">{t(room === "meals" ? "roomBrowseMealHint" : "roomBrowseProblemHint")}</p>
           ) : null}
         </div>
 
@@ -258,83 +236,78 @@ export function ResultsFolder({
   );
 }
 
-function ListPickGrid({
-  options,
-  lists,
-  active,
-  onPick,
-  pickLabel,
-}: {
-  options: KitchenBrowseOption[];
-  lists: KitchenLists;
-  active: keyof KitchenLists;
-  onPick: (id: keyof KitchenLists) => void;
-  pickLabel: string;
-}) {
-  const { t } = useMotherLocale();
-
-  return (
-    <div className="os-list-pick" role="listbox" aria-label={pickLabel}>
-      <p className="os-list-pick-kicker">{pickLabel}</p>
-      <div className="os-list-pick-grid">
-        {options.map((item) => {
-          const count = lists[item.id]?.length ?? 0;
-          const selected = active === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="option"
-              aria-selected={selected}
-              className={cn("os-list-pick-card", `is-${item.tone}`, selected && "is-on")}
-              data-testid={`kitchen-option-${item.id}`}
-              onClick={() => onPick(item.id)}
-            >
-              <span className="os-list-pick-glyph" aria-hidden>
-                {item.glyph}
-              </span>
-              <span className="os-list-pick-title">{t(item.key)}</span>
-              <span className="os-list-pick-hint">{t(item.hintKey)}</span>
-              <span className="os-list-pick-count">{count}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 function KitchenBrowse({
   lists,
   options,
   active,
+  onActive,
   pickerKind,
 }: {
   lists: KitchenLists;
   options: KitchenBrowseOption[];
   active: keyof KitchenLists;
-  onActive?: (id: keyof KitchenLists) => void;
-  pickerKind?: "meal" | "problem";
+  onActive: (id: keyof KitchenLists) => void;
+  pickerKind: "meal" | "problem";
 }) {
   const { t, lang } = useMotherLocale();
   const meals = lists[active] ?? [];
   const activeOption = options.find((item) => item.id === active) ?? options[0];
   const byProblem = pickerKind === "problem";
+  const pickLabel = byProblem ? t("kitchenPickProblem") : t("kitchenPickMeal");
 
   return (
-    <div className="os-kitchen-browse">
+    <div className="os-kitchen-browse" id="kitchen-browse-panel">
+      <div className="os-kitchen-picker">
+        <div className="os-kitchen-picker-head">
+          <p className="os-kitchen-picker-label">{pickLabel}</p>
+          <p className="os-kitchen-picker-count">
+            <strong>{meals.length}</strong> {t("kitchenIdeasCount")}
+          </p>
+        </div>
+        <div className="os-kitchen-tiles" role="listbox" aria-label={pickLabel}>
+          {options.map((item) => {
+            const count = lists[item.id]?.length ?? 0;
+            const selected = active === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                className={cn("os-kitchen-tile", `is-${item.tone}`, selected && "is-on")}
+                data-testid={`kitchen-option-${item.id}`}
+                onClick={() => onActive(item.id)}
+              >
+                <span className="os-kitchen-tile-glyph" aria-hidden>
+                  {item.glyph}
+                </span>
+                <span className="os-kitchen-tile-body">
+                  <span className="os-kitchen-tile-title">{t(item.key)}</span>
+                  <span className="os-kitchen-tile-hint">{t(item.hintKey)}</span>
+                </span>
+                <span className="os-kitchen-tile-count">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+        {activeOption ? (
+          <p className="os-kitchen-active-lede">
+            <span className={cn("os-kitchen-active-chip", `is-${activeOption.tone}`)}>{t(activeOption.key)}</span>
+            {t(activeOption.hintKey)}
+          </p>
+        ) : null}
+      </div>
+
       {meals.length === 0 ? (
         <p className="os-onboard-lede">{t("emptyKitchenList")}</p>
       ) : (
-        <section className="os-kitchen-list-section">
-          {byProblem && activeOption ? (
-            <h3 className="os-kitchen-slot-title" data-testid="kitchen-list-title">
-              {t(activeOption.key)}
-            </h3>
-          ) : null}
+        <section key={active} className="os-kitchen-list-section">
+          <h3 className="os-kitchen-slot-title" data-testid="kitchen-list-title">
+            {t(activeOption.key)}
+          </h3>
           <div className="os-kitchen-grid">
             {meals.map((meal) => (
-              <article key={`${active}-${meal.name}`} className="os-kitchen-card">
+              <article key={`${active}-${meal.name}-${meal.slot}`} className="os-kitchen-card">
                 {!byProblem ? (
                   <p className="os-meal-slot-line">
                     <MealSlotWord slot={meal.slot} />

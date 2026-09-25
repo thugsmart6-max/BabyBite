@@ -132,6 +132,9 @@ const ChildProfileSchema = new Schema<IChildProfile>(
   { timestamps: true }
 );
 
+ChildProfileSchema.index({ userId: 1, createdAt: -1 });
+ChildProfileSchema.index({ userId: 1, hasPaid: 1 });
+
 if (mongoose.models.ChildProfile) {
   delete mongoose.models.ChildProfile;
 }

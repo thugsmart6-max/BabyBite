@@ -163,7 +163,7 @@ export function BondTable() {
     <section className="os-bond" id="together">
       <div className="os-bond-layout">
         <div className="os-bond-copy-block">
-          <p className="os-band-kicker">{t("bondKicker")}</p>
+          {t("bondKicker") ? <p className="os-band-kicker">{t("bondKicker")}</p> : null}
           <h2 className="os-section-title">{t("bondTitle")}</h2>
           <p className="os-bond-copy">{t("bondBody")}</p>
         </div>
@@ -186,11 +186,18 @@ export function CompareTables({
   const { t } = useMotherLocale();
   return (
     <section className="os-compare" id="compare">
-      <div className="os-compare-layout">
-        <div className="os-bond-copy-block">
-          <p className="os-band-kicker">{achieved ? t("yourKitchen") : t("compareKicker")}</p>
+      <div className="os-compare-layout is-landing-compare">
+        <div className="os-compare-heading">
+          {achieved || t("compareKicker") ? (
+            <p className="os-band-kicker">{achieved ? t("yourKitchen") : t("compareKicker")}</p>
+          ) : null}
           <h2 className="os-section-title">{achieved ? t("growthTitle") : t("compareTitle")}</h2>
-          <p className="os-bond-copy">{achieved ? t("growthBody") : t("compareBody")}</p>
+        </div>
+        <div className="os-compare-visual">
+          <SiteArt src={LANDING_MOM_COMPARE_IMAGE} alt={t("momCompareAlt")} variant="compare" />
+        </div>
+        <div className="os-compare-body">
+          <p className="os-bond-copy os-compare-lede">{achieved ? t("growthBody") : t("compareBody")}</p>
           <article className="os-compare-card is-ours">
             <p className="os-band-kicker">{t("thisTable")}</p>
             <ul>
@@ -200,9 +207,6 @@ export function CompareTables({
             </ul>
           </article>
           <p className="os-compare-note">{t("compareNote")}</p>
-        </div>
-        <div className="os-compare-visual">
-          <SiteArt src={LANDING_MOM_COMPARE_IMAGE} alt={t("momCompareAlt")} variant="compare" />
         </div>
       </div>
     </section>

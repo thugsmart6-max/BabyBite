@@ -24,6 +24,8 @@ import type {
 import { parseOptionalMeasure } from "@/schemas/babybite";
 import { growthBandForAge } from "@/lib/growth-bands";
 import { writeActiveChildId } from "@/lib/babybite-client";
+import { fetchJson, clearClientFetchCache } from "@/lib/client-fetch";
+import { translateApiError } from "@/lib/api-error-i18n";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -87,7 +89,7 @@ const ALLERGY_KEYS: Record<FoodAllergy, MotherCopyKey> = {
 const GOALS = Object.keys(GOAL_KEYS) as NutritionGoal[];
 
 export default function OnboardingPage() {
-  const { t } = useMotherLocale();
+  const { t, lang } = useMotherLocale();
   const router = useRouter();
   const { update, status } = useSession();
   const [step, setStep] = useState(0);
@@ -152,10 +154,12 @@ export default function OnboardingPage() {
       const heightCm = parseOptionalMeasure(form.heightCm);
       const weightKg = parseOptionalMeasure(form.weightKg);
       const createNew = new URLSearchParams(window.location.search).get("new") === "1";
-      const res = await fetch("/api/babybite/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const { res, json } = await fetchJson<{ error?: string; childProfileId?: string; hasPaid?: boolean }>(
+        "/api/babybite/onboarding",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
           name: form.name.trim(),
           ageYears: form.ageYears,
           gender: form.gender,
@@ -176,15 +180,21 @@ export default function OnboardingPage() {
           ...(weightKg !== undefined ? { weightKg } : {}),
           ...(createNew ? { createNew: true } : {}),
         }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed");
+        }
+      );
+      if (!res.ok) throw new Error(translateApiError(lang, json.error) || t("couldNotLoad"));
       if (json.childProfileId) writeActiveChildId(json.childProfileId);
+      clearClientFetchCache();
       await update({ onboardingComplete: true, hasPaid: Boolean(json.hasPaid) });
+      toast.success(t("onboardingSaved"));
       router.push(json.hasPaid ? "/results" : "/payment");
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("couldNotLoad"));
+      if (e instanceof Error && e.message === "REQUEST_TIMEOUT") {
+        toast.error(t("requestTimeout"));
+      } else {
+        toast.error(e instanceof Error ? e.message : t("couldNotLoad"));
+      }
     } finally {
       setLoading(false);
     }

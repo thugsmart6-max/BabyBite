@@ -170,7 +170,7 @@ export function FeatherTopbar({
           </Link>
         ) : null}
       </div>
-      <Link href={homeHref} className="os-wordmark">
+      <Link href={homeHref} className="os-wordmark" aria-label="BabyBite home" title="BabyBite">
         BabyBite
       </Link>
       <div className="os-nav-right">
@@ -199,28 +199,32 @@ export function FeatherTopbar({
             <button type="button" className="os-menu-close" onClick={() => setMenuOpen(false)} aria-label={t("closeMenu")}>
               <X strokeWidth={2.6} />
             </button>
-            <Link href="/signup" onClick={() => setMenuOpen(false)}>
-              {t("makePlan")}
-            </Link>
-            <Link href={loggedIn ? homeHref : "/login"} onClick={() => setMenuOpen(false)}>
-              {loggedIn ? t("openTonight") : t("signIn")}
-            </Link>
-            <Link href="/landing" onClick={() => setMenuOpen(false)}>
-              {t("seeHow")}
-            </Link>
-            {loggedIn ? (
-              <Link href="/settings" onClick={() => setMenuOpen(false)}>
-                {t("childKitchen")}
+            <div className="os-menu-full-links">
+              <Link href="/signup" onClick={() => setMenuOpen(false)}>
+                {t("makePlan")}
               </Link>
-            ) : null}
-            {showLogout ? (
-              <button type="button" className="os-menu-action" data-testid="menu-logout" onClick={logout}>
-                {t("logOut")}
-              </button>
-            ) : null}
-            <p className="os-menu-tag">{tagline ?? t("menuTag")}</p>
-            <div className="os-menu-tools">
-              <LocaleToggle />
+              <Link href={loggedIn ? homeHref : "/login"} onClick={() => setMenuOpen(false)}>
+                {loggedIn ? t("openTonight") : t("signIn")}
+              </Link>
+              <Link href="/landing" onClick={() => setMenuOpen(false)}>
+                {t("seeHow")}
+              </Link>
+              {loggedIn ? (
+                <Link href="/settings" onClick={() => setMenuOpen(false)}>
+                  {t("childKitchen")}
+                </Link>
+              ) : null}
+              {showLogout ? (
+                <button type="button" className="os-menu-action" data-testid="menu-logout" onClick={logout}>
+                  {t("logOut")}
+                </button>
+              ) : null}
+            </div>
+            <div className="os-menu-full-foot">
+              <p className="os-menu-tag">{tagline ?? t("menuTag")}</p>
+              <div className="os-menu-tools">
+                <LocaleToggle />
+              </div>
             </div>
           </motion.nav>
         ) : null}

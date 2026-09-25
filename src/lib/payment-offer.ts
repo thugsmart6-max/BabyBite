@@ -83,7 +83,7 @@ function pad2(n: number): string {
 }
 
 /** Live countdown: optional days prefix + `HH:MM:SS` (same digits in EN/TA/HI). */
-export function formatOfferTimeRemaining(ms: number, _lang: "en" | "ta" | "hi" = "en"): string {
+export function formatOfferTimeRemaining(ms: number): string {
   if (ms <= 0) return "00:00:00";
 
   const totalSeconds = Math.floor(ms / 1000);

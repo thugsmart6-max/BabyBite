@@ -1,34 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useMotherLocale } from "@/components/providers/locale-provider";
-
-const CONSENT_KEY = "babybite-cookie-consent";
+import { COOKIE_CONSENT_KEY, hasCookieConsentStored } from "@/lib/cookie-consent";
 
 export function CookieConsentBanner() {
   const { t } = useMotherLocale();
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(CONSENT_KEY) === "accepted") return;
-      setVisible(true);
-    } catch {
-      setVisible(true);
-    }
-  }, []);
+  const pathname = usePathname();
+  const onTermsFlow = pathname === "/signup" || pathname === "/login";
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false
+  );
+  const [dismissed, setDismissed] = useState(false);
 
   const accept = () => {
     try {
-      localStorage.setItem(CONSENT_KEY, "accepted");
+      localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
     } catch {
       /* private mode */
     }
-    setVisible(false);
+    setDismissed(true);
   };
 
-  if (!visible) return null;
+  if (!mounted || onTermsFlow || dismissed || hasCookieConsentStored()) {
+    return null;
+  }
 
   return (
     <div className="os-cookie-banner" role="dialog" aria-labelledby="cookie-banner-title">
@@ -41,7 +41,7 @@ export function CookieConsentBanner() {
           <button type="button" className="bb-cta is-compact" onClick={accept}>
             {t("cookieAccept")}
           </button>
-          <Link href="/signup" className="os-text-link" onClick={accept}>
+          <Link href="/landing#how" className="os-text-link" onClick={accept}>
             {t("cookieLearn")}
           </Link>
         </div>

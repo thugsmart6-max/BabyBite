@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+html:has(.bb-studio.is-oats),
+.bb-studio.is-oats {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /* BabyBite — Oatside-language: white paper, black ink, yellow punch. */

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { collectPageErrors, gotoReady, VIEWPORTS } from "./helpers";
 
 const PUBLIC_PATHS = ["/landing", "/login", "/signup"] as const;
@@ -10,7 +10,7 @@ test.describe("console and broken UI checks", () => {
     const errors = collectPageErrors(page);
 
     await gotoReady(page, "/landing");
-    await expect(page.getByRole("heading", { name: /what.?s for dinner/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /what.?s today.?s baby bite/i })).toBeVisible();
     await expect(page.locator(".os-hero .bb-cta, .os-hero a.bb-cta, .os-hero a").first()).toBeVisible();
 
     await gotoReady(page, "/login");

@@ -47,6 +47,14 @@ export async function POST(request: Request) {
       201
     );
   } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as { code?: number }).code === 11000
+    ) {
+      return jsonError("Email already registered", 409, "EMAIL_ALREADY_REGISTERED");
+    }
     logError("auth.signup.failed", error);
     return handleRouteError(error, "Failed to create account");
   }

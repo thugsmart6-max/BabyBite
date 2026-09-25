@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { BbCanvas } from "@/components/babybite/bb-canvas";
-import {
-  BondTable,
-  BrandStickers,
-  CompareTables,
-  MealMarquee,
-  SiteArt,
-} from "@/components/babybite/oats-brand";
+import { BondTable, CompareTables, SiteArt } from "@/components/babybite/oats-brand";
 import { LandingPlanFooter } from "@/components/landing/landing-plan-footer";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { LANDING_HERO_DINNER_IMAGE } from "@/lib/landing-art";
@@ -25,10 +19,10 @@ export default function LandingPage() {
   return (
     <BbCanvas full>
       <section className="os-hero">
-        <BrandStickers />
         <div className="os-hero-core">
           <p className="os-band-kicker">{t("tonight")}</p>
           <h1 className="os-hero-title">{t("whatsDinner")}</h1>
+          <p className="os-hero-lede">{t("heroNotQuestion")}</p>
           <div className="os-band-actions os-hero-actions">
             <Link href="/signup" className="bb-cta">
               {t("makePlan")}
@@ -51,19 +45,9 @@ export default function LandingPage() {
         <h2 className="os-section-title">{t("benefitTitle")}</h2>
       </section>
 
-      <MealMarquee />
-
       <BondTable />
 
       <CompareTables />
-
-      <section className="os-plates" id="plates">
-        <p className="os-band-kicker">{t("ourPlates")}</p>
-        <h2 className="os-section-title">{t("sampleCaption")}</h2>
-        <p className="os-compare-note">{t("kitchenLine")}</p>
-        <SiteArt src="/art-tiffins.png" alt={t("artTiffins")} variant="wide" />
-        <p className="os-compare-note">{t("trustLine")}</p>
-      </section>
 
       <section className="os-duo">
         <p className="os-band-kicker">{t("duoKicker")}</p>
@@ -74,7 +58,7 @@ export default function LandingPage() {
 
       <section className="os-steps" id="how">
         <p className="os-band-kicker">{t("howTitle")}</p>
-        <h2 className="os-section-title">{t("noSeven")}</h2>
+        <h2 className="os-section-title">{t("happyBitesStart")}</h2>
         <div className="os-steps-grid">
           {STEPS.map((step) => (
             <article key={step.n} className={`os-step is-${step.tone}`}>
@@ -90,7 +74,10 @@ export default function LandingPage() {
 
       <footer className="os-foot">
         <p className="os-foot-mark">BabyBite</p>
-        <p className="os-foot-tag">{t("footerTag")}</p>
+        <div className="os-foot-meta">
+          <p className="os-foot-tag">{t("footerTag")}</p>
+          <p className="os-foot-copy">{t("footerCopyright")}</p>
+        </div>
       </footer>
     </BbCanvas>
   );

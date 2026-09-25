@@ -1,5 +1,25 @@
 import { expect, type Page } from "@playwright/test";
 
+const COOKIE_CONSENT_KEY = "babybite-cookie-consent";
+
+export async function primeCookieConsent(page: Page) {
+  await page.addInitScript((key) => {
+    try {
+      localStorage.setItem(key, "accepted");
+    } catch {
+      /* private mode */
+    }
+  }, COOKIE_CONSENT_KEY);
+}
+
+export async function dismissCookieBannerIfVisible(page: Page) {
+  const banner = page.locator(".os-cookie-banner");
+  if (await banner.isVisible().catch(() => false)) {
+    await page.getByRole("button", { name: /^accept$/i }).click();
+    await expect(banner).toHaveCount(0);
+  }
+}
+
 export const VIEWPORTS = {
   phoneXs: { width: 320, height: 568 },
   phone: { width: 375, height: 812 },
@@ -21,12 +41,14 @@ export const VIEWPORTS = {
 } as const;
 
 export async function gotoReady(page: Page, path: string) {
+  await primeCookieConsent(page);
   await page.goto(path);
   await page.waitForLoadState("domcontentloaded");
   await expect(page.locator(".os-nav")).toBeVisible();
   await page.waitForFunction(() =>
     Boolean((window as Window & { __bbMenuScrollHook?: boolean }).__bbMenuScrollHook),
   );
+  await dismissCookieBannerIfVisible(page);
 }
 
 export async function openMenu(page: Page) {
@@ -52,6 +74,7 @@ export async function closeMenu(page: Page) {
 }
 
 export async function expectLoginGate(page: Page, path: string) {
+  await primeCookieConsent(page);
   await page.goto(path);
   await expect(page).toHaveURL(/\/login\?/);
   const callbackUrl = new URL(page.url()).searchParams.get("callbackUrl");
@@ -129,6 +152,7 @@ export async function assertNavDoesNotCollide(page: Page) {
 }
 
 export async function acceptTerms(page: Page) {
+  await dismissCookieBannerIfVisible(page);
   const checkbox = page.getByTestId("terms-accept-checkbox");
   if (await checkbox.count()) {
     await checkbox.click();
@@ -222,6 +246,7 @@ export async function expectLocalSessionCleared(page: Page, email: string) {
 }
 
 export async function loginWithCredentials(page: Page, email: string, password: string) {
+  await primeCookieConsent(page);
   await page.goto("/login");
   if (!page.url().includes("/login")) {
     await logoutFromMenu(page);
@@ -261,10 +286,11 @@ export async function logoutFromMenu(page: Page) {
     await page.context().clearCookies();
     await waitForAuthSessionCleared(page);
   }
-  await expect(page.getByRole("heading", { name: /what.?s for dinner/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /what.?s today.?s baby bite/i })).toBeVisible();
 }
 
 export async function acceptTermsAndOpenSignup(page: Page) {
+  await primeCookieConsent(page);
   await page.goto("/signup");
   await acceptTerms(page);
   await expect(page.getByRole("heading", { name: /create your account/i })).toBeVisible();
@@ -327,5 +353,5 @@ export async function paySimulatedCheckout(page: Page) {
 export async function waitForResults(page: Page) {
   await page.waitForURL(/\/results/, { timeout: 40_000 });
   await expect(page.getByTestId("page-skeleton")).toHaveCount(0, { timeout: 40_000 });
-  await expect(page.getByRole("heading", { name: /what.?s for dinner/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /what.?s today.?s baby bite/i })).toBeVisible();
 }

@@ -15,6 +15,10 @@ import {
   isRazorpayConfigured,
   razorpayPublicKeyId,
 } from "@/lib/razorpay";
+import { logInfo } from "@/lib/logger";
+
+const DEMO_DEDUPE_MS = 90_000;
+const PENDING_ORDER_MS = 15 * 60_000;
 
 export async function POST(request: Request) {
   try {
@@ -35,6 +39,18 @@ export async function POST(request: Request) {
 
     if (!child) {
       return NextResponse.json({ error: "Child profile not found" }, { status: 404 });
+    }
+
+    if (child.hasPaid) {
+      logInfo("payment.already_paid", {
+        userId: session.user.id,
+        childProfileId: child._id.toString(),
+      });
+      return NextResponse.json({
+        mode: isRazorpayConfigured() && !demoCheckoutAllowed() ? "razorpay" : "demo",
+        success: true,
+        alreadyPaid: true,
+      });
     }
 
     const tier = parsed.data.planTier as PlanTier;
@@ -59,6 +75,33 @@ export async function POST(request: Request) {
     const useRazorpay = isRazorpayConfigured() && !demoCheckoutAllowed();
 
     if (useRazorpay) {
+      const existingPending = await Payment.findOne({
+        userId: session.user.id,
+        childProfileId: child._id,
+        status: "pending",
+        createdAt: { $gte: new Date(Date.now() - PENDING_ORDER_MS) },
+      })
+        .sort({ createdAt: -1 })
+        .select("razorpayOrderId finalPrice planName _id");
+
+      if (existingPending?.razorpayOrderId) {
+        const keyId = razorpayPublicKeyId();
+        if (!keyId) {
+          return NextResponse.json({ error: "Razorpay is not configured" }, { status: 503 });
+        }
+        return NextResponse.json({
+          mode: "razorpay",
+          paymentId: existingPending._id.toString(),
+          orderId: existingPending.razorpayOrderId,
+          amount: Math.round(existingPending.finalPrice * 100),
+          currency: "INR",
+          keyId,
+          planName: existingPending.planName,
+          finalPrice: existingPending.finalPrice,
+          reused: true,
+        });
+      }
+
       const payment = await Payment.create({
         userId: session.user.id,
         childProfileId: child._id,
@@ -100,6 +143,32 @@ export async function POST(request: Request) {
         keyId,
         planName: plan.name,
         finalPrice,
+      });
+    }
+
+    const recentDemo = await Payment.findOne({
+      userId: session.user.id,
+      childProfileId: child._id,
+      status: "demo_paid",
+      createdAt: { $gte: new Date(Date.now() - DEMO_DEDUPE_MS) },
+    })
+      .sort({ createdAt: -1 })
+      .select("_id");
+
+    if (recentDemo) {
+      await markCheckoutPaid({
+        userId: session.user.id,
+        childProfileId: child._id,
+        planTier: tier,
+      });
+      return NextResponse.json({
+        mode: "demo",
+        success: true,
+        paymentId: recentDemo._id.toString(),
+        originalPrice,
+        finalPrice,
+        planName: plan.name,
+        deduped: true,
       });
     }
 
