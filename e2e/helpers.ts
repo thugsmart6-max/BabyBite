@@ -321,7 +321,7 @@ export async function paySimulatedCheckout(page: Page) {
   await expect(page).toHaveURL(/\/payment/);
   await page.getByTestId("pay-now").click();
   await expect(page.getByTestId("pay-loader")).toBeVisible();
-  await page.waitForURL(/\/(success|results)/, { timeout: 40_000 });
+  await page.waitForURL(/\/results/, { timeout: 60_000 });
 }
 
 export async function waitForResults(page: Page) {

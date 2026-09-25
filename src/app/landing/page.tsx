@@ -29,12 +29,6 @@ export default function LandingPage() {
         <div className="os-hero-core">
           <p className="os-band-kicker">{t("tonight")}</p>
           <h1 className="os-hero-title">{t("whatsDinner")}</h1>
-          <SiteArt
-            src={LANDING_HERO_DINNER_IMAGE}
-            alt={t("artHeroDinner")}
-            variant="photo"
-            priority
-          />
           <div className="os-band-actions os-hero-actions">
             <Link href="/signup" className="bb-cta">
               {t("makePlan")}
@@ -43,6 +37,12 @@ export default function LandingPage() {
               {t("haveAccount")}
             </Link>
           </div>
+          <SiteArt
+            src={LANDING_HERO_DINNER_IMAGE}
+            alt={t("artHeroDinner")}
+            variant="photo"
+            priority
+          />
         </div>
       </section>
 

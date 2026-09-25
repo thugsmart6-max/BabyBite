@@ -383,6 +383,14 @@ const COPY = {
     eduOnly: "Educational guidance only — not medical advice.",
     writingPlate: "Writing tonight’s plate…",
     lostTitle: "Lost",
+    notFoundLede:
+      "That link is not part of BabyBite. Start a free meal plan for your child or head back to the home page.",
+    cookieTitle: "Cookies on BabyBite",
+    cookieBody:
+      "We use essential cookies and local storage to keep you signed in and remember your language. No ad tracking.",
+    cookieAccept: "Accept",
+    cookieLearn: "Privacy & terms",
+    footerIllustrationAlt: "Mother and child at the table with tonight’s Indian meal plan",
     settingsTitle: "Child & kitchen",
     appearance: "Appearance",
     appearanceHint: "Light or dark",
@@ -840,6 +848,14 @@ const COPY = {
     eduOnly: "கல்வி வழிகாட்டுதல் மட்டும் — மருத்துவ ஆலோசனை அல்ல.",
     writingPlate: "இன்றிரவு தட்டை எழுதுகிறோம்…",
     lostTitle: "காணவில்லை",
+    notFoundLede:
+      "அந்த இணைப்பு BabyBite-ல் இல்லை. உங்கள் குழந்தைக்கு இலவச உணவுத் திட்டம் தொடங்குங்கள் அல்லது முகப்புக்கு திரும்புங்கள்.",
+    cookieTitle: "BabyBite-ல் குக்கீகள்",
+    cookieBody:
+      "நீங்கள் உள்நுழைந்திருக்கவும், மொழியை நினைவில் வைக்கவும் அத்தியாவசிய குக்கீகள் மற்றும் local storage பயன்படுத்துகிறோம். விளம்பர கண்காணிப்பு இல்லை.",
+    cookieAccept: "ஏற்கிறேன்",
+    cookieLearn: "தனியுரிமை மற்றும் விதிமுறைகள்",
+    footerIllustrationAlt: "இன்றிரவு இந்திய உணவுத் திட்டத்துடன் மேசையில் அம்மாவும் குழந்தையும்",
     settingsTitle: "குழந்தை மற்றும் சமையலறை",
     appearance: "தோற்றம்",
     appearanceHint: "வெளிச்சம் அல்லது இருள்",
@@ -1297,6 +1313,14 @@ const COPY = {
     eduOnly: "केवल शैक्षिक मार्गदर्शन — चिकित्सा सलाह नहीं.",
     writingPlate: "आज रात की थाली लिख रहे हैं…",
     lostTitle: "गुम",
+    notFoundLede:
+      "वह लिंक BabyBite का हिस्सा नहीं है. बच्चे के लिए मुफ़्त भोजन योजना शुरू करें या होम पर लौटें.",
+    cookieTitle: "BabyBite पर कुकीज़",
+    cookieBody:
+      "साइन-इन और भाषा याद रखने के लिए ज़रूरी कुकीज़ और local storage उपयोग होते हैं. कोई विज्ञापन ट्रैकिंग नहीं.",
+    cookieAccept: "स्वीकार करें",
+    cookieLearn: "गोपनीयता और नियम",
+    footerIllustrationAlt: "आज रात की भारतीय योजना के साथ मेज़ पर माँ और बच्चा",
     settingsTitle: "बच्चा और रसोई",
     appearance: "दिखावट",
     appearanceHint: "उजाला या अँधेरा",

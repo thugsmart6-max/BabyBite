@@ -15,7 +15,7 @@ export function LandingPlanFooter() {
           <div className="os-plan-footer-blob" aria-hidden />
           <Image
             src="/footer.png"
-            alt=""
+            alt={t("footerIllustrationAlt")}
             width={420}
             height={420}
             className="os-plan-footer-illustration"

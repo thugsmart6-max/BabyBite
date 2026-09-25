@@ -28,10 +28,12 @@ export function AuthShell({
   children,
   title,
   subtitle,
+  illustrationAlt,
 }: {
   children: React.ReactNode;
   title: string;
   subtitle: string;
+  illustrationAlt: string;
 }) {
   return (
     <BbCanvas full className="os-auth">
@@ -42,7 +44,7 @@ export function AuthShell({
           {children}
         </div>
         <div className="os-auth-pack" aria-hidden>
-          <SiteArt src="/art-tiffin.png" alt="" variant="tiffin" />
+          <SiteArt src="/art-tiffin.png" alt={illustrationAlt} variant="tiffin" />
         </div>
       </section>
     </BbCanvas>

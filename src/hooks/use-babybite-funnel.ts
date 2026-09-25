@@ -11,24 +11,72 @@ import {
 import { translateApiError } from "@/lib/api-error-i18n";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { ensureSessionReflectsPaid } from "@/lib/client-sync-paid-session";
+import { readCurrentLocalUser } from "@/lib/local-user-store";
 
 type FunnelOptions = {
   redirectIfPaid?: boolean;
+  redirectIfUnauthed?: string;
+  redirectIfNoChild?: string;
 };
 
-export function useBabyBiteProfile() {
+export function useBabyBiteProfile(options: FunnelOptions = {}) {
   const { lang } = useMotherLocale();
+  const router = useRouter();
+  const { data: session, status, update } = useSession();
   const [data, setData] = useState<BabyBiteProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const {
+    redirectIfPaid = false,
+    redirectIfUnauthed,
+    redirectIfNoChild,
+  } = options;
+
   useEffect(() => {
+    if (status === "loading") return;
+
+    if (status === "unauthenticated") {
+      setLoading(false);
+      if (redirectIfUnauthed) {
+        router.replace(redirectIfUnauthed);
+      }
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+
     fetchBabyBiteProfile()
-      .then((profile) => {
+      .then(async (profile) => {
+        if (cancelled) return;
+
+        const childPaid =
+          Boolean(profile.child?.hasPaid) || Boolean(readCurrentLocalUser()?.hasPaid);
+
+        if (childPaid) {
+          await ensureSessionReflectsPaid(
+            update,
+            true,
+            Boolean(session?.user?.hasPaid)
+          );
+        }
+
+        if (redirectIfPaid && childPaid) {
+          router.replace("/results");
+          return;
+        }
+
+        if (redirectIfNoChild && !profile.child?.id) {
+          router.replace(redirectIfNoChild);
+          return;
+        }
+
         setData(profile);
         setError(null);
       })
       .catch((err) => {
+        if (cancelled) return;
         setError(
           translateApiError(
             lang,
@@ -36,36 +84,39 @@ export function useBabyBiteProfile() {
           )
         );
       })
-      .finally(() => setLoading(false));
-  }, [lang]);
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    lang,
+    redirectIfNoChild,
+    redirectIfPaid,
+    redirectIfUnauthed,
+    router,
+    session?.user?.hasPaid,
+    status,
+    update,
+  ]);
+
+  const childPaid =
+    Boolean(data?.child?.hasPaid) || Boolean(readCurrentLocalUser()?.hasPaid);
 
   return {
     data,
-    loading,
+    loading: loading || status === "loading",
     error,
+    sessionStatus: status,
     childId: data?.child?.id ?? null,
+    childHasPaid: childPaid,
     paymentOffer: data?.paymentOffer ?? null,
   };
 }
 
+/** @deprecated Use useBabyBiteProfile({ redirectIfPaid: true }) */
 export function useBabyBiteFunnel(options: FunnelOptions = {}) {
-  const router = useRouter();
-  const { data: session, update } = useSession();
-  const { redirectIfPaid = false } = options;
-
-  useEffect(() => {
-    fetchBabyBiteProfile()
-      .then(async (json) => {
-        if (!redirectIfPaid || !json.child?.hasPaid) return;
-        await ensureSessionReflectsPaid(
-          update,
-          true,
-          Boolean(session?.user?.hasPaid)
-        );
-        router.replace("/results");
-      })
-      .catch(() => {
-        /* proxy + page-level error UI handle auth failures */
-      });
-  }, [router, redirectIfPaid, session?.user?.hasPaid, update]);
+  useBabyBiteProfile({ redirectIfPaid: options.redirectIfPaid ?? false });
 }

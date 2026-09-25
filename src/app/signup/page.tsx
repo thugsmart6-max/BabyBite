@@ -114,7 +114,11 @@ function SignupForm() {
 
   if (!credentialsUi) {
     return (
-      <AuthShell title={t("createAccount")} subtitle={t("authNote")}>
+      <AuthShell
+        title={t("createAccount")}
+        subtitle={t("authNote")}
+        illustrationAlt={t("artTiffin")}
+      >
         <p className="text-xs text-muted-foreground border border-border p-3 mb-6 leading-relaxed">
           {t("acceptedTermsNote")}
         </p>
@@ -152,7 +156,11 @@ function SignupForm() {
   }
 
   return (
-    <AuthShell title={t("createAccount")} subtitle={t("authNote")}>
+    <AuthShell
+      title={t("createAccount")}
+      subtitle={t("authNote")}
+      illustrationAlt={t("artTiffin")}
+    >
       <p className="text-xs text-muted-foreground border border-border p-3 mb-6 leading-relaxed">
         {t("acceptedTermsNote")}
       </p>

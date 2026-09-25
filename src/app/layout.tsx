@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Fraunces, Nunito_Sans, Outfit } from "next/font/google";
 import { Providers } from "@/components/providers/providers";
+import { siteOrigin } from "@/lib/page-meta";
 import "./globals.css";
 import "./landing/landing.css";
 
@@ -33,6 +34,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteOrigin()),
   title: {
     default: "BabyBite — Indian Meal Plans for Mothers of Kids 4–12",
     template: "%s | BabyBite",

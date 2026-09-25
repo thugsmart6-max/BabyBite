@@ -6,6 +6,7 @@ import { LocaleProvider } from "@/components/providers/locale-provider";
 import { LocalUserSync } from "@/components/providers/local-user-sync";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { CookieConsentBanner } from "@/components/shared/cookie-consent-banner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -15,6 +16,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <LocaleProvider>
           <TooltipProvider>
             {children}
+            <CookieConsentBanner />
             <Toaster position="top-center" richColors closeButton />
           </TooltipProvider>
         </LocaleProvider>

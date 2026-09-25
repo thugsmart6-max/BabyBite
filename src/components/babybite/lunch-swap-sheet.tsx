@@ -102,7 +102,13 @@ function LunchSwapSheetDialog({
           </h3>
           <div className="os-box-lunch-current-card">
             <div className="os-box-lunch-art" aria-hidden>
-              <Image src="/art-tiffins.png" alt="" width={280} height={160} className="os-box-lunch-art-img" />
+              <Image
+                src="/art-tiffins.png"
+                alt={t("artTiffins")}
+                width={280}
+                height={160}
+                className="os-box-lunch-art-img"
+              />
             </div>
             <div className="os-box-lunch-current-copy">
               <p className="os-packable-kicker">{t("packableBadge")}</p>
@@ -141,7 +147,13 @@ function LunchSwapSheetDialog({
                     onClick={() => pick(meal)}
                   >
                     <div className="os-box-lunch-option-art" aria-hidden>
-                      <Image src="/art-tiffins.png" alt="" width={200} height={120} className="os-box-lunch-art-img" />
+                      <Image
+                        src="/art-tiffins.png"
+                        alt={t("artTiffins")}
+                        width={200}
+                        height={120}
+                        className="os-box-lunch-art-img"
+                      />
                     </div>
                     <span className="os-packable-kicker">{t("packableBadge")}</span>
                     <span className="os-box-lunch-option-name">{translateKitchen(lang, meal.name)}</span>

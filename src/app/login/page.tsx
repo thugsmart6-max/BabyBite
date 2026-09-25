@@ -19,6 +19,7 @@ import { rememberLocalUser } from "@/lib/local-user-store";
 import { KitchenSkeletonScreen } from "@/components/babybite/page-skeleton";
 import { GoogleMark } from "@/components/shared/google-mark";
 import { followAuthRedirect } from "@/lib/client-auth-url";
+import { clientAuthCallbackPath } from "@/lib/app-url";
 import { showCredentialsAuthUi } from "@/lib/auth-credentials-flag";
 
 export default function LoginPage() {
@@ -32,7 +33,9 @@ export default function LoginPage() {
 function LoginForm() {
   const { t } = useMotherLocale();
   const searchParams = useSearchParams();
-  const callbackUrl = safeInternalPath(searchParams.get("callbackUrl"));
+  const callbackUrl = safeInternalPath(
+    searchParams.get("callbackUrl") ?? clientAuthCallbackPath("/")
+  );
   const oauthError = searchParams.get("error");
   const credentialsUi = showCredentialsAuthUi();
   const [showPassword, setShowPassword] = useState(false);
@@ -80,7 +83,11 @@ function LoginForm() {
   };
 
   return (
-    <AuthShell title={t("welcomeBack")} subtitle={t("authNote")}>
+    <AuthShell
+      title={t("welcomeBack")}
+      subtitle={t("authNote")}
+      illustrationAlt={t("artTiffin")}
+    >
       <Button
         type="button"
         variant="outline"

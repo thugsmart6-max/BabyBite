@@ -1,27 +1,13 @@
-"use client";
+import { buildPageMetadata } from "@/lib/page-meta";
+import { NotFoundScreen } from "@/components/shared/not-found-screen";
 
-import Link from "next/link";
-import { BbCanvas } from "@/components/babybite/bb-canvas";
-import { MealPack } from "@/components/babybite/oats-brand";
-import { useMotherLocale } from "@/components/providers/locale-provider";
+export const metadata = buildPageMetadata({
+  title: "Page not found",
+  description: "This BabyBite page is not on the table. Start a meal plan for your child or return home.",
+  path: "/404",
+  noIndex: true,
+});
 
 export default function NotFound() {
-  const { t } = useMotherLocale();
-  return (
-    <BbCanvas full>
-      <section className="os-results-hero os-results-empty">
-        <p className="os-band-kicker">{t("lostTitle")}</p>
-        <h1 className="os-hero-title">{t("pageMissing")}</h1>
-        <MealPack name={t("lostTitle")} slot="404" tone="yellow" size="lg" note={t("dinnerThatWay")} lift={false} />
-        <div className="os-band-actions os-hero-actions">
-          <Link href="/landing" className="bb-cta">
-            {t("goHome")}
-          </Link>
-          <Link href="/results" className="os-text-link">
-            {t("myPlan")}
-          </Link>
-        </div>
-      </section>
-    </BbCanvas>
-  );
+  return <NotFoundScreen />;
 }

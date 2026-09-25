@@ -137,7 +137,11 @@ export function FeatherTopbar({
   });
   const ctaBase = cta?.href.split("?")[0] ?? "";
   const onFunnelStep = cta ? pathStartsWith(pathname, ctaBase) : true;
-  const showFunnelReroute = Boolean(cta && !onFunnelStep && onAppPage);
+  const funnelStepPage = ["/onboarding", "/payment", "/results", "/success"].some((path) =>
+    pathStartsWith(pathname, path)
+  );
+  const showNavCta = Boolean(cta && !funnelStepPage);
+  const showFunnelReroute = Boolean(cta && !onFunnelStep && onAppPage && !funnelStepPage);
 
   const logout = async () => {
     setMenuOpen(false);
@@ -160,7 +164,7 @@ export function FeatherTopbar({
         >
           {menuOpen ? <X strokeWidth={2.4} /> : <Menu strokeWidth={2.4} />}
         </button>
-        {cta ? (
+        {showNavCta && cta ? (
           <Link href={cta.href} className="bb-cta">
             {translateCta(lang, cta.label)}
           </Link>

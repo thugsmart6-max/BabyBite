@@ -7,9 +7,8 @@ import { toast } from "sonner";
 import { ensureSessionReflectsPaid } from "@/lib/client-sync-paid-session";
 import { BbCanvas } from "@/components/babybite/bb-canvas";
 import { KitchenSkeleton } from "@/components/babybite/page-skeleton";
-import { SiteArt } from "@/components/babybite/oats-brand";
 import { fetchBabyBiteProfile } from "@/lib/babybite-client";
-import { celebrateMilestone } from "@/lib/utils/confetti";
+import { readCurrentLocalUser } from "@/lib/local-user-store";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 
 export default function SuccessPage() {
@@ -17,11 +16,6 @@ export default function SuccessPage() {
   const { data: session, update } = useSession();
   const { t } = useMotherLocale();
   const [error, setError] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    celebrateMilestone();
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,7 +29,10 @@ export default function SuccessPage() {
           return;
         }
 
-        if (!profile.child.hasPaid) {
+        const paid =
+          Boolean(profile.child.hasPaid) || Boolean(readCurrentLocalUser()?.hasPaid);
+
+        if (!paid) {
           toast.error(t("finishStep"));
           router.replace("/payment?reason=payment_required");
           return;
@@ -47,36 +44,29 @@ export default function SuccessPage() {
           Boolean(session?.user?.hasPaid)
         );
 
-        try {
-          const res = await fetch("/api/babybite/plans", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ childProfileId: profile.child.id }),
-          });
-          const json = await res.json();
+        const res = await fetch("/api/babybite/plans", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ childProfileId: profile.child.id }),
+        });
+        const json = await res.json();
 
-          if (cancelled) return;
+        if (cancelled) return;
 
-          if (res.status === 402) {
-            toast.error(t("finishStep"));
-            router.replace("/payment?reason=payment_required");
-            return;
-          }
-
-          if (!res.ok) {
-            setError(json.error ?? t("failedPlan"));
-            return;
-          }
-
-          setReady(true);
-        } catch {
-          if (!cancelled) setError(t("couldNotLoad"));
+        if (res.status === 402) {
+          router.replace("/payment?reason=payment_required");
+          return;
         }
+
+        if (!res.ok) {
+          setError(json.error ?? t("failedPlan"));
+          return;
+        }
+
+        router.replace("/results");
       })
       .catch(() => {
-        if (!cancelled) {
-          setError(t("signInFirst"));
-        }
+        if (!cancelled) setError(t("signInFirst"));
       });
 
     return () => {
@@ -84,18 +74,10 @@ export default function SuccessPage() {
     };
   }, [router, session?.user?.hasPaid, t, update]);
 
-  useEffect(() => {
-    if (!ready) return;
-    const timer = window.setTimeout(() => router.push("/results"), 4200);
-    return () => window.clearTimeout(timer);
-  }, [ready, router]);
-
   if (error) {
     return (
       <BbCanvas full>
         <section className="os-results-hero os-results-empty">
-          <p className="os-band-kicker">{t("tonight")}</p>
-          <h1 className="os-hero-title">{t("couldNotLoad")}</h1>
           <p className="os-onboard-lede">{error}</p>
           <button type="button" className="bb-cta" onClick={() => router.push("/payment")}>
             {t("back")}
@@ -105,25 +87,9 @@ export default function SuccessPage() {
     );
   }
 
-  if (!ready) {
-    return (
-      <BbCanvas full>
-        <KitchenSkeleton note={t("successWriting")} />
-      </BbCanvas>
-    );
-  }
-
   return (
-    <BbCanvas full className="os-results">
-      <section className="os-results-hero">
-        <p className="os-band-kicker">{t("successKicker")}</p>
-        <h1 className="os-hero-title">{t("successTitle")}</h1>
-        <SiteArt src="/art-tiffin.png" alt={t("artTiffin")} variant="tiffin" priority />
-        <p className="os-onboard-lede">{t("successBody")}</p>
-        <button type="button" className="bb-cta" onClick={() => router.push("/results")}>
-          {t("openTonight")}
-        </button>
-      </section>
+    <BbCanvas full>
+      <KitchenSkeleton note={t("successWriting")} />
     </BbCanvas>
   );
 }

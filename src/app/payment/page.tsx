@@ -8,7 +8,7 @@ import { BbCanvas } from "@/components/babybite/bb-canvas";
 import { SiteArt } from "@/components/babybite/oats-brand";
 import { KitchenSkeleton } from "@/components/babybite/page-skeleton";
 import { LoaderFive, LoaderOne } from "@/components/ui/loader";
-import { useBabyBiteFunnel, useBabyBiteProfile } from "@/hooks/use-babybite-funnel";
+import { useBabyBiteProfile } from "@/hooks/use-babybite-funnel";
 import { formatRupee } from "@/lib/babybite-pricing";
 import {
   formatOfferTimeRemaining,
@@ -20,23 +20,23 @@ import { toast } from "sonner";
 import { ErrorState } from "@/components/shared/error-state";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 
-const PROCESS_MS = 1800;
-const DONE_MS = 900;
-
-function pause(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
 export default function PaymentPage() {
   const { t, lang } = useMotherLocale();
   const router = useRouter();
   const { update } = useSession();
   const [phase, setPhase] = useState<"idle" | "processing" | "done">("idle");
   const [tick, setTick] = useState(0);
-  const { childId, loading: profileLoading, error: profileError, paymentOffer } =
-    useBabyBiteProfile();
-
-  useBabyBiteFunnel({ redirectIfPaid: true });
+  const {
+    childId,
+    loading: profileLoading,
+    error: profileError,
+    paymentOffer,
+    sessionStatus,
+  } = useBabyBiteProfile({
+    redirectIfPaid: true,
+    redirectIfUnauthed: "/login?callbackUrl=/payment",
+    redirectIfNoChild: "/onboarding",
+  });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -65,12 +65,11 @@ export default function PaymentPage() {
 
   const buyPdfAccess = async () => {
     if (!childId) {
-      toast.error(t("signInFirst"));
-      router.push("/login?callbackUrl=/payment");
+      toast.error(t("finishStep"));
+      router.replace("/onboarding");
       return;
     }
     setPhase("processing");
-    const started = Date.now();
     try {
       const res = await fetch("/api/babybite/payment", {
         method: "POST",
@@ -82,20 +81,29 @@ export default function PaymentPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? t("couldNotLoad"));
-      const wait = PROCESS_MS - (Date.now() - started);
-      if (wait > 0) await pause(wait);
-      setPhase("done");
-      await pause(DONE_MS);
+
       patchCurrentLocalUser({ hasPaid: true });
       await update({ hasPaid: true });
-      window.location.assign("/success");
+
+      const planRes = await fetch("/api/babybite/plans", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ childProfileId: childId, regenerate: true }),
+      });
+      const planJson = await planRes.json();
+      if (!planRes.ok || !planJson.plan) {
+        throw new Error(planJson.error ?? t("failedPlan"));
+      }
+
+      setPhase("done");
+      window.location.assign("/results");
     } catch (e) {
       setPhase("idle");
       toast.error(e instanceof Error ? e.message : t("couldNotLoad"));
     }
   };
 
-  if (profileLoading) {
+  if (profileLoading || sessionStatus === "loading") {
     return (
       <BbCanvas full>
         <KitchenSkeleton />
@@ -157,8 +165,8 @@ export default function PaymentPage() {
           <p className="os-compare-note">{t("trustLine")}</p>
 
           {profileError ? <ErrorState message={profileError} /> : null}
-          {!childId ? (
-            <Link href="/login?callbackUrl=/payment" className="bb-cta">
+          {sessionStatus === "unauthenticated" ? (
+            <Link href="/login?callbackUrl=/payment" className="bb-cta" data-testid="pay-sign-in">
               {t("signIn")}
             </Link>
           ) : (
@@ -167,7 +175,7 @@ export default function PaymentPage() {
               className="bb-cta"
               data-testid="pay-now"
               onClick={buyPdfAccess}
-              disabled={busy}
+              disabled={busy || !childId}
               aria-busy={busy}
             >
               {busy ? t("paying") : `${formatRupee(offer.finalPrice)} · ${t("payNowShort")}`}

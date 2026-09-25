@@ -31,6 +31,15 @@ const FOCUS_KEY: Record<ReturnType<typeof getMealFocus>, MotherCopyKey> = {
 
 const SLOT_ORDER: MealSlot[] = ["breakfast", "morningSnack", "lunch", "eveningSnack", "dinner"];
 
+function MealSlotWord({ slot, packable }: { slot: MealSlot; packable?: boolean }) {
+  const { lang } = useMotherLocale();
+  return (
+    <span className={cn("os-meal-slot-word", `is-${slot}`)}>
+      {mealSlotCopy(lang, slot, { packable })}
+    </span>
+  );
+}
+
 type KitchenBrowseTone = "sage" | "yellow" | "pink" | "sky" | "cocoa" | "forest" | "cream" | "saffron";
 
 type KitchenBrowseOption = {
@@ -327,7 +336,9 @@ function KitchenBrowse({
             {meals.map((meal) => (
               <article key={`${active}-${meal.name}`} className="os-kitchen-card">
                 {!byProblem ? (
-                  <p className="os-band-kicker">{mealSlotCopy(lang, meal.slot)}</p>
+                  <p className="os-meal-slot-line">
+                    <MealSlotWord slot={meal.slot} />
+                  </p>
                 ) : null}
                 <h4 className="os-kitchen-card-title">{translateKitchen(lang, meal.name)}</h4>
                 <p>{translateKitchen(lang, meal.description)}</p>
@@ -413,8 +424,8 @@ function MonthBoard({
             </button>
             {open ? (
               <div className="os-month-expand">
-                <p className="os-band-kicker">
-                  {day.date} · {mealSlotCopy(lang, "lunch")}
+                <p className="os-meal-slot-line">
+                  {day.date} · <MealSlotWord slot="lunch" packable={packableLunchLabels} />
                 </p>
                 <DayMeals day={day} detailed packableLunchLabels={packableLunchLabels} />
               </div>
@@ -473,8 +484,11 @@ function DayMeals({
               meal.slot === "lunch" && packableLunchLabels && "is-packable-lunch-row",
             )}
           >
-            <p className="os-band-kicker">
-              {mealSlotCopy(lang, meal.slot, { packable: packableLunchLabels && meal.slot === "lunch" })}
+            <p className="os-meal-slot-line">
+              <MealSlotWord
+                slot={meal.slot}
+                packable={packableLunchLabels && meal.slot === "lunch"}
+              />
             </p>
             <h3>{translateKitchen(lang, meal.name)}</h3>
             <span className={cn("os-focus-chip", `is-${focus.toLowerCase()}`)}>{t(FOCUS_KEY[focus])}</span>

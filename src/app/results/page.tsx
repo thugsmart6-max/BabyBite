@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { signOutToLanding } from "@/lib/client-sign-out";
@@ -25,7 +25,7 @@ import { applyLunchOverrides } from "@/lib/plan-lunch-overrides";
 import { useMotherLocale } from "@/components/providers/locale-provider";
 import { checklistSummaryLocalized } from "@/lib/checklist-i18n";
 import type { MotherCopyKey } from "@/lib/mother-copy";
-import { endLocalSession } from "@/lib/local-user-store";
+import { endLocalSession, readCurrentLocalUser } from "@/lib/local-user-store";
 import { ensureSessionReflectsPaid } from "@/lib/client-sync-paid-session";
 
 type Tab = ResultsRoom;
@@ -49,7 +49,9 @@ export default function ResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const [lunchOverrides, setLunchOverrides] = useState<Record<string, string>>({});
   const [childProfileId, setChildProfileId] = useState<string | undefined>();
+  const [childHasPaid, setChildHasPaid] = useState(false);
   const [children, setChildren] = useState<BabyBiteChildSummary[]>([]);
+  const paidSessionSynced = useRef(false);
   const [childGrowth, setChildGrowth] = useState<{
     ageYears: number;
     heightCm?: number;
@@ -81,6 +83,9 @@ export default function ResultsPage() {
         : true
     );
     setChildren(profile.children ?? (profile.child ? [profile.child] : []));
+    setChildHasPaid(
+      Boolean(profile.child?.hasPaid) || Boolean(readCurrentLocalUser()?.hasPaid)
+    );
     if (profile.child) {
       setChildGrowth({
         ageYears: profile.child.ageYears,
@@ -94,11 +99,12 @@ export default function ResultsPage() {
 
   const loadPlanData = useCallback(async () => {
     const profile = await fetchBabyBiteProfile();
-    await ensureSessionReflectsPaid(
-      update,
-      Boolean(profile.child?.hasPaid),
-      Boolean(session?.user?.hasPaid)
-    );
+    const paidFlag =
+      Boolean(profile.child?.hasPaid) || Boolean(readCurrentLocalUser()?.hasPaid);
+    if (paidFlag && !paidSessionSynced.current) {
+      paidSessionSynced.current = true;
+      await ensureSessionReflectsPaid(update, true, Boolean(session?.user?.hasPaid));
+    }
     const childId = profile.child?.id;
     const headers = { "Content-Type": "application/json" };
     const plansUrl = childId
@@ -108,7 +114,7 @@ export default function ResultsPage() {
     const loaded = await fetch(plansUrl, { cache: "no-store" });
     let plansJson: { plan?: GeneratedMealPlan; error?: string; engineVersion?: number } = await loaded.json();
 
-    const paid = Boolean(childId && profile.child?.hasPaid);
+    const paid = Boolean(childId && paidFlag);
     if (paid && !plansJson.plan) {
       const rebuilt = await fetch("/api/babybite/plans", {
         method: "POST",
@@ -221,6 +227,18 @@ export default function ResultsPage() {
   }
 
   if (!plan || !viewPlan) {
+    if (childHasPaid) {
+      return (
+        <BbCanvas full className="os-results">
+          <section className="os-results-empty">
+            <KitchenSkeleton note={t("writingDinner")} />
+            <button type="button" className="bb-cta" onClick={retry}>
+              {t("tryAgain")}
+            </button>
+          </section>
+        </BbCanvas>
+      );
+    }
     return (
       <BbCanvas full className="os-results">
         <section className="os-results-hero os-results-empty">
@@ -229,6 +247,9 @@ export default function ResultsPage() {
           <p className="os-onboard-lede">{t("bandBody")}</p>
           <Link href="/payment" className="bb-cta">
             {t("showThirty")}
+          </Link>
+          <Link href="/login?callbackUrl=/results" className="os-text-link">
+            {t("signIn")}
           </Link>
         </section>
       </BbCanvas>
